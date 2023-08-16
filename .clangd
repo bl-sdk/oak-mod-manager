@@ -1,0 +1,17 @@
+If:
+    PathMatch: src/pch.h
+CompileFlags:
+    # Treat the pch as c++
+    Add: [-xc++]
+---
+# Suppress errors from outside the project
+If:
+    PathExclude: (src|libs/unrealsdk/src)/.*
+Diagnostics:
+    Suppress: '*'
+---
+# Suppress "expected expression" errors caused by variable substitutions
+If:
+    PathMatch: src/.*\.in
+Diagnostics:
+    Suppress: expected_expression

@@ -1,0 +1,12 @@
+[files]
+extend-exclude = [
+    "libs/fmt",
+    "libs/minhook",
+    "libs/pybind11",
+    "libs/unrealsdk/libs",
+    "LICENSE",
+    ".typos.toml"
+]
+
+[default.extend-words]
+UE = "UE"
