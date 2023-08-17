@@ -2,7 +2,13 @@ import importlib
 import traceback
 from pathlib import Path
 
+import unrealsdk
+
 _full_traceback = False
+
+
+while not unrealsdk.logging.is_console_ready():
+    pass
 
 for folder in Path(__file__).parent.iterdir():
     if not folder.is_dir():

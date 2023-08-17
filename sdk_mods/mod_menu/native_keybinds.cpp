@@ -95,7 +95,7 @@ uintptr_t menuinput_hook(void* self, FKey* key, EInputEvent input_event, uint32_
 
 #pragma endregion
 
-// It's safe to call sdk functions statically because everything must already have been initalized
+// It's safe to call sdk functions statically because everything must already have been initialized
 // for us to get loaded
 auto key_struct_type =
     validate_type<UScriptStruct>(unrealsdk::find_object(L"ScriptStruct", L"/Script/InputCore.Key"));

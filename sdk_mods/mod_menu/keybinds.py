@@ -18,17 +18,29 @@ if TYPE_CHECKING:
 else:
     EInputEvent = find_enum("EInputEvent")
 
-KeybindBlockSignal: TypeAlias = None | Block | type[Block]
-KeybindCallback = Callable[[], KeybindBlockSignal] | Callable[[EInputEvent], KeybindBlockSignal]
-
 __all__: tuple[str, ...] = (
     "Keybind",
     "all_gameplay_keybinds",
 )
 
+KeybindBlockSignal: TypeAlias = None | Block | type[Block]
+KeybindCallback = Callable[[], KeybindBlockSignal] | Callable[[EInputEvent], KeybindBlockSignal]
+
 
 @dataclass
 class Keybind:
+    """
+    Represents a single keybind.
+
+    Attributes:
+        name: The name to use in the keybinds menu
+        key: The bound key, or None if unbound. Updated on rebind.
+        is_rebindable: If the key may be rebound.
+        is_hidden: If the key displays in the keybinds menu.
+        callback: The callback to run when the key is pressed.
+        default_key: What the key was originally when registered. Does not change on rebind.
+    """
+
     name: str
     key: str | None = None
     is_rebindable: bool = True
@@ -62,11 +74,36 @@ class Keybind:
         return self
 
 
+def run_callback(callback: KeybindCallback, event: EInputEvent) -> KeybindBlockSignal:
+    """
+    Runs a keybind callback for the given event, if applicable.
+
+    If the keybind callback has no args, only runs it on pressed events, and returns None otherwise.
+    If it takes args, always calls it, passing the event.
+
+    Args:
+        callback: The callback to run.
+        event: The event to run the callback for.
+    Returns:
+        The callback's result.
+    """
+    argless_callback: Callable[[], KeybindBlockSignal]
+    if len(inspect.signature(callback).parameters) == 0:
+        if event != EInputEvent.IE_Pressed:
+            return None
+
+        argless_callback = callback  # type: ignore  # noqa: PGH003
+    else:
+        argless_callback = functools.partial(callback, event)
+
+    return argless_callback()
+
+
 # TEMPORARY: will need to rework based on mod list
 all_gameplay_keybinds: list[Keybind] = []
 
 
-def gameplay_keybind_callback(key: str, event: EInputEvent) -> None | Block | type[Block]:
+def gameplay_keybind_callback(key: str, event: EInputEvent) -> KeybindBlockSignal:
     """Gameplay keybind handler."""
 
     ret: KeybindBlockSignal = None
@@ -76,17 +113,8 @@ def gameplay_keybind_callback(key: str, event: EInputEvent) -> None | Block | ty
         if bind.key != key:
             continue
 
-        callback: Callable[[], KeybindBlockSignal]
-        if len(inspect.signature(bind.callback).parameters) == 0:
-            if event != EInputEvent.IE_Pressed:
-                continue
-
-            callback = bind.callback  # type: ignore  # noqa: PGH003
-        else:
-            callback = functools.partial(bind.callback, event)
-
         # Need to put ret on the RHS to avoid short circuits
-        ret = callback() or ret
+        ret = run_callback(bind.callback, event) or ret
     return ret
 
 
