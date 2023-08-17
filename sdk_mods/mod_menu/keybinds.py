@@ -18,10 +18,7 @@ if TYPE_CHECKING:
 else:
     EInputEvent = find_enum("EInputEvent")
 
-__all__: tuple[str, ...] = (
-    "Keybind",
-    "all_gameplay_keybinds",
-)
+__all__: tuple[str, ...] = ("Keybind",)
 
 KeybindBlockSignal: TypeAlias = None | Block | type[Block]
 KeybindCallback = Callable[[], KeybindBlockSignal] | Callable[[EInputEvent], KeybindBlockSignal]
@@ -99,22 +96,23 @@ def run_callback(callback: KeybindCallback, event: EInputEvent) -> KeybindBlockS
     return argless_callback()
 
 
-# TEMPORARY: will need to rework based on mod list
-all_gameplay_keybinds: list[Keybind] = []
+# Must import after defining keybind to avoid circular import
+from .mod import mod_list  # noqa: E402
 
 
 def gameplay_keybind_callback(key: str, event: EInputEvent) -> KeybindBlockSignal:
     """Gameplay keybind handler."""
 
     ret: KeybindBlockSignal = None
-    for bind in all_gameplay_keybinds:
-        if bind.callback is None:
-            continue
-        if bind.key != key:
-            continue
+    for mod in mod_list:
+        for bind in mod.keybinds:
+            if bind.callback is None:
+                continue
+            if bind.key != key:
+                continue
 
-        # Need to put ret on the RHS to avoid short circuits
-        ret = run_callback(bind.callback, event) or ret
+            # Need to put ret on the RHS to avoid short circuits
+            ret = run_callback(bind.callback, event) or ret
     return ret
 
 
