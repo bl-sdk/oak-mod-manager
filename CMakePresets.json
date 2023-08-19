@@ -1,0 +1,142 @@
+﻿{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "_base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/sdk_mods/mod_menu/",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "UNREALSDK_ARCH": "x64",
+        "UNREALSDK_UE_VERSION": "UE4"
+      }
+    },
+    {
+      "name": "_clang_x64",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "$env{VSINSTALLDIR}",
+        "rhs": ""
+      },
+      "generator": "Ninja",
+      "toolchainFile": "pyunrealsdk/common_cmake/clang-x64.cmake"
+    },
+    {
+      "name": "_clang_cross_x64",
+      "hidden": true,
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "toolchainFile": "pyunrealsdk/common_cmake/clang-cross-x64.cmake"
+    },
+    {
+      "name": "_mingw_x64",
+      "hidden": true,
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "toolchainFile": "pyunrealsdk/common_cmake/x86_64-w64-mingw32.cmake"
+    },
+    {
+      "name": "_msvc",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl.exe",
+        "CMAKE_CXX_COMPILER": "cl.exe"
+      }
+    },
+    {
+      "name": "_debug",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "_release",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "clang-debug",
+      "inherits": [
+        "_base",
+        "_clang_x64",
+        "_debug"
+      ]
+    },
+    {
+      "name": "clang-release",
+      "inherits": [
+        "_base",
+        "_clang_x64",
+        "_release"
+      ]
+    },
+    {
+      "name": "clang-cross-debug",
+      "inherits": [
+        "_base",
+        "_clang_cross_x64",
+        "_debug"
+      ]
+    },
+    {
+      "name": "clang-cross-release",
+      "inherits": [
+        "_base",
+        "_clang_cross_x64",
+        "_release"
+      ]
+    },
+    {
+      "name": "mingw-debug",
+      "inherits": [
+        "_base",
+        "_mingw_x64",
+        "_debug"
+      ]
+    },
+    {
+      "name": "mingw-release",
+      "inherits": [
+        "_base",
+        "_mingw_x64",
+        "_release"
+      ]
+    },
+    {
+      "name": "msvc-debug",
+      "inherits": [
+        "_base",
+        "_msvc",
+        "_debug"
+      ]
+    },
+    {
+      "name": "msvc-release",
+      "inherits": [
+        "_base",
+        "_msvc",
+        "_release"
+      ]
+    }
+  ]
+}

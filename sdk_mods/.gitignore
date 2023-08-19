@@ -2,3 +2,5 @@
 !mod_menu
 !__main__.py
 !.gitignore
+
+*.pyd
