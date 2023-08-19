@@ -9,3 +9,10 @@ __all__: tuple[str, ...] = (
     "Mod",
     "register_mod",
 )
+
+try:
+    from . import native_menu  # noqa: F401  # pyright: ignore[reportUnusedImport]
+except Exception:  # noqa: BLE001
+    import traceback
+
+    traceback.print_exc()

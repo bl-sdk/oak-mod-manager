@@ -19,7 +19,7 @@ for folder in Path(__file__).parent.iterdir():
 
     try:
         importlib.import_module(folder.name)
-    except Exception as ex:  # noqa: BLE001, PERF203
+    except Exception as ex:  # noqa: BLE001
         print(f"Failed to import mod: {folder.name}")
 
         tb = traceback.extract_tb(ex.__traceback__)
