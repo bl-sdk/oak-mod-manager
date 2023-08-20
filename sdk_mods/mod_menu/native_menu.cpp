@@ -1,4 +1,5 @@
 #include "pyunrealsdk/pch.h"
+#include "pyunrealsdk/logging.h"
 #include "unrealsdk/hook_manager.h"
 #include "unrealsdk/memory.h"
 #include "unrealsdk/unreal/classes/properties/uobjectproperty.h"
@@ -10,14 +11,12 @@
 using namespace unrealsdk::unreal;
 using namespace unrealsdk::memory;
 
-UObject* mods_menu_button = nullptr;
-
-#pragma region UGFxMainAndPauseBaseMenu::AddMenuItem hook
+#pragma region UGFxMainAndPauseBaseMenu::AddMenuItem
 
 using add_menu_item_func =
-    UObject* (*)(void* self, FText* text, FName callback, bool big, int32_t always_minus_one);
+    int32_t(UObject* self, FText* text, FName callback_name, bool big, int32_t always_minus_one);
 
-add_menu_item_func add_menu_item_ptr;
+add_menu_item_func* add_menu_item_ptr;
 
 const constinit Pattern<40> ADD_MENU_ITEM_PATTERN{
     "48 89 54 24 ??"        // mov [rsp+10], rdx
@@ -35,49 +34,136 @@ const constinit Pattern<40> ADD_MENU_ITEM_PATTERN{
 
 };
 
-UObject* add_menu_item_hook(void* self,
-                            FText* text,
-                            FName callback,
-                            bool big,
-                            int32_t always_minus_one) {
+int32_t noop_add_menu_item_callback(UObject* self,
+                                    FText* text,
+                                    FName callback_name,
+                                    bool big,
+                                    int32_t always_minus_one) {
+    return add_menu_item_ptr(self, text, callback_name, big, always_minus_one);
+}
+
+std::function<add_menu_item_func> add_menu_item_callback = noop_add_menu_item_callback;
+
+int32_t add_menu_item_hook(UObject* self,
+                           FText* text,
+                           FName callback_name,
+                           bool big,
+                           int32_t always_minus_one) {
     if (always_minus_one != -1) {
         LOG(DEV_WARNING,
             "UGFxMainAndPauseBaseMenu::AddMenuItem::always_minus_one was not -1 when called with "
             "'{}' '{}' {}",
-            (std::string)*text, callback, big);
+            (std::string)*text, callback_name, big);
     }
 
-    UObject* button = add_menu_item_ptr(self, text, callback, big, always_minus_one);
-
-    if (callback == L"OnStoreClicked"_fn) {
-        FText mods_text{"MODS"};
-        mods_menu_button =
-            add_menu_item_ptr(self, &mods_text, L"OnOtherButtonClicked"_fn, false, -1);
-    }
-
-    return button;
+    return add_menu_item_callback(self, text, callback_name, big, always_minus_one);
 }
 
 #pragma endregion
 
-bool other_button_clicked(unrealsdk::hook_manager::Details& hook) {
-    if (hook.args->get<UObjectProperty>(L"PressedButton"_fn) == mods_menu_button) {
-        LOG(ERROR, "Mods clicked");
-    }
+#pragma region UGFxMainAndPauseBaseMenu::BeginConfigureMenuItems
 
-    return false;
-}
+using begin_configure_menu_items_func = void (*)(UObject* self);
+
+const constinit Pattern<16> BEGIN_CONFIGURE_MENU_ITEMS_PATTERN{
+    "40 53"              // push rbx
+    "48 83 EC 20"        // sub rsp, 20
+    "48 8B D9"           // mov rbx, rcx
+    "48 81 C1 A0080000"  // add rcx, 000008A0
+};
+
+begin_configure_menu_items_func begin_configure_menu_items_ptr =
+    reinterpret_cast<begin_configure_menu_items_func>(BEGIN_CONFIGURE_MENU_ITEMS_PATTERN.sigscan());
+
+#pragma endregion
+
+#pragma region UGFxMainAndPauseBaseMenu::SetMenuState
+
+using set_menu_state_func = void (*)(UObject* self, int32_t value);
+
+const constinit Pattern<27> SET_MENU_STATE_PATTERN{
+    "48 89 5C 24 ??"     // mov [rsp+08], rbx
+    "48 89 74 24 ??"     // mov [rsp+10], rsi
+    "57"                 // push rdi
+    "48 83 EC 20"        // sub rsp, 20
+    "48 63 B9 ????????"  // movsxd rdi, dword ptr [rcx+0000089C]
+    "8B F2"              // mov esi, edx
+    "48 8B 01"           // mov rax, [rcx]
+};
+
+set_menu_state_func set_menu_state_ptr =
+    reinterpret_cast<set_menu_state_func>(SET_MENU_STATE_PATTERN.sigscan());
+
+#pragma endregion
 
 // NOLINTNEXTLINE(readability-identifier-length)
 PYBIND11_MODULE(native_menu, m) {
     detour(ADD_MENU_ITEM_PATTERN.sigscan(), add_menu_item_hook, &add_menu_item_ptr,
            "UGFxMainAndPauseBaseMenu::AddMenuItem");
 
-    unrealsdk::hook_manager::add_hook(L"/Script/OakGame.GFxOakMainMenu:OnOtherButtonClicked",
-                                      unrealsdk::hook_manager::Type::PRE, L"mod_menu_native_menu",
-                                      other_button_clicked);
+    m.def("add_menu_item", [](py::object self, py::str text, FName callback_name, bool big,
+                              int32_t always_minus_one) {
+        auto converted_self = pyunrealsdk::type_casters::cast<UObject*>(self);
+        FText converted_text{text};
 
-    (void)m;
+        return add_menu_item_ptr(converted_self, &converted_text, callback_name, big,
+                                 always_minus_one);
+    });
+
+    m.def("set_add_menu_item_callback", [](const py::object& callback) {
+        add_menu_item_callback = [callback](UObject* self, FText* text, FName callback_name,
+                                            bool big, int32_t always_minus_one) {
+            try {
+                const py::gil_scoped_acquire gil{};
+
+                auto converted_self = pyunrealsdk::type_casters::cast(self);
+                py::str converted_text = (std::string)*text;
+
+                auto ret =
+                    callback(converted_self, converted_text, callback_name, big, always_minus_one);
+
+                return py::cast<int32_t>(ret);
+
+            } catch (const std::exception& ex) {
+                pyunrealsdk::logging::log_python_exception(ex);
+                return add_menu_item_ptr(self, text, callback_name, big, always_minus_one);
+            }
+        };
+    });
+
+    m.def("begin_configure_menu_items", [](py::object self) {
+        begin_configure_menu_items_ptr(pyunrealsdk::type_casters::cast<UObject*>(self));
+    });
+    m.def("set_menu_state", [](py::object self, int32_t value) {
+        set_menu_state_ptr(pyunrealsdk::type_casters::cast<UObject*>(self), value);
+    });
+    m.def("get_menu_state", [](py::object self) {
+        auto obj = pyunrealsdk::type_casters::cast<UObject*>(self);
+        return *reinterpret_cast<int32_t*>(reinterpret_cast<uintptr_t>(obj) + 0x89C);
+    });
 }
 
-#pragma endregion
+/**
+ * @brief Cleans up the static python references we have, before we're unloaded.
+ */
+void finalize(void) {
+    py::gil_scoped_acquire gil;
+
+    add_menu_item_callback = noop_add_menu_item_callback;
+}
+
+// NOLINTNEXTLINE(readability-identifier-naming)
+BOOL APIENTRY DllMain(HMODULE h_module, DWORD ul_reason_for_call, LPVOID /*unused*/) {
+    switch (ul_reason_for_call) {
+        case DLL_PROCESS_ATTACH:
+            DisableThreadLibraryCalls(h_module);
+            break;
+        case DLL_PROCESS_DETACH:
+            finalize();
+            break;
+        case DLL_THREAD_ATTACH:
+        case DLL_THREAD_DETACH:
+            break;
+    }
+    return TRUE;
+}
