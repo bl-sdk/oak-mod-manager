@@ -34,6 +34,9 @@ const constinit Pattern<40> ADD_MENU_ITEM_PATTERN{
 
 };
 
+/**
+ * @brief Dummy menu item callback which does nothing.
+ */
 int32_t noop_add_menu_item_callback(UObject* self,
                                     FText* text,
                                     FName callback_name,
@@ -101,46 +104,93 @@ PYBIND11_MODULE(outer_menu, m) {
     detour(ADD_MENU_ITEM_PATTERN.sigscan(), add_menu_item_hook, &add_menu_item_ptr,
            "UGFxMainAndPauseBaseMenu::AddMenuItem");
 
-    m.def("add_menu_item", [](py::object self, py::str text, FName callback_name, bool big,
-                              int32_t always_minus_one) {
-        auto converted_self = pyunrealsdk::type_casters::cast<UObject*>(self);
-        FText converted_text{text};
+    m.def(
+        "add_menu_item",
+        [](py::object self, py::str text, FName callback_name, bool big, int32_t always_minus_one) {
+            auto converted_self = pyunrealsdk::type_casters::cast<UObject*>(self);
+            FText converted_text{text};
 
-        return add_menu_item_ptr(converted_self, &converted_text, callback_name, big,
-                                 always_minus_one);
-    });
+            return add_menu_item_ptr(converted_self, &converted_text, callback_name, big,
+                                     always_minus_one);
+        },
+        "Calls GFxMainAndPauseBaseMenu::AddMenuItem. This does not trigger a callback.\n"
+        "\n"
+        "Args:\n"
+        "    self: The object to call on.\n"
+        "    text: The text to display in the menu.\n"
+        "    callback_name: The name of the unreal callback to use.\n"
+        "    big: True if the menu item should be big.\n"
+        "    always_minus_one: Always -1. ¯\\_(ツ)_/¯\n"
+        "Returns:\n"
+        "    The index of the inserted menu item.",
+        "self"_a, "text"_a, "callback_name"_a, "big"_a, "always_minus_one"_a);
 
-    m.def("set_add_menu_item_callback", [](const py::object& callback) {
-        add_menu_item_callback = [callback](UObject* self, FText* text, FName callback_name,
-                                            bool big, int32_t always_minus_one) {
-            try {
-                const py::gil_scoped_acquire gil{};
+    m.def(
+        "set_add_menu_item_callback",
+        [](const py::object& callback) {
+            add_menu_item_callback = [callback](UObject* self, FText* text, FName callback_name,
+                                                bool big, int32_t always_minus_one) {
+                try {
+                    const py::gil_scoped_acquire gil{};
 
-                auto converted_self = pyunrealsdk::type_casters::cast(self);
-                py::str converted_text = (std::string)*text;
+                    auto converted_self = pyunrealsdk::type_casters::cast(self);
+                    py::str converted_text = (std::string)*text;
 
-                auto ret =
-                    callback(converted_self, converted_text, callback_name, big, always_minus_one);
+                    auto ret = callback(converted_self, converted_text, callback_name, big,
+                                        always_minus_one);
 
-                return py::cast<int32_t>(ret);
+                    return py::cast<int32_t>(ret);
 
-            } catch (const std::exception& ex) {
-                pyunrealsdk::logging::log_python_exception(ex);
-                return add_menu_item_ptr(self, text, callback_name, big, always_minus_one);
-            }
-        };
-    });
+                } catch (const std::exception& ex) {
+                    pyunrealsdk::logging::log_python_exception(ex);
+                    return add_menu_item_ptr(self, text, callback_name, big, always_minus_one);
+                }
+            };
+        },
+        "Sets the callback to use when GFxMainAndPauseBaseMenu::AddMenuItem is called.\n"
+        "\n"
+        "This callback will be passed all 5 args positionally, and must return the return\n"
+        "value to use - i.e. a no-op callback is `lambda *args: add_menu_item(*args)`.\n"
+        "\n"
+        "Args:\n"
+        "    callback: The callback to use.",
+        "callback"_a);
 
-    m.def("begin_configure_menu_items", [](py::object self) {
-        begin_configure_menu_items_ptr(pyunrealsdk::type_casters::cast<UObject*>(self));
-    });
-    m.def("set_menu_state", [](py::object self, int32_t value) {
-        set_menu_state_ptr(pyunrealsdk::type_casters::cast<UObject*>(self), value);
-    });
-    m.def("get_menu_state", [](py::object self) {
-        auto obj = pyunrealsdk::type_casters::cast<UObject*>(self);
-        return *reinterpret_cast<int32_t*>(reinterpret_cast<uintptr_t>(obj) + 0x89C);
-    });
+    m.def(
+        "begin_configure_menu_items",
+        [](py::object self) {
+            begin_configure_menu_items_ptr(pyunrealsdk::type_casters::cast<UObject*>(self));
+        },
+        "Calls GFxMainAndPauseBaseMenu::AddMenuItem.\n"
+        "\n"
+        "Args:\n"
+        "    self: The object to call on.",
+        "self"_a);
+
+    m.def(
+        "set_menu_state",
+        [](py::object self, int32_t state) {
+            set_menu_state_ptr(pyunrealsdk::type_casters::cast<UObject*>(self), state);
+        },
+        "Calls GFxMainAndPauseBaseMenu::SetMenuState.\n"
+        "\n"
+        "Args:\n"
+        "    self: The object to call on.\n"
+        "    state: The state to set the menu to.",
+        "self"_a, "state"_a);
+
+    m.def(
+        "get_menu_state",
+        [](py::object self) {
+            auto obj = pyunrealsdk::type_casters::cast<UObject*>(self);
+            return *reinterpret_cast<int32_t*>(reinterpret_cast<uintptr_t>(obj) + 0x89C);
+        },
+        "Gets the menu state, which was previously set by a call to set menu state.\n"
+        "\n"
+        "Args:\n"
+        "    self: The object to get the state of.\n"
+        "Returns:\n"
+        "    The object's menu state.");
 }
 
 /**
