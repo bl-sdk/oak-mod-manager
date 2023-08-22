@@ -97,7 +97,7 @@ set_menu_state_func set_menu_state_ptr =
 #pragma endregion
 
 // NOLINTNEXTLINE(readability-identifier-length)
-PYBIND11_MODULE(native_menu, m) {
+PYBIND11_MODULE(outer_menu, m) {
     detour(ADD_MENU_ITEM_PATTERN.sigscan(), add_menu_item_hook, &add_menu_item_ptr,
            "UGFxMainAndPauseBaseMenu::AddMenuItem");
 

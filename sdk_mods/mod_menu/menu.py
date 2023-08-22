@@ -3,7 +3,7 @@ from typing import Any
 from unrealsdk.hooks import Type, add_hook, remove_hook
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
-from .native_menu import (
+from .native.outer_menu import (
     add_menu_item,
     begin_configure_menu_items,
     get_menu_state,

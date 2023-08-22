@@ -9,10 +9,10 @@ from typing import TYPE_CHECKING, Self, TypeAlias
 from unrealsdk import find_enum, logging
 from unrealsdk.hooks import Block
 
-from .native_keybinds import set_gameplay_keybind_callback
+from .native.keybinds import set_gameplay_keybind_callback
 
 if TYPE_CHECKING:
-    from .native_keybinds import _EInputEvent  # pyright: ignore[reportPrivateUsage]
+    from .native.keybinds import _EInputEvent  # pyright: ignore[reportPrivateUsage]
 
     EInputEvent = _EInputEvent
 else:

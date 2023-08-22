@@ -1,7 +1,7 @@
 from typing import Final
 
 from .keybinds import EInputEvent, KeybindBlockSignal, KeybindCallback, run_callback
-from .native_keybinds import set_menu_keybind_callback
+from .native.keybinds import set_menu_keybind_callback
 
 __all__: tuple[str, ...] = (
     "push",

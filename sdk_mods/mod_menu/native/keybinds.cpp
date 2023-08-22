@@ -127,7 +127,7 @@ keybind_callback convert_py_callback(const py::object& callback) {
 }
 
 // NOLINTNEXTLINE(readability-identifier-length)
-PYBIND11_MODULE(native_keybinds, m) {
+PYBIND11_MODULE(keybinds, m) {
     detour(PC_INPUTKEY_PATTERN.sigscan(), pc_inputkey_hook, &pc_inputkey_ptr,
            "PlayerController::InputKey");
     detour(MENUINPUT_PATTERN.sigscan(), menuinput_hook, &menuinput_ptr,
