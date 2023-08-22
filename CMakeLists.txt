@@ -5,9 +5,10 @@ project(oak_mod_manager)
 add_subdirectory(pyunrealsdk EXCLUDE_FROM_ALL)
 
 pyunrealsdk_add_module(keybinds sdk_mods/mod_menu/native/keybinds.cpp)
+pyunrealsdk_add_module(options_menu sdk_mods/mod_menu/native/options_menu.cpp)
 pyunrealsdk_add_module(outer_menu sdk_mods/mod_menu/native/outer_menu.cpp)
 
 install(
-    TARGETS keybinds outer_menu
+    TARGETS keybinds options_menu outer_menu
     DESTINATION .
 )

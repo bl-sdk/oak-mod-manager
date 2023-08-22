@@ -3,6 +3,7 @@ from typing import Any
 from unrealsdk.hooks import Type, add_hook, remove_hook
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
+from .native.options_menu import do_options_menu_transition
 from .native.outer_menu import (
     add_menu_item,
     begin_configure_menu_items,
@@ -46,7 +47,9 @@ def other_button_hook(
             pressed_idx = idx
             break
 
-    if get_menu_state(obj) == 0 and pressed_idx == mods_menu_idx:
+    menu_state = get_menu_state(obj)
+
+    if menu_state == 0 and pressed_idx == mods_menu_idx:
         mods_menu_idx = None
         set_menu_state(obj, 1000)
 
@@ -54,6 +57,9 @@ def other_button_hook(
         add_menu_item(obj, "Big Mod Header?", "OnOtherButtonClicked", True, -1)
         add_menu_item(obj, "mod B", "OnOtherButtonClicked", False, -1)
         add_menu_item(obj, "mod C", "OnOtherButtonClicked", False, -1)
+
+    if menu_state == 1000:
+        do_options_menu_transition(obj, 1000)
 
 
 set_add_menu_item_callback(add_menu_item_hook)
