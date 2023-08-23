@@ -3,7 +3,8 @@ from typing import Any
 from unrealsdk.hooks import Type, add_hook, remove_hook
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
-from .native.options_menu import do_options_menu_transition
+from .create_option_description_item import EOptionItemType, create_option_description_item
+from .native.options_menu import do_options_menu_transition, set_option_refresh_callback
 from .native.outer_menu import (
     add_menu_item,
     begin_configure_menu_items,
@@ -13,6 +14,7 @@ from .native.outer_menu import (
 )
 
 mods_menu_idx: int | None = None
+next_option_refresh_is_mod: bool = False
 
 
 def add_menu_item_hook(
@@ -59,7 +61,9 @@ def other_button_hook(
         add_menu_item(obj, "mod C", "OnOtherButtonClicked", False, -1)
 
     if menu_state == 1000:
-        do_options_menu_transition(obj, 1000)
+        global next_option_refresh_is_mod
+        next_option_refresh_is_mod = True
+        do_options_menu_transition(obj, 1)
 
 
 set_add_menu_item_callback(add_menu_item_hook)
@@ -74,3 +78,40 @@ add_hook(
     __file__,
     other_button_hook,
 )
+
+
+def options_refresh_hook(items: list[UObject]) -> None:
+    global next_option_refresh_is_mod
+
+    if next_option_refresh_is_mod:
+        items[:] = [
+            create_option_description_item(
+                OptionItemType=EOptionItemType.Title,
+                OptionItemName="Mod Options",
+            ),
+            create_option_description_item(
+                OptionType=8,
+                OptionItemType=EOptionItemType.Slider,
+                OptionItemName="slider",
+                OptionDescriptionTitle="this is stealing the id of the dialog volume slider",
+                OptionDescriptionText=(
+                    "how many lines can I have\n" * 12 + "13 before it starts scaling down"
+                ),
+                SliderMin=0.0,
+                SliderMax=100.0,
+                SliderStep=1.0,
+                SliderIsInteger=True,
+            ),
+            create_option_description_item(
+                OptionType=255,
+                OptionItemType=EOptionItemType.BooleanSpinner,
+                OptionItemName="bool spinner",
+            ),
+        ]
+
+        print(items)
+
+    next_option_refresh_is_mod = False
+
+
+set_option_refresh_callback(options_refresh_hook)

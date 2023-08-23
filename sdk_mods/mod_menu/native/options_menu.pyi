@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from enum import auto
 from typing import TypeAlias
 
@@ -7,6 +8,7 @@ from unrealsdk.unreal import UObject
 from unrealsdk.unreal._uenum import UnrealEnum
 
 _GFxMainAndPauseBaseMenu: TypeAlias = UObject
+_OptionDescriptionItem: TypeAlias = UObject
 
 class _EMenuTransition(UnrealEnum):
     CreateCharacterMenu_MainMenu = auto()
@@ -39,4 +41,16 @@ def do_options_menu_transition(
         first_option: The value to set the first option to look at to.
         transition: What type of transition to perform.
         controller_id: The controller id to perform the transition with.
+    """
+
+def set_option_refresh_callback(callback: Callable[[list[_OptionDescriptionItem]], None]) -> None:
+    """
+    Sets the callback to use for the option menu refresh.
+
+    The callback is called with a single positional arg: a list of the intended
+    OptionDescriptionItem. This may be modified in place to affect what items are
+    shown. The return value is ignored.
+
+    Args:
+        callback: The callback to use.
     """
