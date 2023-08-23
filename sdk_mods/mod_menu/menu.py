@@ -63,7 +63,7 @@ def other_button_hook(
     if menu_state == 1000:
         global next_option_refresh_is_mod
         next_option_refresh_is_mod = True
-        do_options_menu_transition(obj, 1)
+        do_options_menu_transition(obj, 16)
 
 
 set_add_menu_item_callback(add_menu_item_hook)
@@ -86,14 +86,15 @@ def options_refresh_hook(items: list[UObject]) -> None:
     if next_option_refresh_is_mod:
         items[:] = [
             create_option_description_item(
+                OptionType=255,
                 OptionItemType=EOptionItemType.Title,
                 OptionItemName="Mod Options",
             ),
             create_option_description_item(
-                OptionType=8,
+                OptionType=255,
                 OptionItemType=EOptionItemType.Slider,
                 OptionItemName="slider",
-                OptionDescriptionTitle="this is stealing the id of the dialog volume slider",
+                OptionDescriptionTitle="this is no longer stealing the id of the dialog volume slider",
                 OptionDescriptionText=(
                     "how many lines can I have\n" * 12 + "13 before it starts scaling down"
                 ),
@@ -107,6 +108,11 @@ def options_refresh_hook(items: list[UObject]) -> None:
                 OptionItemType=EOptionItemType.BooleanSpinner,
                 OptionItemName="bool spinner",
             ),
+            create_option_description_item(
+                OptionType=255,
+                OptionItemType=EOptionItemType.TodoItem,
+                OptionItemName="todo??",
+            ),
         ]
 
         print(items)
@@ -115,3 +121,25 @@ def options_refresh_hook(items: list[UObject]) -> None:
 
 
 set_option_refresh_callback(options_refresh_hook)
+
+
+def unimplemented_option_hook(
+    _1: UObject,
+    args: WrappedStruct,
+    _3: Any,
+    _4: BoundFunction,
+) -> None:
+    print(args)
+
+
+remove_hook(
+    "/Script/OakGame.GFxOptionBase:OnUnimplementedOptionClicked",
+    Type.PRE,
+    __file__,
+)
+add_hook(
+    "/Script/OakGame.GFxOptionBase:OnUnimplementedOptionClicked",
+    Type.PRE,
+    __file__,
+    unimplemented_option_hook,
+)
