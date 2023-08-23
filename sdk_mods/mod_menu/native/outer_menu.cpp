@@ -89,13 +89,15 @@ const constinit Pattern<27> SET_MENU_STATE_PATTERN{
     "48 89 74 24 ??"     // mov [rsp+10], rsi
     "57"                 // push rdi
     "48 83 EC 20"        // sub rsp, 20
-    "48 63 B9 ????????"  // movsxd rdi, dword ptr [rcx+0000089C]
+    "48 63 B9 ????????"  // movsxd rdi, dword ptr [rcx+0000089C] <--- Grab this offset
     "8B F2"              // mov esi, edx
     "48 8B 01"           // mov rax, [rcx]
 };
+const constexpr auto MENU_STATE_OFFSET_OFFSET = 18;
 
-set_menu_state_func set_menu_state_ptr =
-    reinterpret_cast<set_menu_state_func>(SET_MENU_STATE_PATTERN.sigscan());
+set_menu_state_func set_menu_state_ptr = SET_MENU_STATE_PATTERN.sigscan<set_menu_state_func>();
+int32_t menu_state_offset = *reinterpret_cast<int32_t*>(
+    reinterpret_cast<uintptr_t>(set_menu_state_ptr) + MENU_STATE_OFFSET_OFFSET);
 
 #pragma endregion
 
@@ -183,7 +185,8 @@ PYBIND11_MODULE(outer_menu, m) {
         "get_menu_state",
         [](py::object self) {
             auto obj = pyunrealsdk::type_casters::cast<UObject*>(self);
-            return *reinterpret_cast<int32_t*>(reinterpret_cast<uintptr_t>(obj) + 0x89C);
+            return *reinterpret_cast<int32_t*>(reinterpret_cast<uintptr_t>(obj)
+                                               + menu_state_offset);
         },
         "Gets the menu state, which was previously set by a call to set menu state.\n"
         "\n"
