@@ -1,0 +1,3 @@
+from unrealsdk.unreal import UObject
+
+def inject(self: UObject, /) -> None: ...

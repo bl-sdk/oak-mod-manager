@@ -3,8 +3,10 @@ from typing import Any
 from unrealsdk.hooks import Type, add_hook, remove_hook
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
-from .create_option_description_item import EOptionItemType, create_option_description_item
-from .native.options_menu import do_options_menu_transition, set_option_refresh_callback
+from .native import options
+
+# from .create_option_description_item import EOptionItemType, create_option_description_item
+# from .native.options_menu import do_options_menu_transition, set_option_refresh_callback
 from .native.outer_menu import (
     add_menu_item,
     begin_configure_menu_items,
@@ -63,7 +65,7 @@ def other_button_hook(
     if menu_state == 1000:
         global next_option_refresh_is_mod
         next_option_refresh_is_mod = True
-        do_options_menu_transition(obj, 16)
+        options.inject(obj)
 
 
 set_add_menu_item_callback(add_menu_item_hook)
@@ -79,7 +81,7 @@ add_hook(
     other_button_hook,
 )
 
-
+"""
 def options_refresh_hook(items: list[UObject]) -> None:
     global next_option_refresh_is_mod
 
@@ -121,6 +123,7 @@ def options_refresh_hook(items: list[UObject]) -> None:
 
 
 set_option_refresh_callback(options_refresh_hook)
+"""
 
 
 def unimplemented_option_hook(
