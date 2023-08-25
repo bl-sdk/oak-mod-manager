@@ -3,7 +3,7 @@ from typing import Any
 from unrealsdk.hooks import Type, add_hook, remove_hook
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
-from .native.options import open_custom_options
+from .native.options_transition import open_custom_options
 from .native.outer_menu import (
     add_menu_item,
     begin_configure_menu_items,

@@ -13,8 +13,6 @@
 using namespace unrealsdk::unreal;
 using namespace unrealsdk::memory;
 
-#pragma region Transition into options menu
-
 namespace transition {
 
 // This signature matches all 6 callbacks for the different option menu entries - they're identical
@@ -59,6 +57,9 @@ start_menu_transition_func start_menu_transition_ptr;
 // The accessibility menu is important for reasons discussed later
 const constexpr auto ACCESSIBILITY_OPTION_MENU_TYPE = 16;
 
+/**
+ * @brief Performs all required setup needed to be able to start a options transition.
+ */
 void setup(void) {
     auto option_menu_entry_clicked = OPTION_MENU_ENTRY_CLICKED_PATTERN.sigscan();
     set_first_options_ptr =
@@ -74,13 +75,13 @@ void setup(void) {
  *
  * @param self The menu to transition from.
  */
-void start_options_transition(transition::UGFxMainAndPauseBaseMenu* self) {
+void start_options_transition(UGFxMainAndPauseBaseMenu* self) {
     // No transition just feels better ¯\_(ツ)_/¯
     const constexpr auto MENU_TRANSITION_NONE = 13;
     // As long as no one implements splitscreen this should be safe...
     const constexpr auto CONTROLLER_ID = 0;
 
-    transition::set_first_options_ptr(transition::ACCESSIBILITY_OPTION_MENU_TYPE);
+    set_first_options_ptr(ACCESSIBILITY_OPTION_MENU_TYPE);
 
     auto soft_object_ptr =
         reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(self) + transition::soft_object_offset);
@@ -90,10 +91,6 @@ void start_options_transition(transition::UGFxMainAndPauseBaseMenu* self) {
 }
 
 }  // namespace transition
-
-#pragma endregion
-
-#pragma region Injecting Options
 
 namespace injection {
 
@@ -248,6 +245,9 @@ FText* option_menu_get_option_title_hook(transition::option_menu_type type) {
     return option_menu_get_option_title_ptr(type);
 }
 
+/**
+ * @brief Performs all required setup needed to be able to inject custom options.
+ */
 void setup(void) {
     auto option_base_refresh = OPTION_BASE_REFRESH.sigscan();
     option_list_offset =
@@ -265,9 +265,7 @@ void setup(void) {
 
 }  // namespace injection
 
-#pragma endregion
-
-PYBIND11_MODULE(options, m) {
+PYBIND11_MODULE(options_transition, m) {
     transition::setup();
     injection::setup();
 
