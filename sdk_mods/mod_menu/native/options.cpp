@@ -1,4 +1,5 @@
 #include "pyunrealsdk/pch.h"
+#include "pyunrealsdk/logging.h"
 #include "unrealsdk/memory.h"
 #include "unrealsdk/unreal/classes/properties/uenumproperty.h"
 #include "unrealsdk/unreal/classes/uobject.h"
@@ -68,8 +69,6 @@ void setup(void) {
         option_menu_entry_clicked + START_MENU_TRANSITION_OFFSET);
 }
 
-}  // namespace transition
-
 /**
  * @brief Starts a transition into the options menu.
  *
@@ -90,13 +89,30 @@ void start_options_transition(transition::UGFxMainAndPauseBaseMenu* self) {
     transition::start_menu_transition_ptr(self, &transition, soft_object_ptr, CONTROLLER_ID);
 }
 
+}  // namespace transition
+
 #pragma endregion
 
 #pragma region Injecting Options
 
-bool inject_options_this_call = false;
-
 namespace injection {
+
+bool inject_options_this_call = false;
+FText options_name_to_inject{};
+py::object injection_callback{};
+
+/**
+ * @brief Deletes the stored injection callback.
+ */
+void delete_injection_callback(void) {
+    const py::gil_scoped_acquire gil{};
+
+    // Release does not decrement the ref counter
+    auto handle = injection_callback.release();
+    if (handle.ptr() != nullptr) {
+        handle.dec_ref();
+    }
+}
 
 /*
 
@@ -171,29 +187,32 @@ const constinit Pattern<12> OPTION_MENU_GET_OPTION_TITLE_PATTERN{
     "48 8B DA"     // mov rbx, rdx
 };
 
-using UGFxOptionsMenu = UObject;
-using option_menu_get_option_title_func = FText* (*)(UGFxOptionsMenu* self,
-                                                     transition::option_menu_type type);
+using option_menu_get_option_title_func = FText* (*)(transition::option_menu_type type);
 option_menu_get_option_title_func option_menu_get_option_title_ptr;
 
 auto option_description_item = unrealsdk::unreal::find_class(L"OptionDescriptionItem"_fn);
 auto transient = unrealsdk::find_object(L"Package"_fn, L"/Engine/Transient");
 auto option_type_prop =
     option_description_item->find_prop_and_validate<UEnumProperty>(L"OptionType"_fn);
+auto option_item_type_prop =
+    option_description_item->find_prop_and_validate<UEnumProperty>(L"OptionItemType"_fn);
 
 const constexpr auto INVALID_OPTION_TYPE = std::numeric_limits<uint8_t>::max();
+const constexpr auto INVALID_OPTION_ITEM_TYPE = std::numeric_limits<uint8_t>::max();
 
 void option_base_refresh_hook(UGFxOptionBase* self) {
     if (inject_options_this_call) {
+        // Done injecting at this point, can clear the flag
+        inject_options_this_call = false;
+
         auto description = unrealsdk::construct_object(option_description_item, transient);
         description->set<UEnumProperty>(option_type_prop, INVALID_OPTION_TYPE);
+        description->set<UEnumProperty>(option_item_type_prop, INVALID_OPTION_ITEM_TYPE);
 
         auto option_list = reinterpret_cast<TArray<UOptionDescriptionItem*>*>(
             reinterpret_cast<uintptr_t>(self) + option_list_offset);
         option_list->resize(1);
         (*option_list)[0] = description;
-
-        inject_options_this_call = false;
     }
 
     option_base_refresh_ptr(self);
@@ -204,21 +223,29 @@ void option_base_create_content_panel_item_hook(UGFxOptionBase* self,
     auto option_type = description->get<UEnumProperty>(option_type_prop);
 
     if (option_type == INVALID_OPTION_TYPE) {
-        // TODO: inject callback
+        try {
+            const py::gil_scoped_acquire gil{};
+            injection_callback(pyunrealsdk::type_casters::cast(self));
+
+            injection::delete_injection_callback();
+        } catch (const std::exception& ex) {
+            pyunrealsdk::logging::log_python_exception(ex);
+        }
+
         return;
     }
 
     option_base_create_content_panel_item_ptr(self, description);
 }
 
-FText* option_menu_get_option_title_hook(UGFxOptionsMenu* self, transition::option_menu_type type) {
-    // TODO: user provided
-    // return option_menu_get_option_title_ptr(self, type);
-    (void)self;
-    (void)type;
+FText* option_menu_get_option_title_hook(transition::option_menu_type type) {
+    if (inject_options_this_call) {
+        // Don't clear the flag yet, still need it when injecting entries
 
-    static FText mod_options_title{"mod options"};
-    return &mod_options_title;
+        return &options_name_to_inject;
+    }
+
+    return option_menu_get_option_title_ptr(type);
 }
 
 void setup(void) {
@@ -244,9 +271,50 @@ PYBIND11_MODULE(options, m) {
     transition::setup();
     injection::setup();
 
-    m.def("inject", [](py::object self) {
-        inject_options_this_call = true;
+    m.def(
+        "open_custom_options",
+        [](py::object self, std::wstring name, py::object callback) {
+            auto converted_self = pyunrealsdk::type_casters::cast<UObject*>(self);
 
-        start_options_transition(pyunrealsdk::type_casters::cast<UObject*>(self));
-    });
+            injection::inject_options_this_call = true;
+            injection::options_name_to_inject = name;
+            injection::injection_callback = callback;
+
+            transition::start_options_transition(converted_self);
+        },
+        "Opens a custom options menu.\n"
+        "\n"
+        "Uses a callback to specify the menu's entries. This callback takes a single\n"
+        "positional arg, the option menu to add entires to. It's return value is ignored.\n"
+        "\n"
+        "Args:\n"
+        "    self: The current menu object to open under.\n"
+        "    name: The name of the options menu to open.\n"
+        "    callback: The setup callback to use.",
+        "self"_a, "name"_a, "callback"_a);
+}
+
+/**
+ * @brief Cleans up the static python references we have, before we're unloaded.
+ */
+void finalize(void) {
+    py::gil_scoped_acquire gil;
+
+    injection::delete_injection_callback();
+}
+
+// NOLINTNEXTLINE(readability-identifier-naming)
+BOOL APIENTRY DllMain(HMODULE h_module, DWORD ul_reason_for_call, LPVOID /*unused*/) {
+    switch (ul_reason_for_call) {
+        case DLL_PROCESS_ATTACH:
+            DisableThreadLibraryCalls(h_module);
+            break;
+        case DLL_PROCESS_DETACH:
+            finalize();
+            break;
+        case DLL_THREAD_ATTACH:
+        case DLL_THREAD_DETACH:
+            break;
+    }
+    return TRUE;
 }
