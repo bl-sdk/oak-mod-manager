@@ -1,5 +1,9 @@
 /*
+
 !mod_menu
+!mod_menu/*
+mod_menu/__pycache__
+
 !__main__.py
 !.gitignore
 

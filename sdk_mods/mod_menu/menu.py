@@ -3,6 +3,15 @@ from typing import Any
 from unrealsdk.hooks import Type, add_hook, remove_hook
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
+from .native.options_setup import (
+    add_binding,
+    add_bool_spinner,
+    add_button,
+    add_dropdown,
+    add_slider,
+    add_spinner,
+    add_title,
+)
 from .native.options_transition import open_custom_options
 from .native.outer_menu import (
     add_menu_item,
@@ -61,9 +70,20 @@ def other_button_hook(
     if menu_state == 1000:
 
         def setup_options(self: UObject) -> None:
-            print(f"setting up options: {self}")
+            add_button(self, "Description", description="some long description goes here")
+            add_bool_spinner(self, "Enabled", False)
+            add_title(self, "Options")
+            add_dropdown(self, "dropdown", 2, ["1", "2", "3", "4"])
+            add_slider(self, "slider", 5.2, 1, 10, 0.1)
+            add_spinner(self, "spinner", 0, ["A", "B", "C"], True)
+            add_title(self, "Keybinds")
+            add_binding(
+                self,
+                "bind",
+                '<img src="img://Game/UI/_Shared/GamepadButtonIcons/Keyboard/PC_MouseSide10.PC_MouseSide10"/>',
+            )
 
-        open_custom_options(obj, "mod options", setup_options)
+        open_custom_options(obj, "Some Mod", setup_options)
 
 
 set_add_menu_item_callback(add_menu_item_hook)
