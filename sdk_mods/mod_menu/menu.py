@@ -18,7 +18,7 @@ from .native.options_setup import (
     add_spinner,
     add_title,
 )
-from .native.options_transition import open_custom_options
+from .native.options_transition import open_custom_options, refresh_options
 from .native.outer_menu import (
     add_menu_item,
     begin_configure_menu_items,
@@ -83,12 +83,13 @@ def other_button_hook(
             add_slider(self, "slider", 5.2, 1, 10, 0.1)
             add_spinner(self, "spinner", 0, ["A", "B", "C"], True)
             add_title(self, "Keybinds")
-            add_binding(
-                self,
-                "bind",
-                "W",
-                '<img src="img://Game/UI/_Shared/GamepadButtonIcons/Keyboard/PC_W.PC_W"/>',
-            )
+            for i in range(10):
+                add_binding(
+                    self,
+                    f"bind {i}",
+                    "W",
+                    '<img src="img://Game/UI/_Shared/GamepadButtonIcons/Keyboard/PC_W.PC_W"/>',
+                )
 
         open_custom_options(obj, "Some Mod", setup_options)
 
@@ -108,7 +109,7 @@ add_hook(
 
 
 def unimplemented_option_hook(
-    _1: UObject,
+    obj: UObject,
     args: WrappedStruct,
     _3: Any,
     _4: BoundFunction,
@@ -125,6 +126,24 @@ def unimplemented_option_hook(
             print(get_spinner_selected_idx(button))
         case "GbxGFxListItemControls":
             print(get_controls_key(button))
+
+            def setup_options(self: UObject) -> None:
+                add_button(self, "Description", description="some long description goes here")
+                add_bool_spinner(self, "Enabled", False)
+                add_title(self, "Options")
+                add_dropdown(self, "dropdown", 2, ["1", "2", "3", "4"])
+                add_slider(self, "slider", 5.2, 1, 10, 0.1)
+                add_spinner(self, "spinner", 0, ["A", "B", "C"], True)
+                add_title(self, "Keybinds")
+                for i in range(10):
+                    add_binding(
+                        self,
+                        f"bind {i}",
+                        "Q",
+                        '<img src="img://Game/UI/_Shared/GamepadButtonIcons/Keyboard/PC_Q.PC_Q"/>',
+                    )
+
+            refresh_options(obj, setup_options)
         case _:
             pass
 

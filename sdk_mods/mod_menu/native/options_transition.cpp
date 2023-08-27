@@ -290,6 +290,26 @@ PYBIND11_MODULE(options_transition, m) {
         "    name: The name of the options menu to open.\n"
         "    callback: The setup callback to use.",
         "self"_a, "name"_a, "callback"_a);
+
+    m.def(
+        "refresh_options",
+        [](py::object self, py::object callback) {
+            auto converted_self = pyunrealsdk::type_casters::cast<UObject*>(self);
+
+            injection::inject_options_this_call = true;
+            injection::injection_callback = callback;
+
+            injection::option_base_refresh_hook(converted_self);
+        },
+        "Refreshes the current custom options menu, allowing changing it's entries.\n"
+        "\n"
+        "Uses a callback to specify the menu's entries. This callback takes a single\n"
+        "positional arg, the option menu to add entires to. It's return value is ignored.\n"
+        "\n"
+        "Args:\n"
+        "    self: The current menu object to open under.\n"
+        "    callback: The setup callback to use.",
+        "self"_a, "callback"_a);
 }
 
 /**
