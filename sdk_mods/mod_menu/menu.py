@@ -3,6 +3,12 @@ from typing import Any
 from unrealsdk.hooks import Type, add_hook, remove_hook
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
+from .native.options_getters import (
+    get_combo_box_selected_idx,
+    get_controls_key,
+    get_number_value,
+    get_spinner_selected_idx,
+)
 from .native.options_setup import (
     add_binding,
     add_bool_spinner,
@@ -80,7 +86,8 @@ def other_button_hook(
             add_binding(
                 self,
                 "bind",
-                '<img src="img://Game/UI/_Shared/GamepadButtonIcons/Keyboard/PC_MouseSide10.PC_MouseSide10"/>',
+                "W",
+                '<img src="img://Game/UI/_Shared/GamepadButtonIcons/Keyboard/PC_W.PC_W"/>',
             )
 
         open_custom_options(obj, "Some Mod", setup_options)
@@ -107,6 +114,19 @@ def unimplemented_option_hook(
     _4: BoundFunction,
 ) -> None:
     print(args)
+    button = args.PressedButton
+
+    match button.Class.Name:
+        case "GbxGFxListItemComboBox":
+            print(get_combo_box_selected_idx(button))
+        case "GbxGFxListItemNumber":
+            print(get_number_value(button))
+        case "GbxGFxListItemSpinner":
+            print(get_spinner_selected_idx(button))
+        case "GbxGFxListItemControls":
+            print(get_controls_key(button))
+        case _:
+            pass
 
 
 remove_hook(
