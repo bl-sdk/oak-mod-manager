@@ -4,6 +4,16 @@ from unrealsdk.unreal import UObject
 
 _GFxOptionBase: TypeAlias = UObject
 
+__all__: tuple[str, ...] = (
+    "add_binding",
+    "add_bool_spinner",
+    "add_button",
+    "add_dropdown",
+    "add_slider",
+    "add_spinner",
+    "add_title",
+)
+
 def add_title(self: _GFxOptionBase, name: str) -> None:
     """
     Adds a title to the options list.

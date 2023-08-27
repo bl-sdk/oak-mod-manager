@@ -6,6 +6,8 @@ from unrealsdk.unreal import UObject
 _GFxMainAndPauseBaseMenu: TypeAlias = UObject
 _GFxOptionBase: TypeAlias = UObject
 
+__all__: tuple[str, ...] = ("open_custom_options",)
+
 def open_custom_options(
     self: _GFxMainAndPauseBaseMenu,
     name: str,
