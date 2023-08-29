@@ -1,11 +1,12 @@
 from typing import Any
 
-from unrealsdk.hooks import Type, add_hook, remove_hook
+import unrealsdk
+from unrealsdk.hooks import Block, Type, add_hook, remove_hook
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
+from .native.dialog_box import show_dialog_box
 from .native.options_getters import (
     get_combo_box_selected_idx,
-    get_controls_key,
     get_number_value,
     get_spinner_selected_idx,
 )
@@ -87,7 +88,6 @@ def other_button_hook(
                 add_binding(
                     self,
                     f"bind {i}",
-                    "W",
                     '<img src="img://Game/UI/_Shared/GamepadButtonIcons/Keyboard/PC_W.PC_W"/>',
                 )
 
@@ -125,7 +125,6 @@ def unimplemented_option_hook(
         case "GbxGFxListItemSpinner":
             print(get_spinner_selected_idx(button))
         case "GbxGFxListItemControls":
-            print(get_controls_key(button))
 
             def setup_options(self: UObject) -> None:
                 add_button(self, "Description", description="some long description goes here")
@@ -139,13 +138,25 @@ def unimplemented_option_hook(
                     add_binding(
                         self,
                         f"bind {i}",
-                        "Q",
                         '<img src="img://Game/UI/_Shared/GamepadButtonIcons/Keyboard/PC_Q.PC_Q"/>',
                     )
 
             refresh_options(obj, setup_options)
         case _:
-            pass
+
+            def setup_dialog(struct: WrappedStruct) -> None:
+                struct.HeaderText = "header"
+                struct.BodyText = ("body " * 5 + "\n") * 5
+                struct.Choices = [
+                    unrealsdk.make_struct(
+                        "GbxGFxDialogBoxChoiceInfo",
+                        LabelText="Test",
+                        bCloseDialogOnSelection=True,
+                    ),
+                ]
+
+            engine = unrealsdk.find_object("OakGameEngine", "/Engine/Transient.OakGameEngine_0")
+            show_dialog_box(engine.GameInstance, setup_dialog)
 
 
 remove_hook(
@@ -158,4 +169,27 @@ add_hook(
     Type.PRE,
     __file__,
     unimplemented_option_hook,
+)
+
+
+def dialog_box_hook(
+    _1: UObject,
+    args: WrappedStruct,
+    _3: Any,
+    _4: BoundFunction,
+) -> Block:
+    print(args)
+    return Block()
+
+
+remove_hook(
+    "/Script/OakGame.OakGameInstance:OnNATHelpChoiceMade",
+    Type.PRE,
+    "test",
+)
+add_hook(
+    "/Script/OakGame.OakGameInstance:OnNATHelpChoiceMade",
+    Type.PRE,
+    "test",
+    dialog_box_hook,
 )

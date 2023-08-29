@@ -138,7 +138,6 @@ def add_button(
 def add_binding(
     self: _GFxOptionBase,
     name: str,
-    key: str,
     display: str,
     description_title: str | None = None,
     description: str = "",
@@ -149,7 +148,6 @@ def add_binding(
     Args:
         self: The current options menu object to add to.
         name: The name of the binding.
-        key: The key to set the binding to.
         display: The binding's display value. This is generally an image.
         description_title: The title of the binding's description. Defaults to
                            copying the name.

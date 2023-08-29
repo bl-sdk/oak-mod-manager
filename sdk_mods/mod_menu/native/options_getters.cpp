@@ -63,17 +63,6 @@ spinner_get_current_selection_index_func spinner_get_current_selection_index_ptr
     read_offset<spinner_get_current_selection_index_func>(
         SPINNER_GET_CURRENT_SELECTION_INDEX.sigscan());
 
-const constinit Pattern<16> CONTROLS_GET_FKEY{
-    "80 B9 ???????? 00"  // cmp byte ptr [rcx+00000329], 00
-    "74 ??"              // je Borderlands3.exe+2EB1D60
-    "80 B9 ???????? 02"  // cmp byte ptr [rcx+00000328], 02
-};
-
-using UGbxGFxListItemControls = UObject;
-using FKey = void;
-using controls_get_fkey_func = void (*)(UGbxGFxListItemControls* self, FKey* key);
-controls_get_fkey_func controls_get_fkey_ptr = CONTROLS_GET_FKEY.sigscan<controls_get_fkey_func>();
-
 PYBIND11_MODULE(options_getters, m) {
     m.def(
         "get_combo_box_selected_idx",
@@ -105,25 +94,6 @@ PYBIND11_MODULE(options_getters, m) {
                 pyunrealsdk::type_casters::cast<UObject*>(self));
         },
         "Gets the selected index of a GbxGFxListItemSpinner.\n"
-        "\n"
-        "Args:\n"
-        "    self: The spinner item to get the selected index of.",
-        "self"_a);
-
-    m.def(
-        "get_controls_key",
-        [](py::object self) {
-            static auto key_struct_type = validate_type<UScriptStruct>(
-                unrealsdk::find_object(L"ScriptStruct", L"/Script/InputCore.Key"));
-            static auto key_name_prop =
-                key_struct_type->find_prop_and_validate<UNameProperty>(L"KeyName"_fn);
-
-            WrappedStruct key_struct{key_struct_type};
-            controls_get_fkey_ptr(pyunrealsdk::type_casters::cast<UObject*>(self), key_struct.base);
-
-            return (std::wstring)key_struct.get<UNameProperty>(key_name_prop);
-        },
-        "Gets the key of a GbxGFxListItemControls.\n"
         "\n"
         "Args:\n"
         "    self: The spinner item to get the selected index of.",

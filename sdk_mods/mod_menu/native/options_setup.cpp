@@ -1,15 +1,15 @@
 #include "pyunrealsdk/pch.h"
 #include "unrealsdk/memory.h"
+#include "unrealsdk/unreal/class_name.h"
 #include "unrealsdk/unreal/classes/properties/copyable_property.h"
 #include "unrealsdk/unreal/classes/properties/uarrayproperty.h"
 #include "unrealsdk/unreal/classes/properties/uboolproperty.h"
 #include "unrealsdk/unreal/classes/properties/utextproperty.h"
 #include "unrealsdk/unreal/classes/uclass.h"
 #include "unrealsdk/unreal/classes/uobject.h"
-#include "unrealsdk/unreal/classes/uscriptstruct.h"
 #include "unrealsdk/unreal/classes/uobject_funcs.h"
+#include "unrealsdk/unreal/classes/uscriptstruct.h"
 #include "unrealsdk/unreal/find_class.h"
-#include "unrealsdk/unreal/class_name.h"
 #include "unrealsdk/unreal/structs/fname.h"
 #include "unrealsdk/unreal/structs/ftext.h"
 #include "unrealsdk/unreal/structs/tarray.h"
@@ -391,21 +391,8 @@ bind_ufunction_func bind_ufunction_ptr = BIND_UFUNCTION.sigscan<bind_ufunction_f
 // I think this might actually be as low as 16, but better safe than sorry
 const constexpr auto TBASEDELEGATE_SIZE = 0x40;
 
-const constinit Pattern<17> SET_FKEY{
-    "40 53"        // push rbx
-    "48 83 EC 20"  // sub rsp, 20
-    "48 8B DA"     // mov rbx, rdx
-    "45 84 C0"     // test r8l, r8l
-    "BA ????????"  // mov edx, 00000330
-};
-
-using FKey = void;
-using set_fkey_func = void (*)(UGbxGFxListItemControls* self, FKey* key, bool use_alt_offset);
-set_fkey_func set_fkey_ptr = SET_FKEY.sigscan<set_fkey_func>();
-
 void add_binding(UGFxOptionBase* self,
                  const std::wstring& name,
-                 const std::wstring& key,
                  const std::wstring& display,
                  const std::optional<std::wstring>& description_title,
                  const std::wstring& description) {
@@ -418,18 +405,8 @@ void add_binding(UGFxOptionBase* self,
     bind_ufunction_ptr(fake_delegate, self, &OPTION_CALLBACK);
 
     // Pass the display value to both columns just in case
-    auto controls = setup_controls_item_ptr(self, desc_item, &converted_display, &converted_display,
-                                            BINDING_TYPE_COMMON, &fake_delegate);
-
-    static auto key_struct_type = validate_type<UScriptStruct>(
-        unrealsdk::find_object(L"ScriptStruct", L"/Script/InputCore.Key"));
-    static auto key_name_prop =
-        key_struct_type->find_prop_and_validate<UNameProperty>(L"KeyName"_fn);
-
-    WrappedStruct key_struct{key_struct_type};
-    key_struct.set<UNameProperty>(key_name_prop, key);
-
-    set_fkey_ptr(controls, key_struct.base, false);
+    setup_controls_item_ptr(self, desc_item, &converted_display, &converted_display,
+                            BINDING_TYPE_COMMON, &fake_delegate);
 }
 
 }  // namespace controls
@@ -558,10 +535,9 @@ PYBIND11_MODULE(options_setup, m) {
 
     m.def(
         "add_binding",
-        [](py::object self, const std::wstring& name, const std::wstring& key,
-           const std::wstring& display, const std::optional<std::wstring>& description_title,
-           const std::wstring& description) {
-            controls::add_binding(pyunrealsdk::type_casters::cast<UObject*>(self), name, key, display,
+        [](py::object self, const std::wstring& name, const std::wstring& display,
+           const std::optional<std::wstring>& description_title, const std::wstring& description) {
+            controls::add_binding(pyunrealsdk::type_casters::cast<UObject*>(self), name, display,
                                   description_title, description);
         },
         "Adds a binding to the options list.\n"
@@ -569,11 +545,10 @@ PYBIND11_MODULE(options_setup, m) {
         "Args:\n"
         "    self: The current options menu object to add to.\n"
         "    name: The name of the binding.\n"
-        "    key: The key to set the binding to.\n"
         "    display: The binding's display value. This is generally an image.\n"
         "    description_title: The title of the binding's description. Defaults to\n"
         "                       copying the name.\n"
         "    description: The binding's description.",
-        "self"_a, "name"_a, "key"_a, "display"_a, "description_title"_a = std::nullopt,
+        "self"_a, "name"_a, "display"_a, "description_title"_a = std::nullopt,
         "description"_a = L"");
 }
