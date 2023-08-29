@@ -1,9 +1,13 @@
 #include "pyunrealsdk/pch.h"
 #include "pyunrealsdk/logging.h"
 #include "unrealsdk/memory.h"
+#include "unrealsdk/unreal/classes/properties/copyable_property.h"
 #include "unrealsdk/unreal/classes/properties/uenumproperty.h"
+#include "unrealsdk/unreal/classes/properties/uobjectproperty.h"
+#include "unrealsdk/unreal/classes/properties/ustructproperty.h"
 #include "unrealsdk/unreal/classes/uobject.h"
 #include "unrealsdk/unreal/classes/uobject_funcs.h"
+#include "unrealsdk/unreal/classes/uscriptstruct.h"
 #include "unrealsdk/unreal/find_class.h"
 #include "unrealsdk/unreal/structs/ftext.h"
 #include "unrealsdk/unreal/structs/tarray.h"
@@ -265,9 +269,45 @@ void setup(void) {
 
 }  // namespace injection
 
+namespace scroll {
+
+using UGbxGFxGridScrollingList = UObject;
+
+const constinit Pattern<25> SCROLLING_LIST_SCROLL_TO_POSITION_PATTERN{
+    "40 53"              // push rbx
+    "48 83 EC 20"        // sub rsp, 20
+    "80 B9 ???????? 00"  // cmp byte ptr [rcx+00000250], 00
+    "48 8B D9"           // mov rbx, rcx
+    "74 ??"              // je Borderlands3.exe+2ECD606
+    "48 81 C1 B8020000"  // add rcx, 000002B8
+};
+
+using scrolling_list_scroll_to_position_func = void (*)(UGbxGFxGridScrollingList* self,
+                                                        float pos,
+                                                        bool desired);
+scrolling_list_scroll_to_position_func scrolling_list_scroll_to_position_ptr;
+
+auto content_panel_prop = unrealsdk::unreal::find_class(L"GFxOptionBase"_fn)
+    -> find_prop_and_validate<UObjectProperty>(L"ContentPanel"_fn);
+auto ui_scroller_prop = content_panel_prop->get_property_class()
+                            -> find_prop_and_validate<UStructProperty>(L"UiScroller"_fn);
+auto scroll_position_prop = ui_scroller_prop->get_inner_struct()
+                                -> find_prop_and_validate<UFloatProperty>(L"ScrollPosition"_fn);
+
+/**
+ * @brief Performs all required setup needed to be able to manipulate the options scrollbar.
+ */
+void setup(void) {
+    scrolling_list_scroll_to_position_ptr =
+        SCROLLING_LIST_SCROLL_TO_POSITION_PATTERN.sigscan<scrolling_list_scroll_to_position_func>();
+}
+
+}  // namespace scroll
+
 PYBIND11_MODULE(options_transition, m) {
     transition::setup();
     injection::setup();
+    scroll::setup();
 
     m.def(
         "open_custom_options",
@@ -293,13 +333,26 @@ PYBIND11_MODULE(options_transition, m) {
 
     m.def(
         "refresh_options",
-        [](py::object self, py::object callback) {
+        [](py::object self, py::object callback, bool preserve_scroll) {
             auto converted_self = pyunrealsdk::type_casters::cast<UObject*>(self);
+
+            float scroll_pos = 0;
+            if (preserve_scroll) {
+                scroll_pos = converted_self->get<UObjectProperty>(scroll::content_panel_prop)
+                                 ->get<UStructProperty>(scroll::ui_scroller_prop)
+                                 .get<UFloatProperty>(scroll::scroll_position_prop);
+            }
 
             injection::inject_options_this_call = true;
             injection::injection_callback = callback;
 
             injection::option_base_refresh_hook(converted_self);
+
+            if (preserve_scroll) {
+                auto scroll_list = converted_self->get<UObjectProperty>(scroll::content_panel_prop);
+
+                scroll::scrolling_list_scroll_to_position_ptr(scroll_list, scroll_pos, false);
+            }
         },
         "Refreshes the current custom options menu, allowing changing it's entries.\n"
         "\n"
@@ -308,8 +361,9 @@ PYBIND11_MODULE(options_transition, m) {
         "\n"
         "Args:\n"
         "    self: The current menu object to open under.\n"
-        "    callback: The setup callback to use.",
-        "self"_a, "callback"_a);
+        "    callback: The setup callback to use.\n"
+        "    preserve_scroll: If true, preserves the current scroll position.",
+        "self"_a, "callback"_a, "preserve_scroll"_a = true);
 }
 
 /**

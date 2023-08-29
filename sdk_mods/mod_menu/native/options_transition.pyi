@@ -25,7 +25,11 @@ def open_custom_options(
         callback: The setup callback to use.
     """
 
-def refresh_options(self: _GFxOptionBase, callback: Callable[[_GFxOptionBase], None]) -> None:
+def refresh_options(
+    self: _GFxOptionBase,
+    callback: Callable[[_GFxOptionBase], None],
+    preserve_scroll: bool = True,
+) -> None:
     """
     Refreshes the current custom options menu, allowing changing it's entries.
 
@@ -35,4 +39,5 @@ def refresh_options(self: _GFxOptionBase, callback: Callable[[_GFxOptionBase], N
     Args:
         self: The current menu object to open under.
         callback: The setup callback to use.
+        preserve_scroll: If true, preserves the current scroll position.
     """
