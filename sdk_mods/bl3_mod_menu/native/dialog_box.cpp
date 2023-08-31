@@ -116,8 +116,10 @@ PYBIND11_MODULE(dialog_box, m) {
         "Uses a callback to configure the dialog. This callback takes a single positional\n"
         "arg, a `GbxGFxDialogBoxInfo` struct to edit. It's return value is ignored.\n"
         "\n"
+        "Events are directed at `/Script/OakGame.OakGameInstance:OnNATHelpChoiceMade`.\n"
+        "\n"
         "Args:\n"
-        "    self: The current menu object to open under.\n"
+        "    self: The current `OakGameInstance` to open using.\n"
         "    callback: The setup callback to use.",
         "self"_a, "callback"_a);
 }
