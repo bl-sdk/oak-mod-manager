@@ -5,7 +5,7 @@
       "name": "_base",
       "hidden": true,
       "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "installDir": "${sourceDir}/sdk_mods/mod_menu/native",
+      "installDir": "${sourceDir}/sdk_mods/",
       "architecture": {
         "value": "x64",
         "strategy": "external"

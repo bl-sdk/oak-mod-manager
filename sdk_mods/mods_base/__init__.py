@@ -12,5 +12,3 @@ __all__: tuple[str, ...] = (
     "ModType",
     "register_mod",
 )
-
-from . import menu  # noqa: F401  # pyright: ignore[reportUnusedImport]
