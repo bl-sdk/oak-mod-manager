@@ -97,7 +97,7 @@ def run_callback(callback: KeybindCallback, event: EInputEvent) -> KeybindBlockS
 
 
 # Must import after defining keybind to avoid circular import
-from .mod import mod_list  # noqa: E402
+from .mod_list import mod_list  # noqa: E402
 
 
 def gameplay_keybind_callback(key: str, event: EInputEvent) -> KeybindBlockSignal:

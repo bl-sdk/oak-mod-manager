@@ -1,21 +1,68 @@
-import inspect
-from typing import overload
+from __future__ import annotations
+
+import sys
+from dataclasses import dataclass, field
+from enum import Enum, Flag, auto
+from functools import cache
+from pathlib import Path
+
+from unrealsdk import logging
 
 from .keybinds import Keybind
 
-__all__: tuple[str, ...] = (
-    "Mod",
-    "register_mod",
-    "deregister_mod",
-)
+
+class Game(Flag):
+    BL3 = auto()
+    WL = auto()
+
+    # While we don't expect to run under them, define the willow games too
+    # This may prevent an attribute error letting the mod load, and allowing us to display the
+    # incompatability warning
+    BL2 = auto()
+    TPS = auto()
+    AoDK = auto()
+
+    @staticmethod
+    @cache
+    def get_current() -> Game:
+        """Gets the current game."""
+        lower_exe_names: dict[str, Game] = {
+            "borderlands3.exe": Game.BL3,
+            "wonderlands.exe": Game.WL,
+        }
+
+        exe = Path(sys.executable).name
+        exe_lower = exe.lower()
+
+        if exe_lower not in lower_exe_names:
+            # We've occasionally seen the executable corrupt in the old willow sdk
+            # Instead of throwing, we'll still try return something sane, to keep stuff working
+            # Assuming you're not playing Wonderlands sounds pretty sane :)
+            logging.error(f"Unknown executable name '{exe}'! Assuming BL3.")
+            return Game.BL3
+
+        return lower_exe_names[exe_lower]
 
 
+class ModType(Enum):
+    Standard = auto()
+    Library = auto()
+
+
+@dataclass
 class Mod:
     """
     A mod instance to display in the mods menu.
 
     Attributes - Info:
         name: The mod's name.
+        author: The mod's author(s).
+        description: A short description of the mod.
+        version: A string holding the mod's version. This is purely a display value, the module
+                 level attributes should be used for version checking.
+        mod_type: What type of mod this is. This influences ordering in the mod list.
+        supported_games: The games this mod supports. When loaded in an unsupported game, a warning
+                         will be displayed and the mod will be blocked from enabling.
 
     Attributes - Functionality:
         keybinds: A list of the mod's keybinds.
@@ -25,15 +72,15 @@ class Mod:
     """
 
     name: str
+    author: str
+    description: str
+    version: str
+    mod_type: ModType
+    supported_games: Game
 
     keybinds: list[Keybind]
 
-    is_enabled: bool
-
-    def __init__(self) -> None:
-        self.name = "Unknown Mod"
-        self.keybinds = []
-        self.is_enabled = False
+    is_enabled: bool = field(init=False, default=False)
 
     def __repr__(self) -> str:
         return f"<{self.name}: " + ("Enabled" if self.is_enabled else "Disabled") + ">"
@@ -45,77 +92,3 @@ class Mod:
     def disable(self) -> None:
         """Called to disable the mod."""
         self.is_enabled = False
-
-
-mod_list: list[Mod] = []
-
-
-@overload
-def register_mod(mod: Mod) -> Mod:  # noqa: D418
-    """
-    Registers a mod instance.
-
-    Args:
-        mod: The mod to register.
-    Returns:
-        The mod which was registered.
-    """
-
-
-@overload
-def register_mod(  # noqa: D418
-    *,
-    name: str | None = None,
-    keybinds: list[Keybind] | None = None,
-) -> Mod:
-    """
-    Factory function to create and register a new mod based on the contents of the calling module.
-
-    Args:
-        name: The name of the mod. If not given, uses the module's __name__
-        keybinds: The mod's keybinds. If not given, finds all Keybind instances in the module's
-                  global namespace.
-    Returns:
-        The mod which was registered.
-    """
-
-
-def register_mod(  # noqa: D103
-    mod: Mod | None = None,
-    *,
-    name: str | None = None,
-    keybinds: list[Keybind] | None = None,
-) -> Mod:
-    if mod is not None:
-        mod_list.append(mod)
-        return mod
-
-    module = inspect.getmodule(inspect.stack()[1].frame)
-    if module is None:
-        raise ValueError("Unable to find calling module when using register_mod factory!")
-
-    mod = Mod()
-    mod.name = name or module.__name__
-    mod.keybinds = keybinds or []
-
-    for field in dir(module):
-        value = getattr(module, field)
-
-        if keybinds is None and isinstance(value, Keybind):
-            mod.keybinds.append(value)
-
-    mod_list.append(mod)
-    return mod
-
-
-def deregister_mod(mod: Mod) -> None:
-    """
-    Removes a mod from the mod list.
-
-    Args:
-        mod: The mod to remove.
-    """
-    if mod.is_enabled:
-        mod.disable()
-
-    mod_list.remove(mod)
