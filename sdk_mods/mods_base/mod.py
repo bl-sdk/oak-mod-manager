@@ -81,8 +81,8 @@ class Mod:
     mod_type: ModType
     supported_games: Game
 
-    keybinds: Sequence[Keybind]
-    options: Sequence[BaseOption]
+    keybinds: Sequence[Keybind] = field(default_factory=list)
+    options: Sequence[BaseOption] = field(default_factory=list)
 
     is_enabled: bool = field(init=False, default=False)
 

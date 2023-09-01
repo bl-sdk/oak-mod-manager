@@ -41,12 +41,12 @@ def get_ordered_mod_list() -> list[Mod]:
     def cmp(a: Mod, b: Mod) -> int:
         if a.mod_type is not ModType.Library and b.mod_type is ModType.Library:
             return 1
-        elif a.mod_type is ModType.Library and b.mod_type is not ModType.Library:
+        if a.mod_type is ModType.Library and b.mod_type is not ModType.Library:
             return -1
 
         if a.name < b.name:
             return -1
-        elif a.name > b.name:
+        if a.name > b.name:
             return 1
         return 0
 

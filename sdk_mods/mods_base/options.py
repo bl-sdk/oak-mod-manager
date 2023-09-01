@@ -3,6 +3,8 @@ from collections.abc import Callable, Sequence
 from dataclasses import KW_ONLY, dataclass, field
 from typing import Generic, Literal, Self, TypeVar
 
+from unrealsdk import logging
+
 from .settings import JSON
 
 _T = TypeVar("_T", bound=JSON)
@@ -61,6 +63,27 @@ class ValueOption(BaseOption, Generic[_T]):
 
     def __post_init__(self) -> None:
         self.default_value = self.value
+
+    def __call__(self, on_change: Callable[[Self, _T], None]) -> Self:
+        """
+        Sets the on change callback.
+
+        This allows this class to be constructed using decorator syntax, though note it is *not* a
+        decorator, it returns itself so must be the outermost level.
+
+        Args:
+            on_change: The callback to set.
+        Returns:
+            This keybind instance.
+        """
+        if self.on_change is not None:
+            logging.dev_warning(
+                f"{self.__class__.__qualname__}.__call__ was called on an option which already has"
+                f" a on change callback.",
+            )
+
+        self.on_change = on_change
+        return self
 
 
 @dataclass
@@ -215,3 +238,24 @@ class ButtonOption(BaseOption):
     """
 
     on_press: Callable[[Self], None] | None = None
+
+    def __call__(self, on_press: Callable[[Self], None]) -> Self:
+        """
+        Sets the on press callback.
+
+        This allows this class to be constructed using decorator syntax, though note it is *not* a
+        decorator, it returns itself so must be the outermost level.
+
+        Args:
+            on_press: The callback to set.
+        Returns:
+            This keybind instance.
+        """
+        if self.on_press is not None:
+            logging.dev_warning(
+                f"{self.__class__.__qualname__}.__call__ was called on an option which already has"
+                f" a on press callback.",
+            )
+
+        self.on_press = on_press
+        return self

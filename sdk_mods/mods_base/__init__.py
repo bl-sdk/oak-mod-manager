@@ -3,6 +3,7 @@ import unrealsdk
 from . import menu_keybinds
 from .keybinds import Keybind
 from .mod import Game, Mod, ModType
+from .mod_factory import build_mod
 from .mod_list import deregister_mod, register_mod
 from .options import (
     BaseOption,
@@ -24,6 +25,7 @@ __all__: tuple[str, ...] = (
     "__version_info__",
     "BaseOption",
     "BoolOption",
+    "build_mod",
     "ButtonOption",
     "deregister_mod",
     "DropdownOption",
