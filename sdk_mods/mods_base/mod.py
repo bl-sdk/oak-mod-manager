@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import Enum, Flag, auto
 from functools import cache
@@ -9,6 +10,7 @@ from pathlib import Path
 from unrealsdk import logging
 
 from .keybinds import Keybind
+from .options import BaseOption
 
 
 class Game(Flag):
@@ -17,7 +19,7 @@ class Game(Flag):
 
     # While we don't expect to run under them, define the willow games too
     # This may prevent an attribute error letting the mod load, and allowing us to display the
-    # incompatability warning
+    # incompatibility warning
     BL2 = auto()
     TPS = auto()
     AoDK = auto()
@@ -65,7 +67,8 @@ class Mod:
                          will be displayed and the mod will be blocked from enabling.
 
     Attributes - Functionality:
-        keybinds: A list of the mod's keybinds.
+        keybinds: A sequence of the mod's keybinds.
+        options: A sequence of the mod's options.
 
     Attributes - Runtime:
         is_enabled: True if the mod is currently considered enabled.
@@ -78,7 +81,8 @@ class Mod:
     mod_type: ModType
     supported_games: Game
 
-    keybinds: list[Keybind]
+    keybinds: Sequence[Keybind]
+    options: Sequence[BaseOption]
 
     is_enabled: bool = field(init=False, default=False)
 
