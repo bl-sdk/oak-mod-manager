@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import inspect
 import sys
-from collections.abc import Callable, Sequence
-from dataclasses import dataclass, field
+from collections.abc import Callable, MutableSequence
+from dataclasses import InitVar, dataclass, field
 from enum import Enum, Flag, auto
 from functools import cache
 from pathlib import Path
@@ -10,6 +11,7 @@ from typing import Literal
 
 from unrealsdk import logging
 
+from .hook import HookProtocol
 from .keybinds import Keybind
 from .options import BaseOption
 
@@ -70,11 +72,17 @@ class Mod:
     Attributes - Functionality:
         keybinds: A sequence of the mod's keybinds.
         options: A sequence of the mod's options.
-        on_enable: A no-arg callback to run on mod enable. Useful when constructing via dataclass.
-        on_disable: A no-arg callback to run on mod disable. Useful when constructing via dataclass.
+        hooks: A sequence of the mod's hooks.
 
     Attributes - Runtime:
         is_enabled: True if the mod is currently considered enabled.
+        on_enable: A no-arg callback to run on mod enable. Useful when constructing via dataclass.
+        on_disable: A no-arg callback to run on mod disable. Useful when constructing via dataclass.
+
+    Init Vars:
+        search_instance_fields: If True, will append to the keybind, option, and hook lists with
+                                values found by searching through instance variables duing
+                                initalization. Note the order is not necesarily stable.
     """
 
     name: str
@@ -84,17 +92,37 @@ class Mod:
     mod_type: ModType = ModType.Standard
     supported_games: Game = Game.BL3 | Game.WL
 
-    keybinds: Sequence[Keybind] = field(default_factory=list)
-    options: Sequence[BaseOption] = field(default_factory=list)
+    keybinds: MutableSequence[Keybind] = field(default_factory=list)
+    options: MutableSequence[BaseOption] = field(default_factory=list)
+    hooks: MutableSequence[HookProtocol] = field(default_factory=list)
 
+    is_enabled: bool = field(default=False, init=False)
     on_enable: Callable[[], None] | None = None
     on_disable: Callable[[], None] | None = None
 
-    is_enabled: bool = field(default=False, init=False)
+    search_instance_fields: InitVar[bool] = True
+
+    def __post_init__(self, search_instance_fields: bool) -> None:
+        if not search_instance_fields:
+            return
+
+        for _, value in inspect.getmembers(self):
+            match value:
+                case Keybind() if value not in self.keybinds:
+                    self.keybinds += (value,)
+                case BaseOption() if value not in self.options:
+                    self.options += (value,)
+                case HookProtocol() if value not in self.hooks:
+                    self.hooks += (value.bind(self),)
+                case _:
+                    pass
 
     def enable(self) -> None:
         """Called to enable the mod."""
         self.is_enabled = True
+
+        for hook in self.hooks:
+            hook.enable()
 
         if self.on_enable is not None:
             self.on_enable()
@@ -113,7 +141,9 @@ class Library(Mod):
 
     mod_type: Literal[ModType.Library] = ModType.Library
 
-    def __post_init__(self) -> None:
+    def __post_init__(self, search_instance_fields: bool) -> None:
+        super().__post_init__(search_instance_fields)
+
         if Game.get_current() in self.supported_games:
             self.enable()
 

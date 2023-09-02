@@ -1,26 +1,28 @@
 import inspect
-from collections.abc import Callable, Sequence
-from dataclasses import MISSING
+from collections.abc import Callable, MutableSequence
 from types import ModuleType
-from typing import Literal, cast
+from typing import Any, cast
 
+from .hook import HookProtocol
 from .keybinds import Keybind
-from .mod import Game, Mod, ModType
+from .mod import Game, Library, Mod, ModType
 from .mod_list import register_mod
 from .options import BaseOption
 
 
 def search_module_if_needed(
     module: ModuleType,
-    keybinds: Sequence[Keybind] | Literal[MISSING],
-    options: Sequence[BaseOption] | Literal[MISSING],
-    on_enable: Callable[[], None] | Literal[MISSING],
-    on_disable: Callable[[], None] | Literal[MISSING],
+    keybinds: MutableSequence[Keybind] | None,
+    options: MutableSequence[BaseOption] | None,
+    hooks: MutableSequence[HookProtocol] | None,
+    on_enable: Callable[[], None] | None,
+    on_disable: Callable[[], None] | None,
 ) -> tuple[
-    Sequence[Keybind],
-    Sequence[BaseOption],
-    Callable[[], None] | Literal[MISSING],
-    Callable[[], None] | Literal[MISSING],
+    MutableSequence[Keybind],
+    MutableSequence[BaseOption],
+    MutableSequence[HookProtocol],
+    Callable[[], None] | None,
+    Callable[[], None] | None,
 ]:
     """
     Searches through a module for any mod fields which aren't already specified.
@@ -29,6 +31,7 @@ def search_module_if_needed(
         module: The module to search through.
         keybinds: The set of specified keybinds, or None if to search for them.
         options: The set of specified options, or None if to search for them.
+        hooks: The set of specified hooks, or None if to search for them.
         on_enable: The specified enable callback, or None if to search for one.
         on_disable: The specified disable callback, or None if to search for one.
     Returns:
@@ -36,55 +39,61 @@ def search_module_if_needed(
     """
     need_to_search_module = False
 
-    if need_to_find_keybinds := keybinds is MISSING:
+    if find_keybinds := keybinds is None:
         keybinds = []
         need_to_search_module = True
 
-    if need_to_find_options := options is MISSING:
+    if find_options := options is None:
         options = []
         need_to_search_module = True
 
-    if on_enable is MISSING:
+    if find_hooks := hooks is None:
+        hooks = []
         need_to_search_module = True
-    if on_disable is MISSING:
+
+    if on_enable is None:
+        need_to_search_module = True
+    if on_disable is None:
         need_to_search_module = True
 
     if need_to_search_module:
-        for field, value in module.__dict__.items():
+        for field, value in inspect.getmembers(module):
             match field, value:
-                case _, Keybind() if need_to_find_keybinds:
-                    cast(list[Keybind], keybinds).append(value)
+                case _, Keybind() if find_keybinds:
+                    keybinds += (value,)
 
-                case _, BaseOption() if need_to_find_options:
-                    cast(list[BaseOption], options).append(value)
+                case _, BaseOption() if find_options:
+                    options += (value,)
 
-                case "on_enable", Callable() if on_enable is MISSING:
+                case _, HookProtocol() if find_hooks:
+                    hooks += (value,)
+
+                case "on_enable", Callable() if on_enable is None:
                     on_enable = cast(Callable[[], None], value)
 
-                case "on_disable", Callable() if on_disable is MISSING:
+                case "on_disable", Callable() if on_disable is None:
                     on_disable = cast(Callable[[], None], value)
 
                 case _:
                     pass
 
-    return keybinds, options, on_enable, on_disable
+    return keybinds, options, hooks, on_enable, on_disable
 
 
 def build_mod(
     *,
     cls: type[Mod] = Mod,
-    # Reuse the dataclass missing sentinel, so that we can forward it directly to the constructor
-    # for any args we don't do anything special to, and it can handle it all
-    name: str | Literal[MISSING] = MISSING,
-    author: str | Literal[MISSING] = MISSING,
-    description: str | Literal[MISSING] = MISSING,
-    version: str | Literal[MISSING] = MISSING,
-    mod_type: ModType | Literal[MISSING] = MISSING,
-    supported_games: Game | Literal[MISSING] = MISSING,
-    keybinds: Sequence[Keybind] | Literal[MISSING] = MISSING,
-    options: Sequence[BaseOption] | Literal[MISSING] = MISSING,
-    on_enable: Callable[[], None] | Literal[MISSING] = MISSING,
-    on_disable: Callable[[], None] | Literal[MISSING] = MISSING,
+    name: str | None = None,
+    author: str | None = None,
+    description: str | None = None,
+    version: str | None = None,
+    mod_type: ModType | None = None,
+    supported_games: Game | None = None,
+    keybinds: MutableSequence[Keybind] | None = None,
+    options: MutableSequence[BaseOption] | None = None,
+    hooks: MutableSequence[HookProtocol] | None = None,
+    on_enable: Callable[[], None] | None = None,
+    on_disable: Callable[[], None] | None = None,
 ) -> Mod:
     """
     Factory function to create and register a mod.
@@ -100,9 +109,11 @@ def build_mod(
         mod_type: What type of mod this is.
         supported_games: The games this mod supports.
         keybinds: The mod's keybinds. Defaults to searching for Keybind instances in the module's
-                  namespace if missing.
+                  namespace if missing. Note the order is not necesarily stable.
         options: The mod's options. Defaults to searching for OptionBase instances in the module's
-                 namespace if missing.
+                 namespace if missing. Note the order is not necesarily stable.
+        hooks: The mod's hooks. Defaults to searching for hook functions in the module's namespace
+               if missing.
         on_enable: A no-arg callback to run on mod enable. Defaults to searching for a callable
                    named `on_enable` in the module's namespace if missing.
         on_disable: A no-arg callback to run on mod disable. Defaults to searching for a callable
@@ -115,28 +126,43 @@ def build_mod(
     if module is None:
         raise ValueError("Unable to find calling module when using build_mod factory!")
 
-    keybinds, options, on_enable, on_disable = search_module_if_needed(
+    keybinds, options, hooks, on_enable, on_disable = search_module_if_needed(
         module,
         keybinds,
         options,
+        hooks,
         on_enable,
         on_disable,
     )
 
-    mod = cls(
-        name=module.__name__ if name is MISSING else name,
-        author=getattr(module, "__author__", "Unknown Author") if author is MISSING else author,
-        description=description,  # type: ignore
-        version=(
-            getattr(module, "__version__", "Unknown Version") if version is MISSING else version
-        ),
-        mod_type=mod_type,  # type: ignore
-        supported_games=supported_games,  # type: ignore
-        keybinds=keybinds,
-        options=options,
-        on_enable=on_enable,  # type: ignore
-        on_disable=on_disable,  # type: ignore
-    )
+    kwargs: dict[str, Any] = {
+        "name": name or module.__name__,
+        "keybinds": keybinds,
+        "options": options,
+        "hooks": hooks,
+    }
 
+    if (author := (author or getattr(module, "__author__", None))) is not None:
+        kwargs["author"] = author
+    if description is not None:
+        kwargs["description"] = description
+    if (version := (version or getattr(module, "__version__", None))) is not None:
+        kwargs["version"] = version
+    if mod_type is not None:
+        kwargs["mod_type"] = mod_type
+    if supported_games is not None:
+        kwargs["supported_games"] = supported_games
+    if on_enable is not None:
+        kwargs["on_enable"] = on_enable
+    if on_disable is not None:
+        kwargs["on_disable"] = on_disable
+
+    # As an optimization, we know searching won't find anything on the base mod classes, so can
+    # default to off. On other classes, use their default - we assume that a subclass which
+    # wants this on won't set the default to false.
+    if cls in (Mod, Library):
+        kwargs["search_instance_fields"] = False
+
+    mod = cls(**kwargs)
     register_mod(mod)
     return mod
