@@ -17,14 +17,12 @@ mod_list: list[Mod] = [
         author="bl-sdk",
         description="Base library for interacting with unreal objects.",
         version=unrealsdk.__version__,
-        search_instance_fields=False,
     ),
     Library(
         name="pyunrealsdk",
         author="bl-sdk",
         description="Python bindings for unrealsdk.",
         version=pyunrealsdk.__version__,
-        search_instance_fields=False,
     ),
     Library(
         name="Mods Base",
@@ -40,7 +38,6 @@ mod_list: list[Mod] = [
                 ),
             ],
         ),
-        search_instance_fields=False,
     ),
 ]
 

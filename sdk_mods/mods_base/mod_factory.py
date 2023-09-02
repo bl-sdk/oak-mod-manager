@@ -5,7 +5,7 @@ from typing import Any, cast
 
 from .hook import HookProtocol
 from .keybinds import Keybind
-from .mod import Game, Library, Mod, ModType
+from .mod import Game, Mod, ModType
 from .mod_list import register_mod
 from .options import BaseOption
 
@@ -156,12 +156,6 @@ def build_mod(
         kwargs["on_enable"] = on_enable
     if on_disable is not None:
         kwargs["on_disable"] = on_disable
-
-    # As an optimization, we know searching won't find anything on the base mod classes, so can
-    # default to off. On other classes, use their default - we assume that a subclass which
-    # wants this on won't set the default to false.
-    if cls in (Mod, Library):
-        kwargs["search_instance_fields"] = False
 
     mod = cls(**kwargs)
     register_mod(mod)

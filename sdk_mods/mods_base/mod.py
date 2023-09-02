@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 import sys
 from collections.abc import Callable, Iterator, MutableSequence
-from dataclasses import InitVar, dataclass, field
+from dataclasses import dataclass, field
 from enum import Enum, Flag, auto
 from functools import cache
 from pathlib import Path
@@ -70,19 +70,14 @@ class Mod:
                          will be displayed and the mod will be blocked from enabling.
 
     Attributes - Functionality:
-        keybinds: A sequence of the mod's keybinds.
-        options: A sequence of the mod's options.
-        hooks: A sequence of the mod's hooks.
+        keybinds: The mod's keybinds. If not given, searches for them in instance variables.
+        options: The mod's options. If not given, searches for them in instance variables.
+        hooks: The mod's hooks. If not given, searches for them in instance variables.
 
     Attributes - Runtime:
         is_enabled: True if the mod is currently considered enabled.
         on_enable: A no-arg callback to run on mod enable. Useful when constructing via dataclass.
         on_disable: A no-arg callback to run on mod disable. Useful when constructing via dataclass.
-
-    Init Vars:
-        search_instance_fields: If True, will append to the keybind, option, and hook lists with
-                                values found by searching through instance variables duing
-                                initalization. Note the order is not necesarily stable.
     """
 
     name: str
@@ -92,27 +87,42 @@ class Mod:
     mod_type: ModType = ModType.Standard
     supported_games: Game = Game.BL3 | Game.WL
 
-    keybinds: MutableSequence[Keybind] = field(default_factory=list)
-    options: MutableSequence[BaseOption] = field(default_factory=list)
-    hooks: MutableSequence[HookProtocol] = field(default_factory=list)
+    # Set the default to None so we can detect when these aren't provided
+    # Don't type them as possibly None though, since we're going to fix it immediately in the
+    # constructor, and it'd force you to do None checks whenever you're accessing them
+    keybinds: MutableSequence[Keybind] = field(default=None)  # type: ignore
+    options: MutableSequence[BaseOption] = field(default=None)  # type: ignore
+    hooks: MutableSequence[HookProtocol] = field(default=None)  # type: ignore
 
     is_enabled: bool = field(default=False, init=False)
     on_enable: Callable[[], None] | None = None
     on_disable: Callable[[], None] | None = None
 
-    search_instance_fields: InitVar[bool] = True
+    def __post_init__(self) -> None:
+        need_to_search_instance_vars = False
 
-    def __post_init__(self, search_instance_fields: bool) -> None:
-        if not search_instance_fields:
+        if find_keybinds := self.keybinds is None:  # type: ignore
+            self.keybinds = []
+            need_to_search_instance_vars = True
+
+        if find_options := self.options is None:  # type: ignore
+            self.options = []
+            need_to_search_instance_vars = True
+
+        if find_hooks := self.hooks is None:  # type: ignore
+            self.hooks = []
+            need_to_search_instance_vars = True
+
+        if not need_to_search_instance_vars:
             return
 
         for _, value in inspect.getmembers(self):
             match value:
-                case Keybind() if value not in self.keybinds:
+                case Keybind() if find_keybinds:
                     self.keybinds += (value,)
-                case BaseOption() if value not in self.options:
+                case BaseOption() if find_options:
                     self.options += (value,)
-                case HookProtocol() if value not in self.hooks:
+                case HookProtocol() if find_hooks:
                     self.hooks += (value.bind(self),)
                 case _:
                     pass
@@ -160,8 +170,8 @@ class Library(Mod):
 
     mod_type: Literal[ModType.Library] = ModType.Library
 
-    def __post_init__(self, search_instance_fields: bool) -> None:
-        super().__post_init__(search_instance_fields)
+    def __post_init__(self) -> None:
+        super().__post_init__()
 
         if Game.get_current() in self.supported_games:
             self.enable()
