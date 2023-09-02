@@ -1,8 +1,27 @@
 from functools import cmp_to_key
 
-from .mod import Mod, ModType
+import unrealsdk
 
-mod_list: list[Mod] = []
+import pyunrealsdk
+
+from .mod import Game, Library, Mod, ModType
+
+mod_list: list[Mod] = [
+    Library(
+        name="unrealsdk",
+        author="bl-sdk",
+        description="Base library for interacting with unreal objects.",
+        version=unrealsdk.__version__,
+        supported_games=Game.BL3 | Game.WL,
+    ),
+    Library(
+        name="pyunrealsdk",
+        author="bl-sdk",
+        description="Python bindings for unrealsdk.",
+        version=pyunrealsdk.__version__,
+        supported_games=Game.BL3 | Game.WL,
+    ),
+]
 
 
 def register_mod(mod: Mod) -> None:

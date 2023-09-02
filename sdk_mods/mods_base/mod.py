@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import sys
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from enum import Enum, Flag, auto
 from functools import cache
@@ -69,6 +69,8 @@ class Mod:
     Attributes - Functionality:
         keybinds: A sequence of the mod's keybinds.
         options: A sequence of the mod's options.
+        on_enable: A no-arg callback to run on mod enable. Useful when constructing via dataclass.
+        on_disable: A no-arg callback to run on mod disable. Useful when constructing via dataclass.
 
     Attributes - Runtime:
         is_enabled: True if the mod is currently considered enabled.
@@ -84,7 +86,10 @@ class Mod:
     keybinds: Sequence[Keybind] = field(default_factory=list)
     options: Sequence[BaseOption] = field(default_factory=list)
 
-    is_enabled: bool = field(init=False, default=False)
+    on_enable: Callable[[], None] | None = None
+    on_disable: Callable[[], None] | None = None
+
+    is_enabled: bool = field(default=False, init=False)
 
     def __repr__(self) -> str:
         return f"<{self.name}: " + ("Enabled" if self.is_enabled else "Disabled") + ">"
@@ -93,6 +98,26 @@ class Mod:
         """Called to enable the mod."""
         self.is_enabled = True
 
+        if self.on_enable is not None:
+            self.on_enable()
+
     def disable(self) -> None:
         """Called to disable the mod."""
         self.is_enabled = False
+
+        if self.on_disable is not None:
+            self.on_disable()
+
+
+@dataclass
+class Library(Mod):
+    """Helper subclass for libraries, which are always enabled."""
+
+    mod_type: ModType = ModType.Library
+
+    def __post_init__(self) -> None:
+        if Game.get_current() in self.supported_games:
+            self.enable()
+
+    def disable(self) -> None:
+        """No-op to prevent the library from being disabled."""

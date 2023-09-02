@@ -2,7 +2,7 @@ import unrealsdk
 
 from . import menu_keybinds
 from .keybinds import Keybind
-from .mod import Game, Mod, ModType
+from .mod import Game, Library, Mod, ModType
 from .mod_factory import build_mod
 from .mod_list import deregister_mod, register_mod
 from .options import (
@@ -33,6 +33,7 @@ __all__: tuple[str, ...] = (
     "Game",
     "HiddenOption",
     "Keybind",
+    "Library",
     "menu_keybinds",
     "Mod",
     "ModType",
