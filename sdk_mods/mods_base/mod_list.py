@@ -1,4 +1,5 @@
 import os
+import re
 from functools import cmp_to_key
 from pathlib import Path
 from typing import cast
@@ -24,8 +25,8 @@ mod_list: list[Mod] = [
         description="Python bindings for unrealsdk.",
         version=pyunrealsdk.__version__,
     ),
-    Library(
-        name="Mods Base",
+    base_mod := Library(
+        name="Python SDK Base",
         author="bl-sdk",
         description="Basic utilities used across all mods.",
         version=__version__,
@@ -67,6 +68,9 @@ def deregister_mod(mod: Mod) -> None:
     mod_list.remove(mod)
 
 
+RE_HTML_TAG = re.compile("<.+?>")
+
+
 def get_ordered_mod_list() -> list[Mod]:
     """
     Gets the list of mods, in display order.
@@ -76,14 +80,25 @@ def get_ordered_mod_list() -> list[Mod]:
     """
 
     def cmp(a: Mod, b: Mod) -> int:
-        if a.mod_type is not ModType.Library and b.mod_type is ModType.Library:
+        # The base mod should always appear at the start
+        if a == base_mod and b != base_mod:
+            return -1
+        if a != base_mod and b == base_mod:
             return 1
-        if a.mod_type is ModType.Library and b.mod_type is not ModType.Library:
-            return -1
 
-        if a.name < b.name:
+        # Sort libraries after all other mod types
+        if a.mod_type is not ModType.Library and b.mod_type is ModType.Library:
             return -1
-        if a.name > b.name:
+        if a.mod_type is ModType.Library and b.mod_type is not ModType.Library:
+            return 1
+
+        # Finally, sort by name
+        # Strip html tags, whitespace, and compare case insensitively
+        a_stripped = RE_HTML_TAG.sub("", a.name).strip().lower()
+        b_stripped = RE_HTML_TAG.sub("", b.name).strip().lower()
+        if a_stripped < b_stripped:
+            return -1
+        if a_stripped > b_stripped:
             return 1
         return 0
 

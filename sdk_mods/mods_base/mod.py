@@ -129,6 +129,9 @@ class Mod:
 
     def enable(self) -> None:
         """Called to enable the mod."""
+        if Game.get_current() not in self.supported_games:
+            return
+
         self.is_enabled = True
 
         for hook in self.hooks:
@@ -141,6 +144,9 @@ class Mod:
         """Called to disable the mod."""
         self.is_enabled = False
 
+        for hook in self.hooks:
+            hook.disable()
+
         if self.on_disable is not None:
             self.on_disable()
 
@@ -149,16 +155,30 @@ class Mod:
         Iterates through the options to display in the options menu.
 
         This may yield options not in the options list, to customize how the menu is displayed.
+
+        Yields:
+            Options, in the order they should be displayed.
         """
+        compatible_game = Game.get_current() in self.supported_games
+
+        if not compatible_game:
+            yield ButtonOption(
+                "Incompatible Game!",
+                description=f"This mod is incompatible with {Game.get_current().name}!",
+            )
+
         yield ButtonOption(
             "Description",
-            description=f"By {self.author}.\n{self.version}\n\n" + self.description,
+            description=self.description,
+            description_title=f"By {self.author}  -  {self.version}",
         )
-        yield BoolOption(
-            "Enabled",
-            self.is_enabled,
-            on_change=lambda _, now_enabled: self.enable() if now_enabled else self.disable(),
-        )
+        if compatible_game:
+            yield BoolOption(
+                "Enabled",
+                self.is_enabled,
+                on_change=lambda _, now_enabled: self.enable() if now_enabled else self.disable(),
+            )
+
         if len(self.options) > 0:
             yield TitleOption("Options")
             yield from self.options
@@ -178,3 +198,12 @@ class Library(Mod):
 
     def disable(self) -> None:
         """No-op to prevent the library from being disabled."""
+
+    def iter_display_options(self) -> Iterator[BaseOption]:
+        """Custom display options, which remove the enabled switch."""
+        seen_enabled = False
+        for option in super().iter_display_options():
+            if not seen_enabled and option.name == "Enabled" and isinstance(option, BoolOption):
+                seen_enabled = True
+                continue
+            yield option

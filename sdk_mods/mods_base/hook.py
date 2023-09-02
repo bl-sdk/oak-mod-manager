@@ -86,6 +86,9 @@ class HookProtocol(Protocol):
 
 
 def _hook_enable(self: HookProtocol) -> None:
+    # Disable first, to make sure we always use the latest version when enabling
+    _hook_disable(self)
+
     func = (
         self.__call__
         if self.obj_to_bind_hooks_to is None
