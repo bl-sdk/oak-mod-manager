@@ -89,7 +89,7 @@ def run_callback(callback: KeybindCallback, event: EInputEvent) -> KeybindBlockS
         if event != EInputEvent.IE_Pressed:
             return None
 
-        argless_callback = callback  # type: ignore  # noqa: PGH003
+        argless_callback = callback  # type: ignore
     else:
         argless_callback = functools.partial(callback, event)
 

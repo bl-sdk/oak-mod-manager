@@ -29,12 +29,12 @@ class DialogBoxChoice:
     """
 
     label: str
-    action: str = None  # type: ignore  # noqa: PGH003
+    action: str = None  # type: ignore
     close_on_select: bool = True
     controller_default: bool = False
 
     def __post_init__(self) -> None:
-        if self.action is None:  # type: ignore  # noqa: PGH003
+        if self.action is None:  # type: ignore
             self.action = self.label
 
 

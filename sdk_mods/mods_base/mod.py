@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from enum import Enum, Flag, auto
 from functools import cache
 from pathlib import Path
+from typing import Literal
 
 from unrealsdk import logging
 
@@ -77,11 +78,11 @@ class Mod:
     """
 
     name: str
-    author: str
-    description: str
-    version: str
-    mod_type: ModType
-    supported_games: Game
+    author: str = "Unknown Author"
+    description: str = ""
+    version: str = "Unknown Version"
+    mod_type: ModType = ModType.Standard
+    supported_games: Game = Game.BL3 | Game.WL
 
     keybinds: Sequence[Keybind] = field(default_factory=list)
     options: Sequence[BaseOption] = field(default_factory=list)
@@ -90,9 +91,6 @@ class Mod:
     on_disable: Callable[[], None] | None = None
 
     is_enabled: bool = field(default=False, init=False)
-
-    def __repr__(self) -> str:
-        return f"<{self.name}: " + ("Enabled" if self.is_enabled else "Disabled") + ">"
 
     def enable(self) -> None:
         """Called to enable the mod."""
@@ -113,7 +111,7 @@ class Mod:
 class Library(Mod):
     """Helper subclass for libraries, which are always enabled."""
 
-    mod_type: ModType = ModType.Library
+    mod_type: Literal[ModType.Library] = ModType.Library
 
     def __post_init__(self) -> None:
         if Game.get_current() in self.supported_games:
