@@ -1,10 +1,15 @@
+import os
 from functools import cmp_to_key
+from pathlib import Path
+from typing import cast
 
 import unrealsdk
 
 import pyunrealsdk
 
-from .mod import Game, Library, Mod, ModType
+from . import __version__
+from .mod import Library, Mod, ModType
+from .options import BaseOption, ButtonOption
 
 mod_list: list[Mod] = [
     Library(
@@ -12,14 +17,30 @@ mod_list: list[Mod] = [
         author="bl-sdk",
         description="Base library for interacting with unreal objects.",
         version=unrealsdk.__version__,
-        supported_games=Game.BL3 | Game.WL,
+        search_instance_fields=False,
     ),
     Library(
         name="pyunrealsdk",
         author="bl-sdk",
         description="Python bindings for unrealsdk.",
         version=pyunrealsdk.__version__,
-        supported_games=Game.BL3 | Game.WL,
+        search_instance_fields=False,
+    ),
+    Library(
+        name="Mods Base",
+        author="bl-sdk",
+        description="Basic utilities used across all mods.",
+        version=__version__,
+        options=cast(
+            list[BaseOption],
+            [
+                ButtonOption(
+                    "Open Mods Folder",
+                    lambda _: os.startfile(Path(__file__).parent.parent),  # type: ignore
+                ),
+            ],
+        ),
+        search_instance_fields=False,
     ),
 ]
 

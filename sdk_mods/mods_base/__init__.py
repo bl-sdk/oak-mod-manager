@@ -1,5 +1,9 @@
 import unrealsdk
 
+# Define up here to avoid a circular import in mod_list
+__version_info__: tuple[int, int] = (1, 0)
+__version__: str = f"{__version_info__[0]}.{__version_info__[1]}"
+
 from . import menu_keybinds
 from .hook import hook
 from .keybinds import Keybind
@@ -17,9 +21,6 @@ from .options import (
     TitleOption,
     ValueOption,
 )
-
-__version_info__: tuple[int, int] = (1, 0)
-__version__: str = f"{__version_info__[0]}.{__version_info__[1]}"
 
 __all__: tuple[str, ...] = (
     "__version__",
