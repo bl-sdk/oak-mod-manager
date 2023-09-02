@@ -9,3 +9,6 @@ __all__: tuple[str, ...] = (
 
 __version_info__: tuple[int, int] = (1, 0)
 __version__: str = f"{__version_info__[0]}.{__version_info__[1]}"
+
+# Setup the actual mod
+from . import mod  # noqa: F401  # pyright: ignore[reportUnusedImport]

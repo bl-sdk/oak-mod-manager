@@ -9,7 +9,7 @@ from .hook import hook
 from .keybinds import Keybind
 from .mod import Game, Library, Mod, ModType
 from .mod_factory import build_mod
-from .mod_list import deregister_mod, register_mod
+from .mod_list import deregister_mod, get_ordered_mod_list, register_mod
 from .options import (
     BaseOption,
     BoolOption,
@@ -33,6 +33,7 @@ __all__: tuple[str, ...] = (
     "DropdownOption",
     "engine",
     "Game",
+    "get_ordered_mod_list",
     "HiddenOption",
     "hook",
     "Keybind",

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 from dataclasses import KW_ONLY, dataclass, field
 from typing import Generic, Literal, Self, TypeVar
 
@@ -167,7 +167,7 @@ class SpinnerOption(ValueOption[str]):
         default_value: What the value was originally when registered. Does not update on change.
     """
 
-    choices: Sequence[str]
+    choices: list[str]
     wrap_enabled: bool = False
 
 
@@ -216,7 +216,7 @@ class DropdownOption(ValueOption[str]):
         default_value: What the value was originally when registered. Does not update on change.
     """
 
-    choices: Sequence[str]
+    choices: list[str]
 
 
 @dataclass

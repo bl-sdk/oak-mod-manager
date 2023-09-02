@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import inspect
 import sys
-from collections.abc import Callable, MutableSequence
+from collections.abc import Callable, Iterator, MutableSequence
 from dataclasses import InitVar, dataclass, field
 from enum import Enum, Flag, auto
 from functools import cache
@@ -13,7 +13,7 @@ from unrealsdk import logging
 
 from .hook import HookProtocol
 from .keybinds import Keybind
-from .options import BaseOption
+from .options import BaseOption, BoolOption, ButtonOption, TitleOption
 
 
 class Game(Flag):
@@ -133,6 +133,25 @@ class Mod:
 
         if self.on_disable is not None:
             self.on_disable()
+
+    def iter_display_options(self) -> Iterator[BaseOption]:
+        """
+        Iterates through the options to display in the options menu.
+
+        This may yield options not in the options list, to customize how the menu is displayed.
+        """
+        yield ButtonOption(
+            "Description",
+            description=f"By {self.author}.\n{self.version}\n\n" + self.description,
+        )
+        yield BoolOption(
+            "Enabled",
+            self.is_enabled,
+            on_change=lambda _, now_enabled: self.enable() if now_enabled else self.disable(),
+        )
+        if len(self.options) > 0:
+            yield TitleOption("Options")
+            yield from self.options
 
 
 @dataclass
