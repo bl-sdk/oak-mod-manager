@@ -15,7 +15,7 @@ from .native.outer_menu import (
     set_add_menu_item_callback,
     set_menu_state,
 )
-from .options_setup import open_options_menu
+from .options_setup import on_options_close, open_options_menu
 
 MAIN_MENU_CLS = unrealsdk.find_class("GFxOakMainMenu")
 
@@ -94,6 +94,8 @@ def frontend_menu_change_hook(
     ):
         # Refresh it, so that we update the enabled/disabled coloring
         draw_mods_list(active_menu)
+
+        on_options_close()
 
 
 @hook("/Script/OakGame.GFxOakMainMenu:OnOtherButtonClicked", Type.PRE, auto_enable=True)

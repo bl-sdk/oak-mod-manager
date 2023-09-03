@@ -18,7 +18,11 @@ if Game.get_current() is Game.BL3:
     ]
 
     # Import these modules for their side effects, which setup the actual menu
-    from . import options_setup, outer_menu  # noqa: F401  # pyright: ignore[reportUnusedImport]
+    from . import (
+        options_callbacks,  # noqa: F401  # pyright: ignore[reportUnusedImport]
+        options_setup,  # noqa: F401  # pyright: ignore[reportUnusedImport]
+        outer_menu,  # noqa: F401  # pyright: ignore[reportUnusedImport]
+    )
 
 build_mod(
     cls=Library,

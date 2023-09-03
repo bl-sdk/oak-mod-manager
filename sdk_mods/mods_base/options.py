@@ -7,7 +7,7 @@ from unrealsdk import logging
 
 from .settings import JSON
 
-_T = TypeVar("_T", bound=JSON)
+J = TypeVar("J", bound=JSON)
 
 
 @dataclass
@@ -35,7 +35,7 @@ class BaseOption(ABC):
 
 
 @dataclass
-class ValueOption(BaseOption, Generic[_T]):
+class ValueOption(BaseOption, Generic[J]):
     """
     Abstract base class for all options storing a value.
 
@@ -52,10 +52,10 @@ class ValueOption(BaseOption, Generic[_T]):
         default_value: What the value was originally when registered. Does not update on change.
     """
 
-    value: _T
-    default_value: _T = field(init=False)
+    value: J
+    default_value: J = field(init=False)
     _: KW_ONLY
-    on_change: Callable[[Self, _T], None] | None = None
+    on_change: Callable[[Self, J], None] | None = None
 
     @abstractmethod
     def __init__(self) -> None:
@@ -64,7 +64,7 @@ class ValueOption(BaseOption, Generic[_T]):
     def __post_init__(self) -> None:
         self.default_value = self.value
 
-    def __call__(self, on_change: Callable[[Self, _T], None]) -> Self:
+    def __call__(self, on_change: Callable[[Self, J], None]) -> Self:
         """
         Sets the on change callback.
 
@@ -87,7 +87,7 @@ class ValueOption(BaseOption, Generic[_T]):
 
 
 @dataclass
-class HiddenOption(ValueOption[_T]):
+class HiddenOption(ValueOption[J]):
     """
     A generic option which is always hidden. Use this to persist arbitrary (JSON-encodeable) data.
 

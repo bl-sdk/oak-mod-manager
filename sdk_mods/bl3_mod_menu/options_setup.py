@@ -25,10 +25,27 @@ from .native.options_setup import (
 )
 from .native.options_transition import open_custom_options, refresh_options
 
-# The mod which we last opened the options menu for
-last_opened_mod: Mod | None = None
+# The mod we're currently displaying, or None if not in a custom options menu
+open_mod: Mod | None = None
+
 # The options which we drew last time we updated one of our options menus
 last_drawn_options: list[BaseOption] = []
+
+
+def on_options_close() -> None:
+    """Callback to be run when the options menu is closed."""
+    global open_mod
+    open_mod = None
+
+
+def is_options_menu_open() -> bool:
+    """
+    Checks if a custom options menu is open.
+
+    Returns:
+        True if the options menu is open.
+    """
+    return open_mod is not None
 
 
 def setup_options_for_mod(mod: Mod, self: UObject) -> None:
@@ -41,9 +58,9 @@ def setup_options_for_mod(mod: Mod, self: UObject) -> None:
         mod: The mod to setup options for.
         self: The options menu being drawn.
     """
-    global last_opened_mod, last_drawn_options
+    global open_mod, last_drawn_options
     last_drawn_options.clear()
-    last_opened_mod = mod
+    open_mod = mod
 
     for option in mod.iter_display_options():
         if option.is_hidden:
@@ -121,11 +138,11 @@ def refresh_options_menu(options_menu: UObject, preserve_scroll: bool = True) ->
         options_menu: The current options menu.
         preserve_scroll: If true, preserves the current scroll position.
     """
-    if last_opened_mod is None:
+    if open_mod is None:
         raise RuntimeError("Tried to refresh a mod options screen without having an associated mod")
 
     refresh_options(
         options_menu,
-        functools.partial(setup_options_for_mod, last_opened_mod),
+        functools.partial(setup_options_for_mod, open_mod),
         preserve_scroll,
     )
