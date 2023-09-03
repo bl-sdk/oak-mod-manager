@@ -4,6 +4,7 @@ import functools
 
 from mods_base import (
     BaseOption,
+    BindingOption,
     BoolOption,
     ButtonOption,
     DropdownOption,
@@ -15,6 +16,7 @@ from mods_base import (
 from unrealsdk import logging
 from unrealsdk.unreal import UObject
 
+from .keybinds import add_keybind_option
 from .native.options_setup import (
     add_bool_spinner,
     add_button,
@@ -114,7 +116,8 @@ def setup_options_for_mod(mod: Mod, self: UObject) -> None:
                 )
             case TitleOption():
                 add_title(self, option.name)
-            # TODO: bindings
+            case BindingOption():
+                add_keybind_option(self, option)
             case _:
                 logging.dev_warning(f"Encountered unknown option type {type(option)}")
 

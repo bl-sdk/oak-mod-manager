@@ -3,7 +3,7 @@ from __future__ import annotations
 import functools
 import inspect
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import KW_ONLY, dataclass, field
 from typing import TYPE_CHECKING, Self, TypeAlias
 
 from unrealsdk import find_enum, logging
@@ -29,21 +29,31 @@ class Keybind:
     """
     Represents a single keybind.
 
-    Attributes:
+    Args:
         name: The name to use in the keybinds menu
         key: The bound key, or None if unbound. Updated on rebind.
-        is_rebindable: If the key may be rebound.
-        is_hidden: If the key displays in the keybinds menu.
         callback: The callback to run when the key is pressed.
-        default_key: What the key was originally when registered. Does not change on rebind.
+
+    Keyword Args:
+        description: A short description about the bind, to be used in the options menu.
+        description_title: The title to use for the description. If None, copies the name.
+        is_hidden: If true, the keybind will not be shown in the options menu.
+        is_rebindable: If the key may be rebound.
+
+    Extra Attributes:
+        default_key: What the key was originally when registered. Does not update on rebind.
     """
 
     name: str
     key: str | None = None
-    is_rebindable: bool = True
-    is_hidden: bool = False
 
     callback: KeybindCallback | None = None
+
+    _: KW_ONLY
+    description: str = ""
+    description_title: str | None = None
+    is_hidden: bool = False
+    is_rebindable: bool = True
 
     default_key: str | None = field(default=key, init=False)
 

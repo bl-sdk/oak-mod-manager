@@ -13,7 +13,7 @@ from unrealsdk import logging
 
 from .hook import HookProtocol
 from .keybinds import Keybind
-from .options import BaseOption, BoolOption, ButtonOption, TitleOption
+from .options import BaseOption, BindingOption, BoolOption, ButtonOption, TitleOption
 
 
 class Game(Flag):
@@ -182,6 +182,11 @@ class Mod:
         if len(self.options) > 0:
             yield TitleOption("Options")
             yield from self.options
+
+        if len(self.keybinds) > 0:
+            yield TitleOption("Keybinds")
+            for bind in self.keybinds:
+                yield BindingOption.from_keybind(bind)
 
 
 @dataclass

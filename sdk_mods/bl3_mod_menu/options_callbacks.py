@@ -4,6 +4,7 @@ from typing import Any
 
 from mods_base import (
     BaseOption,
+    BindingOption,
     BoolOption,
     ButtonOption,
     DropdownOption,
@@ -17,6 +18,7 @@ from mods_base.options import J
 from unrealsdk.hooks import Block, Type
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
+from .keybinds import handle_keybind_press
 from .native.options_getters import (
     get_combo_box_selected_idx,
     get_number_value,
@@ -75,6 +77,8 @@ def unimplemented_option_clicked(
             update_option_value(option, option.choices[get_spinner_selected_idx(button)])
         case TitleOption():
             pass
+        case BindingOption():
+            handle_keybind_press(option)
         case _:
             raise ValueError(f"Pressed option of unknown type {type(option)}")
 

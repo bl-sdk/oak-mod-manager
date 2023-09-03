@@ -4,7 +4,7 @@ from collections.abc import Callable
 from dataclasses import InitVar, dataclass, field
 from typing import Any, ClassVar, Self
 
-from mods_base import engine, hook
+from mods_base import ENGINE, hook
 from unrealsdk import logging, make_struct
 from unrealsdk.hooks import Block, Type
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
@@ -135,7 +135,7 @@ class DialogBox:
                 struct.InitialChoiceIndex = self._controler_default_idx
 
         _dialog_stack.append(self)
-        show_dialog_box(engine.GameInstance, setup_callback)
+        show_dialog_box(ENGINE.GameInstance, setup_callback)
 
     @hook("/Script/OakGame.OakGameInstance:OnNATHelpChoiceMade", Type.PRE, auto_enable=True)
     @staticmethod

@@ -1,4 +1,5 @@
 import unrealsdk
+from unrealsdk.unreal import UObject
 
 # Define up here to avoid a circular import in mod_list
 __version_info__: tuple[int, int] = (1, 0)
@@ -12,6 +13,7 @@ from .mod_factory import build_mod
 from .mod_list import deregister_mod, get_ordered_mod_list, register_mod
 from .options import (
     BaseOption,
+    BindingOption,
     BoolOption,
     ButtonOption,
     DropdownOption,
@@ -26,14 +28,16 @@ __all__: tuple[str, ...] = (
     "__version__",
     "__version_info__",
     "BaseOption",
+    "BindingOption",
     "BoolOption",
     "build_mod",
     "ButtonOption",
     "deregister_mod",
     "DropdownOption",
-    "engine",
+    "ENGINE",
     "Game",
     "get_ordered_mod_list",
+    "get_pc",
     "HiddenOption",
     "hook",
     "Keybind",
@@ -48,5 +52,23 @@ __all__: tuple[str, ...] = (
     "ValueOption",
 )
 
-engine = unrealsdk.find_object("OakGameEngine", "/Engine/Transient.OakGameEngine_0")
-assert engine is not None
+ENGINE = unrealsdk.find_object("OakGameEngine", "/Engine/Transient.OakGameEngine_0")
+
+
+_GAME_INSTANCE_PROP = ENGINE.Class._find_prop("GameInstance")
+_LOCAL_PLAYERS_PROP = _GAME_INSTANCE_PROP.PropertyClass._find_prop("LocalPlayers")
+_PLAYER_CONTROLLER_PROP = _LOCAL_PLAYERS_PROP.Inner.PropertyClass._find_prop("PlayerController")
+
+
+def get_pc() -> UObject:
+    """
+    Gets the main (local) player controller object.
+
+    Returns:
+        The player controller.
+    """
+    return (
+        ENGINE._get_field(_GAME_INSTANCE_PROP)
+        ._get_field(_LOCAL_PLAYERS_PROP)[0]
+        ._get_field(_PLAYER_CONTROLLER_PROP)
+    )

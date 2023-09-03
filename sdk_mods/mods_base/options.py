@@ -5,6 +5,7 @@ from typing import Generic, Literal, Self, TypeVar
 
 from unrealsdk import logging
 
+from .keybinds import Keybind
 from .settings import JSON
 
 J = TypeVar("J", bound=JSON)
@@ -259,3 +260,51 @@ class ButtonOption(BaseOption):
 
         self.on_press = on_press
         return self
+
+
+@dataclass
+class BindingOption(ValueOption[str | None]):
+    """
+    An option selecting a keybinding.
+
+    Note this class only deals with displaying a key and letting the user rebind it, use `Keybind`
+    to handle press callbacks. By default, all keybinds in your mod will automatically have one of
+    these genrated for them, so you shouldn't need to instantiate them manually.
+
+    Args:
+        name: The option's name.
+        value: The option's value.
+        is_rebindable: True if the key may be rebound.
+    Keyword Args:
+        description: A short description about the option.
+        description_title: The title to use for the description. If None, copies the name.
+        is_hidden: If true, the option will not be shown in the options menu.
+        on_change: If not None, a callback to run before updating the value. Passed a reference to
+                   the option object and the new value.
+    Extra Attributes:
+        default_value: What the value was originally when registered. Does not update on change.
+    """
+
+    is_rebindable: bool = True
+
+    @classmethod
+    def from_keybind(cls, bind: Keybind) -> Self:
+        """
+        Constructs an option bound from a keybind.
+
+        Changes to the option will be applied back onto the keybind.
+
+        Args:
+            bind: The keybind to construct from.
+        Returns:
+            A new binding option.
+        """
+        return cls(
+            name=bind.name,
+            value=bind.key,
+            is_rebindable=bind.is_rebindable,
+            description=bind.description,
+            description_title=bind.description_title,
+            is_hidden=bind.is_hidden,
+            on_change=lambda _, new_key: setattr(bind, "key", new_key),
+        )
