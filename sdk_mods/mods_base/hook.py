@@ -120,6 +120,8 @@ def _hook_bind(self: HookProtocol, obj: Any) -> HookProtocol:
 def hook(
     hook_func: str,
     hook_type: Literal[Type.PRE],
+    *,
+    auto_enable: bool = False,
 ) -> Callable[[AnyPreHook], HookProtocol]:
     ...
 
@@ -128,6 +130,8 @@ def hook(
 def hook(
     hook_func: str,
     hook_type: Literal[Type.POST, Type.POST_UNCONDITIONAL],
+    *,
+    auto_enable: bool = False,
 ) -> Callable[[AnyPostHook], HookProtocol]:
     ...
 
@@ -135,8 +139,24 @@ def hook(
 def hook(
     hook_func: str,
     hook_type: Type,
+    *,
+    auto_enable: bool = False,
 ) -> Callable[[AnyPreHook], HookProtocol] | Callable[[AnyPostHook], HookProtocol]:
-    """Decorator to add a hook."""
+    """
+    Decorator to register a function as a hook.
+
+    May be stacked on the same function multiple times - even with other decorators inbetween
+    (assuming they follow the `__wrapped__` convention).
+
+    When using multiple decorators, the outermost one should always be a hook, to give you access to
+    the functions it adds, and to make sure hook autodetection can pick it up properly.
+
+    Args:
+        hook_func: The unrealscript function to hook.
+        hook_type: What type of hook to add.
+        auto_enable: If true, enables the hook after registering it. Should only be set on the
+                     outermost decorator.
+    """
 
     def decorator(func: AnyPreHook | AnyPostHook) -> HookProtocol:
         if not isinstance(func, HookProtocol):
@@ -162,6 +182,9 @@ def hook(
             func.bind = _hook_bind.__get__(func, type(func))
 
         func.hook_funcs.append((hook_func, hook_type))
+
+        if auto_enable:
+            func.enable()
 
         return func
 

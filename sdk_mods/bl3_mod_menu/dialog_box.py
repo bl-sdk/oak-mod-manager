@@ -4,9 +4,9 @@ from collections.abc import Callable
 from dataclasses import InitVar, dataclass, field
 from typing import Any, ClassVar, Self
 
-from mods_base import engine
+from mods_base import engine, hook
 from unrealsdk import logging, make_struct
-from unrealsdk.hooks import Block, Type, add_hook, remove_hook
+from unrealsdk.hooks import Block, Type
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 from .native.dialog_box import show_dialog_box
@@ -137,6 +137,7 @@ class DialogBox:
         _dialog_stack.append(self)
         show_dialog_box(engine.GameInstance, setup_callback)
 
+    @hook("/Script/OakGame.OakGameInstance:OnNATHelpChoiceMade", Type.PRE, auto_enable=True)
     @staticmethod
     def _on_dialog_closed_hook(
         _1: UObject,
@@ -168,15 +169,3 @@ class DialogBox:
             dialog.on_press(choice)
 
         return Block
-
-    remove_hook(
-        "/Script/OakGame.OakGameInstance:OnNATHelpChoiceMade",
-        Type.PRE,
-        __file__,
-    )
-    add_hook(
-        "/Script/OakGame.OakGameInstance:OnNATHelpChoiceMade",
-        Type.PRE,
-        __file__,
-        _on_dialog_closed_hook,
-    )
