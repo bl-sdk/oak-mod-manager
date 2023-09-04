@@ -7,7 +7,7 @@ __version__: str = f"{__version_info__[0]}.{__version_info__[1]}"
 
 from . import menu_keybinds
 from .hook import hook
-from .keybinds import Keybind
+from .keybinds import EInputEvent, Keybind
 from .mod import Game, Library, Mod, ModType
 from .mod_factory import build_mod
 from .mod_list import deregister_mod, get_ordered_mod_list, register_mod
@@ -34,6 +34,7 @@ __all__: tuple[str, ...] = (
     "ButtonOption",
     "deregister_mod",
     "DropdownOption",
+    "EInputEvent",
     "ENGINE",
     "Game",
     "get_ordered_mod_list",

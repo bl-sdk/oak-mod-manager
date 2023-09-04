@@ -44,13 +44,17 @@ class DialogBox:
     Class representing a dialog box.
 
     When the dialog box is closed, the `on_press` callback will be called with the choice which was
-    selected. This is detected using the choice's action. The dialog being cancel emits an event
-    with the `Cancel` action - if you have a button with this action already, it will be used,
-    otherwise falls back to using the `DialogBox.CANCEL` class var.
+    selected. This is detected using the choice's action. These are a few pre-existing actions - if
+    you have a button with this action, it will be passed to the callback, otherwise one of the
+    class vars will be passed as a fallback. These actions are:
+    - `Cancel`, when the dialog is canceled out of, via Escape / B.
+    - `Closed`, when the dialog has no choices and is closed, via Enter / A.
 
     Class Vars:
         CANCEL: The choice passed to the on press callback when the dialog is cancelled, but there
                 is no existing cancel choice.
+        CLOSED: The choice passed to the on press callback when the dialog is closed, but there
+                is no existing close choice.
 
     Attributes:
         header: The dialog box's header.
@@ -63,6 +67,7 @@ class DialogBox:
     """
 
     CANCEL: ClassVar[DialogBoxChoice] = DialogBoxChoice("Cancel", close_on_select=True)
+    CLOSED: ClassVar[DialogBoxChoice] = DialogBoxChoice("Closed", close_on_select=True)
 
     header: str
     choices: list[DialogBoxChoice]
@@ -88,7 +93,7 @@ class DialogBox:
 
             lower_action = choice.action.lower()
             if lower_action in self._result_mapping:
-                logging.dev_warning(f"Clash in dialog box choice actions: {lower_action}")
+                logging.dev_warning(f"Clash in dialog box choice actions: '{lower_action}'")
             self._result_mapping[lower_action] = choice
 
         if not dont_show:
@@ -157,9 +162,11 @@ class DialogBox:
             choice = dialog._result_mapping[lower_action]
         elif lower_action == "cancel":
             choice = DialogBox.CANCEL
+        elif lower_action == "closed":
+            choice = DialogBox.CLOSED
 
         if choice is None:
-            logging.error(f"Selected unknown dialog box choice {args.ChoiceNameId}!")
+            logging.error(f"Selected unknown dialog box choice '{args.ChoiceNameId}'!")
             return Block
 
         if choice.close_on_select:

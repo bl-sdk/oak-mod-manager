@@ -27,7 +27,10 @@ if Game.get_current() is Game.BL3:
         outer_menu,  # noqa: F401  # pyright: ignore[reportUnusedImport]
     )
 
-    _options.append(keybinds.controller_style_option)
+    _options += [
+        keybinds.controller_style_option,
+        keybinds.switch_swap_option,
+    ]
 
 build_mod(
     cls=Library,

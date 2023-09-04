@@ -1,9 +1,10 @@
 from enum import StrEnum
 
 import unrealsdk
-from mods_base import BindingOption, DropdownOption
+from mods_base import BindingOption, BoolOption, DropdownOption, EInputEvent, get_pc, menu_keybinds
 from unrealsdk.unreal import UObject
 
+from .dialog_box import DialogBox
 from .native.options_setup import add_binding
 
 
@@ -19,7 +20,15 @@ controller_style_option = DropdownOption(
     "Controller Icon Style",
     ControllerIconStyle.GENERIC,
     list(ControllerIconStyle),
-    description="When a keybind is bound to a controller key, what type of icon to display.",
+    description=(
+        "What type of icon to display in mod options when a keybind is bound to a controller key."
+        " Does not affect icons elsewhere in the game."
+    ),
+)
+switch_swap_option = BoolOption(
+    "Swap Switch Icons",
+    True,
+    description="When using switch style controller icons, should A / B and X / Y be swapped.",
 )
 
 
@@ -50,6 +59,13 @@ KEY_GLYPH_MAPPING: dict[str, dict[ControllerIconStyle, str]] = {
     ).InputMap
 }
 
+SWITCH_BUTTON_SWAPS: dict[str, str] = {
+    "Gamepad_FaceButton_Left": "Gamepad_FaceButton_Top",
+    "Gamepad_FaceButton_Top": "Gamepad_FaceButton_Left",
+    "Gamepad_FaceButton_Right": "Gamepad_FaceButton_Bottom",
+    "Gamepad_FaceButton_Bottom": "Gamepad_FaceButton_Right",
+}
+
 
 LOCK_ICON = (
     '<img src="img://Game/UI/InteractionPrompt/InteractionPrompt_IDB.InteractionPrompt_IDB"'
@@ -68,11 +84,20 @@ def add_keybind_option(options_menu: UObject, option: BindingOption) -> None:
     display_key: str = ""
     if option.value is not None:
         display_key = option.value
+        pressed_key = option.value
+
+        icon_style = ControllerIconStyle(controller_style_option.value)
+
+        if (
+            icon_style == ControllerIconStyle.SWITCH
+            and switch_swap_option.value
+            and display_key in SWITCH_BUTTON_SWAPS
+        ):
+            pressed_key = SWITCH_BUTTON_SWAPS[pressed_key]
 
         if option.value in KEY_GLYPH_MAPPING:
-            controller_style_mapping = KEY_GLYPH_MAPPING[option.value]
+            controller_style_mapping = KEY_GLYPH_MAPPING[pressed_key]
 
-            icon_style = ControllerIconStyle(controller_style_option.value)
             if icon_style not in controller_style_mapping:
                 icon_style = ControllerIconStyle.GENERIC
 
@@ -91,11 +116,39 @@ def add_keybind_option(options_menu: UObject, option: BindingOption) -> None:
     )
 
 
-def handle_keybind_press(option: BindingOption) -> None:
+# Avoid circular import
+from .options_setup import refresh_options_menu  # noqa: E402
+
+
+def handle_keybind_press(options_menu: UObject, option: BindingOption) -> None:
     """
     Handles a press on a keybind option in the menu.
 
     Args:
+        options_menu: The current menu the bind was pressed in.
         option: The option which was pressed.
     """
-    _ = option  # TODO
+    if not option.is_rebindable:
+        return
+
+    menu_keybinds.push()
+
+    @menu_keybinds.add(None, EInputEvent.IE_Released)
+    def key_handler(key: str) -> None:  # pyright: ignore[reportUnusedFunction]
+        if key not in ("Escape", "Gamepad_Special_Left"):
+            new_key = None if key == option.value else key
+            if option.on_change is not None:
+                option.on_change(option, new_key)
+            option.value = new_key
+
+        get_pc().MenuStack.Pop()
+        menu_keybinds.pop()
+
+        refresh_options_menu(options_menu)
+
+    DialogBox(
+        f'Rebind "{option.name}"',
+        [],
+        f'Rebinding "{option.name}"\nPress new input to bind.\n\n{{OakPC_PauseGame}}  Cancel',
+        may_cancel=False,
+    )

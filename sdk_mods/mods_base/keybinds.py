@@ -81,31 +81,6 @@ class Keybind:
         return self
 
 
-def run_callback(callback: KeybindCallback, event: EInputEvent) -> KeybindBlockSignal:
-    """
-    Runs a keybind callback for the given event, if applicable.
-
-    If the keybind callback has no args, only runs it on pressed events, and returns None otherwise.
-    If it takes args, always calls it, passing the event.
-
-    Args:
-        callback: The callback to run.
-        event: The event to run the callback for.
-    Returns:
-        The callback's result.
-    """
-    argless_callback: Callable[[], KeybindBlockSignal]
-    if len(inspect.signature(callback).parameters) == 0:
-        if event != EInputEvent.IE_Pressed:
-            return None
-
-        argless_callback = callback  # type: ignore
-    else:
-        argless_callback = functools.partial(callback, event)
-
-    return argless_callback()
-
-
 # Must import after defining keybind to avoid circular import
 from .mod_list import mod_list  # noqa: E402
 
@@ -121,8 +96,18 @@ def gameplay_keybind_callback(key: str, event: EInputEvent) -> KeybindBlockSigna
             if bind.key != key:
                 continue
 
+            argless_callback: Callable[[], KeybindBlockSignal]
+            if len(inspect.signature(bind.callback).parameters) == 0:
+                if event != EInputEvent.IE_Pressed:
+                    continue
+
+                argless_callback = bind.callback  # type: ignore
+            else:
+                argless_callback = functools.partial(bind.callback, event)
+
             # Need to put ret on the RHS to avoid short circuits
-            ret = run_callback(bind.callback, event) or ret
+            ret = argless_callback() or ret
+
     return ret
 
 

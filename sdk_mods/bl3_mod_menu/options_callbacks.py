@@ -78,7 +78,7 @@ def unimplemented_option_clicked(
         case TitleOption():
             pass
         case BindingOption():
-            handle_keybind_press(option)
+            handle_keybind_press(obj, option)
         case _:
             raise ValueError(f"Pressed option of unknown type {type(option)}")
 
