@@ -1,7 +1,7 @@
 from enum import StrEnum
 
 import unrealsdk
-from mods_base import BindingOption, BoolOption, DropdownOption, EInputEvent, get_pc, menu_keybinds
+from mods_base import BoolOption, DropdownOption, EInputEvent, KeybindOption, get_pc, menu_keybinds
 from unrealsdk.unreal import UObject
 
 from .dialog_box import DialogBox
@@ -73,7 +73,7 @@ LOCK_ICON = (
 )
 
 
-def add_keybind_option(options_menu: UObject, option: BindingOption) -> None:
+def add_keybind_option(options_menu: UObject, option: KeybindOption) -> None:
     """
     Adds a keybind option to the options menu.
 
@@ -120,7 +120,7 @@ def add_keybind_option(options_menu: UObject, option: BindingOption) -> None:
 from .options_setup import refresh_options_menu  # noqa: E402
 
 
-def handle_keybind_press(options_menu: UObject, option: BindingOption) -> None:
+def handle_keybind_press(options_menu: UObject, option: KeybindOption) -> None:
     """
     Handles a press on a keybind option in the menu.
 

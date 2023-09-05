@@ -5,7 +5,7 @@ from typing import Generic, Literal, Self, TypeVar
 
 from unrealsdk import logging
 
-from .keybinds import Keybind
+from .keybinds import KeybindType
 from .settings import JSON
 
 J = TypeVar("J", bound=JSON)
@@ -48,7 +48,7 @@ class ValueOption(BaseOption, Generic[J]):
         description_title: The title to use for the description. If None, copies the name.
         is_hidden: If true, the option will not be shown in the options menu.
         on_change: If not None, a callback to run before updating the value. Passed a reference to
-                   the option object and the new value.
+                   the option object and the new value. May be set using decorator syntax.
     Extra Attributes:
         default_value: What the value was originally when registered. Does not update on change.
     """
@@ -135,7 +135,7 @@ class SliderOption(ValueOption[float]):
         description_title: The title to use for the description. If None, copies the name.
         is_hidden: If true, the option will not be shown in the options menu.
         on_change: If not None, a callback to run before updating the value. Passed a reference to
-                   the option object and the new value.
+                   the option object and the new value. May be set using decorator syntax.
     Extra Attributes:
         default_value: What the value was originally when registered. Does not update on change.
     """
@@ -163,7 +163,7 @@ class SpinnerOption(ValueOption[str]):
         description_title: The title to use for the description. If None, copies the name.
         is_hidden: If true, the option will not be shown in the options menu.
         on_change: If not None, a callback to run before updating the value. Passed a reference to
-                   the option object and the new value.
+                   the option object and the new value. May be set using decorator syntax.
     Extra Attributes:
         default_value: What the value was originally when registered. Does not update on change.
     """
@@ -187,7 +187,7 @@ class BoolOption(ValueOption[bool]):
         description_title: The title to use for the description. If None, copies the name.
         is_hidden: If true, the option will not be shown in the options menu.
         on_change: If not None, a callback to run before updating the value. Passed a reference to
-                   the option object and the new value.
+                   the option object and the new value. May be set using decorator syntax.
     Extra Attributes:
         default_value: What the value was originally when registered. Does not update on change.
     """
@@ -212,7 +212,7 @@ class DropdownOption(ValueOption[str]):
         description_title: The title to use for the description. If None, copies the name.
         is_hidden: If true, the option will not be shown in the options menu.
         on_change: If not None, a callback to run before updating the value. Passed a reference to
-                   the option object and the new value.
+                   the option object and the new value. May be set using decorator syntax.
     Extra Attributes:
         default_value: What the value was originally when registered. Does not update on change.
     """
@@ -263,7 +263,7 @@ class ButtonOption(BaseOption):
 
 
 @dataclass
-class BindingOption(ValueOption[str | None]):
+class KeybindOption(ValueOption[str | None]):
     """
     An option selecting a keybinding.
 
@@ -280,7 +280,7 @@ class BindingOption(ValueOption[str | None]):
         description_title: The title to use for the description. If None, copies the name.
         is_hidden: If true, the option will not be shown in the options menu.
         on_change: If not None, a callback to run before updating the value. Passed a reference to
-                   the option object and the new value.
+                   the option object and the new value. May be set using decorator syntax.
     Extra Attributes:
         default_value: What the value was originally when registered. Does not update on change.
     """
@@ -288,7 +288,7 @@ class BindingOption(ValueOption[str | None]):
     is_rebindable: bool = True
 
     @classmethod
-    def from_keybind(cls, bind: Keybind) -> Self:
+    def from_keybind(cls, bind: KeybindType) -> Self:
         """
         Constructs an option bound from a keybind.
 

@@ -4,7 +4,7 @@ from types import ModuleType
 from typing import Any, cast
 
 from .hook import HookProtocol
-from .keybinds import Keybind
+from .keybinds import KeybindType
 from .mod import Game, Mod, ModType
 from .mod_list import register_mod
 from .options import BaseOption
@@ -12,13 +12,13 @@ from .options import BaseOption
 
 def search_module_if_needed(
     module: ModuleType,
-    keybinds: MutableSequence[Keybind] | None,
+    keybinds: MutableSequence[KeybindType] | None,
     options: MutableSequence[BaseOption] | None,
     hooks: MutableSequence[HookProtocol] | None,
     on_enable: Callable[[], None] | None,
     on_disable: Callable[[], None] | None,
 ) -> tuple[
-    MutableSequence[Keybind],
+    MutableSequence[KeybindType],
     MutableSequence[BaseOption],
     MutableSequence[HookProtocol],
     Callable[[], None] | None,
@@ -59,7 +59,7 @@ def search_module_if_needed(
     if need_to_search_module:
         for field, value in inspect.getmembers(module):
             match field, value:
-                case _, Keybind() if find_keybinds:
+                case _, KeybindType() if find_keybinds:
                     keybinds += (value,)
 
                 case _, BaseOption() if find_options:
@@ -89,7 +89,7 @@ def build_mod(
     version: str | None = None,
     mod_type: ModType | None = None,
     supported_games: Game | None = None,
-    keybinds: MutableSequence[Keybind] | None = None,
+    keybinds: MutableSequence[KeybindType] | None = None,
     options: MutableSequence[BaseOption] | None = None,
     hooks: MutableSequence[HookProtocol] | None = None,
     on_enable: Callable[[], None] | None = None,

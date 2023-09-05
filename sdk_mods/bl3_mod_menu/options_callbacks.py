@@ -4,10 +4,10 @@ from typing import Any
 
 from mods_base import (
     BaseOption,
-    BindingOption,
     BoolOption,
     ButtonOption,
     DropdownOption,
+    KeybindOption,
     SliderOption,
     SpinnerOption,
     TitleOption,
@@ -77,7 +77,7 @@ def unimplemented_option_clicked(
             update_option_value(option, option.choices[get_spinner_selected_idx(button)])
         case TitleOption():
             pass
-        case BindingOption():
+        case KeybindOption():
             handle_keybind_press(obj, option)
         case _:
             raise ValueError(f"Pressed option of unknown type {type(option)}")

@@ -4,10 +4,10 @@ import functools
 
 from mods_base import (
     BaseOption,
-    BindingOption,
     BoolOption,
     ButtonOption,
     DropdownOption,
+    KeybindOption,
     Mod,
     SliderOption,
     SpinnerOption,
@@ -116,7 +116,7 @@ def setup_options_for_mod(mod: Mod, self: UObject) -> None:
                 )
             case TitleOption():
                 add_title(self, option.name)
-            case BindingOption():
+            case KeybindOption():
                 add_keybind_option(self, option)
             case _:
                 logging.dev_warning(f"Encountered unknown option type {type(option)}")

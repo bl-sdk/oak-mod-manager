@@ -12,8 +12,8 @@ from typing import Literal
 from unrealsdk import logging
 
 from .hook import HookProtocol
-from .keybinds import Keybind
-from .options import BaseOption, BindingOption, BoolOption, ButtonOption, TitleOption
+from .keybinds import KeybindType
+from .options import BaseOption, BoolOption, ButtonOption, KeybindOption, TitleOption
 
 
 class Game(Flag):
@@ -90,7 +90,7 @@ class Mod:
     # Set the default to None so we can detect when these aren't provided
     # Don't type them as possibly None though, since we're going to fix it immediately in the
     # constructor, and it'd force you to do None checks whenever you're accessing them
-    keybinds: MutableSequence[Keybind] = field(default=None)  # type: ignore
+    keybinds: MutableSequence[KeybindType] = field(default=None)  # type: ignore
     options: MutableSequence[BaseOption] = field(default=None)  # type: ignore
     hooks: MutableSequence[HookProtocol] = field(default=None)  # type: ignore
 
@@ -118,7 +118,7 @@ class Mod:
 
         for _, value in inspect.getmembers(self):
             match value:
-                case Keybind() if find_keybinds:
+                case KeybindType() if find_keybinds:
                     self.keybinds += (value,)
                 case BaseOption() if find_options:
                     self.options += (value,)
@@ -186,7 +186,7 @@ class Mod:
         if len(self.keybinds) > 0:
             yield TitleOption("Keybinds")
             for bind in self.keybinds:
-                yield BindingOption.from_keybind(bind)
+                yield KeybindOption.from_keybind(bind)
 
 
 @dataclass

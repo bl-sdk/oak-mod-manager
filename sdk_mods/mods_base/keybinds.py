@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import functools
-import inspect
 from collections.abc import Callable
 from dataclasses import KW_ONLY, dataclass, field
-from typing import TYPE_CHECKING, Self, TypeAlias
+from typing import TYPE_CHECKING, TypeAlias, cast, overload
 
-from unrealsdk import find_enum, logging
+from unrealsdk import find_enum
 from unrealsdk.hooks import Block
 
 from .native.keybinds import set_gameplay_keybind_callback
@@ -14,20 +13,22 @@ from .native.keybinds import set_gameplay_keybind_callback
 if TYPE_CHECKING:
     from .native.keybinds import _EInputEvent  # pyright: ignore[reportPrivateUsage]
 
-    EInputEvent = _EInputEvent
+    EInputEvent: TypeAlias = _EInputEvent
 else:
     EInputEvent = find_enum("EInputEvent")
 
-__all__: tuple[str, ...] = ("Keybind",)
-
 KeybindBlockSignal: TypeAlias = None | Block | type[Block]
-KeybindCallback = Callable[[], KeybindBlockSignal] | Callable[[EInputEvent], KeybindBlockSignal]
+KeybindCallback_Event: TypeAlias = Callable[[EInputEvent], KeybindBlockSignal]
+KeybindCallback_NoArgs: TypeAlias = Callable[[], KeybindBlockSignal]
 
 
 @dataclass
-class Keybind:
+class KeybindType:
     """
     Represents a single keybind.
+
+    The input callback takes no args, and may return the Block sentinel to prevent passing the input
+    back into the game. Standard blocking logic applies when multiple keybinds use the same key.
 
     Args:
         name: The name to use in the keybinds menu
@@ -45,9 +46,9 @@ class Keybind:
     """
 
     name: str
-    key: str | None = None
+    key: str | None
 
-    callback: KeybindCallback | None = None
+    callback: KeybindCallback_Event | None = None
 
     _: KW_ONLY
     description: str = ""
@@ -55,30 +56,135 @@ class Keybind:
     is_hidden: bool = False
     is_rebindable: bool = True
 
-    default_key: str | None = field(default=key, init=False)
+    default_key: str | None = field(init=False)
 
     def __post_init__(self) -> None:
         self.default_key = self.key
 
-    def __call__(self, callback: KeybindCallback) -> Self:
-        """
-        Sets this keybind's callback.
 
-        This allows this class to be constructed using decorator syntax, though note it is *not* a
-        decorator, it returns itself so must be the outermost level.
+@overload
+def keybind(
+    name: str,
+    key: str | None,
+    callback: KeybindCallback_NoArgs,
+    *,
+    description: str = "",
+    description_title: str | None = None,
+    is_hidden: bool = False,
+    is_rebindable: bool = True,
+    event_filter: EInputEvent = EInputEvent.IE_Pressed,
+) -> KeybindType:
+    ...
 
-        Args:
-            callback: The callback to set.
-        Returns:
-            This keybind instance.
-        """
-        if self.callback is not None:
-            logging.dev_warning(
-                "Keybind.__call__ was called on a bind which already has an assigned callback",
-            )
 
-        self.callback = callback
-        return self
+@overload
+def keybind(
+    name: str,
+    key: str | None,
+    callback: None = None,
+    *,
+    description: str = "",
+    description_title: str | None = None,
+    is_hidden: bool = False,
+    is_rebindable: bool = True,
+    event_filter: EInputEvent = EInputEvent.IE_Pressed,
+) -> Callable[[KeybindCallback_NoArgs], KeybindType]:
+    ...
+
+
+@overload
+def keybind(
+    name: str,
+    key: str | None,
+    callback: KeybindCallback_Event,
+    *,
+    description: str = "",
+    description_title: str | None = None,
+    is_hidden: bool = False,
+    is_rebindable: bool = True,
+    event_filter: None = None,
+) -> KeybindType:
+    ...
+
+
+@overload
+def keybind(
+    name: str,
+    key: str | None,
+    callback: None = None,
+    *,
+    description: str = "",
+    description_title: str | None = None,
+    is_hidden: bool = False,
+    is_rebindable: bool = True,
+    event_filter: None = None,
+) -> Callable[[KeybindCallback_Event], KeybindType]:
+    ...
+
+
+def keybind(
+    name: str,
+    key: str | None,
+    callback: KeybindCallback_NoArgs | KeybindCallback_Event | None = None,
+    *,
+    description: str = "",
+    description_title: str | None = None,
+    is_hidden: bool = False,
+    is_rebindable: bool = True,
+    event_filter: EInputEvent | None = EInputEvent.IE_Pressed,
+) -> (
+    Callable[[KeybindCallback_NoArgs], KeybindType]
+    | Callable[[KeybindCallback_Event], KeybindType]
+    | KeybindType
+):
+    """
+    Decorator factory to construct a keybind.
+
+    The input callback usually takes no args, and may return the Block sentinel to prevent passing
+    the input back into the game. Standard blocking logic applies when multiple keybinds use the
+    same key. If the event filter is set to None, such that the callback is fired for all events, it
+    is instead passed a single positional arg, the event which occured.
+
+    Args:
+        name: The name to use in the keybinds menu
+        key: The bound key, or None if unbound.
+        callback: The callback to run when the key is pressed.
+    Keyword Args:
+        description: A short description about the bind, to be used in the options menu.
+        description_title: The title to use for the description. If None, copies the name.
+        is_hidden: If true, the keybind will not be shown in the options menu.
+        is_rebindable: If the key may be rebound.
+        event_filter: If not None, only runs the callback when the given event fires.
+    """
+
+    def decorator(func: KeybindCallback_NoArgs | KeybindCallback_Event) -> KeybindType:
+        event_func: KeybindCallback_Event
+        if event_filter is not None:
+            no_arg_func = cast(KeybindCallback_NoArgs, func)
+
+            @functools.wraps(no_arg_func)
+            def event_filtering_callback(event: EInputEvent) -> KeybindBlockSignal:
+                if event != event_filter:
+                    return None
+                return no_arg_func()
+
+            event_func = event_filtering_callback
+        else:
+            event_func = cast(KeybindCallback_Event, func)
+
+        return KeybindType(
+            name,
+            key,
+            event_func,
+            description=description,
+            description_title=description_title,
+            is_hidden=is_hidden,
+            is_rebindable=is_rebindable,
+        )
+
+    if callback is None:
+        return decorator
+    return decorator(callback)
 
 
 # Must import after defining keybind to avoid circular import
@@ -88,7 +194,7 @@ from .mod_list import mod_list  # noqa: E402
 def gameplay_keybind_callback(key: str, event: EInputEvent) -> KeybindBlockSignal:
     """Gameplay keybind handler."""
 
-    ret: KeybindBlockSignal = None
+    should_block = False
     for mod in mod_list:
         for bind in mod.keybinds:
             if bind.callback is None:
@@ -96,19 +202,11 @@ def gameplay_keybind_callback(key: str, event: EInputEvent) -> KeybindBlockSigna
             if bind.key != key:
                 continue
 
-            argless_callback: Callable[[], KeybindBlockSignal]
-            if len(inspect.signature(bind.callback).parameters) == 0:
-                if event != EInputEvent.IE_Pressed:
-                    continue
+            ret = bind.callback(event)
+            if ret == Block or isinstance(ret, Block):
+                should_block = True
 
-                argless_callback = bind.callback  # type: ignore
-            else:
-                argless_callback = functools.partial(bind.callback, event)
-
-            # Need to put ret on the RHS to avoid short circuits
-            ret = argless_callback() or ret
-
-    return ret
+    return Block if should_block else None
 
 
 set_gameplay_keybind_callback(gameplay_keybind_callback)
