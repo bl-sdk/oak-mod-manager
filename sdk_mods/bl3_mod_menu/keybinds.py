@@ -133,7 +133,7 @@ def handle_keybind_press(options_menu: UObject, option: KeybindOption) -> None:
 
     menu_keybinds.push()
 
-    @menu_keybinds.add(None, EInputEvent.IE_Released)
+    @menu_keybinds.add(None, EInputEvent.IE_Pressed)
     def key_handler(key: str) -> None:  # pyright: ignore[reportUnusedFunction]
         if key not in ("Escape", "Gamepad_Special_Left"):
             new_key = None if key == option.value else key
@@ -141,7 +141,11 @@ def handle_keybind_press(options_menu: UObject, option: KeybindOption) -> None:
                 option.on_change(option, new_key)
             option.value = new_key
 
-        get_pc().MenuStack.Pop()
+        # If you bound to the close key, the dialog will auto close and we'll already be back to the
+        # options menu
+        menu_stack = get_pc().MenuStack
+        if menu_stack.GetTopMenu() != options_menu:
+            get_pc().MenuStack.Pop()
         menu_keybinds.pop()
 
         refresh_options_menu(options_menu)
