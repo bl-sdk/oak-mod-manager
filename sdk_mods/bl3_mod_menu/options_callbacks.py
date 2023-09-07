@@ -1,5 +1,3 @@
-# ruff: noqa: D103
-
 from typing import Any
 
 from mods_base import (
@@ -10,7 +8,6 @@ from mods_base import (
     KeybindOption,
     SliderOption,
     SpinnerOption,
-    TitleOption,
     ValueOption,
     hook,
 )
@@ -47,6 +44,7 @@ def unimplemented_option_clicked(
     _3: Any,
     _4: BoundFunction,
 ) -> None | type[Block]:
+    """Option interaction hook."""
     if not is_options_menu_open():
         return None
 
@@ -60,6 +58,7 @@ def unimplemented_option_clicked(
         raise ValueError("Couldn't find option which was pressed!")
 
     match option:
+        # TODO: nested
         case ButtonOption():
             if option.on_press is not None:
                 option.on_press(option)
@@ -75,8 +74,6 @@ def unimplemented_option_clicked(
         case SpinnerOption():
             assert button.Class.Name == "GbxGFxListItemComboBox"
             update_option_value(option, option.choices[get_spinner_selected_idx(button)])
-        case TitleOption():
-            pass
         case KeybindOption():
             handle_keybind_press(obj, option)
         case _:

@@ -35,7 +35,7 @@ mod_list: list[Mod] = [
             [
                 ButtonOption(
                     "Open Mods Folder",
-                    lambda _: os.startfile(Path(__file__).parent.parent),  # type: ignore
+                    on_press=lambda _: os.startfile(Path(__file__).parent.parent),  # type: ignore
                 ),
             ],
         ),

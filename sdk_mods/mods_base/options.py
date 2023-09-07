@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import KW_ONLY, dataclass, field
 from typing import Generic, Literal, Self, TypeVar
 
@@ -102,20 +102,6 @@ class HiddenOption(ValueOption[J]):
     """
 
     is_hidden: Literal[True] = field(default=True, init=False)
-
-
-@dataclass
-class TitleOption(BaseOption):
-    """
-    An entry in the options menu which simply acts as a title for a group of following options.
-
-    Args:
-        name: The option's name.
-    Keyword Args:
-        description: A short description about the option.
-        description_title: The title to use for the description. If None, copies the name.
-        is_hidden: If true, the option will not be shown in the options menu.
-    """
 
 
 @dataclass
@@ -230,14 +216,15 @@ class ButtonOption(BaseOption):
 
     Args:
         name: The option's name.
-        on_press: If not None, the callback to run when the button is pressed. Passed a reference to
-                  the option object.
     Keyword Args:
         description: A short description about the option.
         description_title: The title to use for the description. If None, copies the name.
         is_hidden: If true, the option will not be shown in the options menu.
+        on_press: If not None, the callback to run when the button is pressed. Passed a reference to
+                  the option object.
     """
 
+    _: KW_ONLY
     on_press: Callable[[Self], None] | None = None
 
     def __call__(self, on_press: Callable[[Self], None]) -> Self:
@@ -308,3 +295,47 @@ class KeybindOption(ValueOption[str | None]):
             is_hidden=bind.is_hidden,
             on_change=lambda _, new_key: setattr(bind, "key", new_key),
         )
+
+
+@dataclass
+class GroupedOption(BaseOption):
+    """
+    A titled group of options, which appear inline.
+
+    Note that this class must be explicitly specified in the options list of a mod, it is *not*
+    picked up by the automatic gathering. This is to avoid issues where storing the child options in
+    seperate variables might cause them to be gathered twice.
+
+    Args:
+        name: The option's name, used as the group title.
+        children: The group of child options.
+    Keyword Args:
+        description: A short description about the option.
+        description_title: The title to use for the description. If None, copies the name.
+        is_hidden: If true, the option will not be shown in the options menu.
+    """
+
+    children: Sequence[BaseOption]
+
+
+@dataclass
+class NestedOption(ButtonOption):
+    """
+    A nested group of options, which appear in a new menu.
+
+    Note that this class must be explicitly specified in the options list of a mod, it is *not*
+    picked up by the automatic gathering. This is to avoid issues where storing the child options in
+    seperate variables might cause them to be gathered twice.
+
+    Args:
+        name: The option's name.
+        children: The group of child options.
+    Keyword Args:
+        description: A short description about the option.
+        description_title: The title to use for the description. If None, copies the name.
+        is_hidden: If true, the option will not be shown in the options menu.
+        on_press: If not None, the callback to run when the button is pressed (and the nested menu
+                  opened). Passed a reference to the option object.
+    """
+
+    children: Sequence[BaseOption]

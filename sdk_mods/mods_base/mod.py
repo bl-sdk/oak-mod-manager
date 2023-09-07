@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import inspect
 import sys
-from collections.abc import Callable, Iterator, MutableSequence
+from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass, field
 from enum import Enum, Flag, auto
 from functools import cache
@@ -13,7 +13,14 @@ from unrealsdk import logging
 
 from .hook import HookProtocol
 from .keybinds import KeybindType
-from .options import BaseOption, BoolOption, ButtonOption, KeybindOption, TitleOption
+from .options import (
+    BaseOption,
+    BoolOption,
+    ButtonOption,
+    GroupedOption,
+    KeybindOption,
+    NestedOption,
+)
 
 
 class Game(Flag):
@@ -90,9 +97,9 @@ class Mod:
     # Set the default to None so we can detect when these aren't provided
     # Don't type them as possibly None though, since we're going to fix it immediately in the
     # constructor, and it'd force you to do None checks whenever you're accessing them
-    keybinds: MutableSequence[KeybindType] = field(default=None)  # type: ignore
-    options: MutableSequence[BaseOption] = field(default=None)  # type: ignore
-    hooks: MutableSequence[HookProtocol] = field(default=None)  # type: ignore
+    keybinds: Sequence[KeybindType] = field(default=None)  # type: ignore
+    options: Sequence[BaseOption] = field(default=None)  # type: ignore
+    hooks: Sequence[HookProtocol] = field(default=None)  # type: ignore
 
     is_enabled: bool = field(default=False, init=False)
     on_enable: Callable[[], None] | None = None
@@ -101,16 +108,19 @@ class Mod:
     def __post_init__(self) -> None:
         need_to_search_instance_vars = False
 
+        new_keybinds: list[KeybindType] = []
         if find_keybinds := self.keybinds is None:  # type: ignore
-            self.keybinds = []
+            self.keybinds = new_keybinds
             need_to_search_instance_vars = True
 
+        new_options: list[BaseOption] = []
         if find_options := self.options is None:  # type: ignore
-            self.options = []
+            self.options = new_options
             need_to_search_instance_vars = True
 
+        new_hooks: list[HookProtocol] = []
         if find_hooks := self.hooks is None:  # type: ignore
-            self.hooks = []
+            self.hooks = new_hooks
             need_to_search_instance_vars = True
 
         if not need_to_search_instance_vars:
@@ -119,11 +129,16 @@ class Mod:
         for _, value in inspect.getmembers(self):
             match value:
                 case KeybindType() if find_keybinds:
-                    self.keybinds += (value,)
+                    new_keybinds.append(value)
+                case GroupedOption() | NestedOption() if find_options:
+                    logging.dev_warning(
+                        f"{self.name}: {type(value).__name__} instances must be explictly specified"
+                        f" in the options list!",
+                    )
                 case BaseOption() if find_options:
-                    self.options += (value,)
+                    new_options.append(value)
                 case HookProtocol() if find_hooks:
-                    self.hooks += (value.bind(self),)
+                    new_hooks.append(value.bind(self))
                 case _:
                     pass
 
@@ -180,13 +195,13 @@ class Mod:
             )
 
         if len(self.options) > 0:
-            yield TitleOption("Options")
-            yield from self.options
+            yield GroupedOption("Options", self.options)
 
         if len(self.keybinds) > 0:
-            yield TitleOption("Keybinds")
-            for bind in self.keybinds:
-                yield KeybindOption.from_keybind(bind)
+            yield GroupedOption(
+                "Keybinds",
+                [KeybindOption.from_keybind(bind) for bind in self.keybinds],
+            )
 
 
 @dataclass

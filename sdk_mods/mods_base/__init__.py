@@ -16,11 +16,12 @@ from .options import (
     BoolOption,
     ButtonOption,
     DropdownOption,
+    GroupedOption,
     HiddenOption,
     KeybindOption,
+    NestedOption,
     SliderOption,
     SpinnerOption,
-    TitleOption,
     ValueOption,
 )
 
@@ -38,6 +39,7 @@ __all__: tuple[str, ...] = (
     "Game",
     "get_ordered_mod_list",
     "get_pc",
+    "GroupedOption",
     "HiddenOption",
     "hook",
     "keybind",
@@ -47,10 +49,10 @@ __all__: tuple[str, ...] = (
     "menu_keybinds",
     "Mod",
     "ModType",
+    "NestedOption",
     "register_mod",
     "SliderOption",
     "SpinnerOption",
-    "TitleOption",
     "ValueOption",
 )
 

@@ -1,26 +1,28 @@
 import inspect
-from collections.abc import Callable, MutableSequence
+from collections.abc import Callable, Sequence
 from types import ModuleType
 from typing import Any, cast
+
+from unrealsdk import logging
 
 from .hook import HookProtocol
 from .keybinds import KeybindType
 from .mod import Game, Mod, ModType
 from .mod_list import register_mod
-from .options import BaseOption
+from .options import BaseOption, GroupedOption, NestedOption
 
 
 def search_module_if_needed(
     module: ModuleType,
-    keybinds: MutableSequence[KeybindType] | None,
-    options: MutableSequence[BaseOption] | None,
-    hooks: MutableSequence[HookProtocol] | None,
+    keybinds: Sequence[KeybindType] | None,
+    options: Sequence[BaseOption] | None,
+    hooks: Sequence[HookProtocol] | None,
     on_enable: Callable[[], None] | None,
     on_disable: Callable[[], None] | None,
 ) -> tuple[
-    MutableSequence[KeybindType],
-    MutableSequence[BaseOption],
-    MutableSequence[HookProtocol],
+    Sequence[KeybindType],
+    Sequence[BaseOption],
+    Sequence[HookProtocol],
     Callable[[], None] | None,
     Callable[[], None] | None,
 ]:
@@ -39,16 +41,19 @@ def search_module_if_needed(
     """
     need_to_search_module = False
 
+    new_keybinds: list[KeybindType] = []
     if find_keybinds := keybinds is None:
-        keybinds = []
+        keybinds = new_keybinds
         need_to_search_module = True
 
+    new_options: list[BaseOption] = []
     if find_options := options is None:
-        options = []
+        options = new_options
         need_to_search_module = True
 
+    new_hooks: list[HookProtocol] = []
     if find_hooks := hooks is None:
-        hooks = []
+        hooks = new_hooks
         need_to_search_module = True
 
     if on_enable is None:
@@ -60,13 +65,18 @@ def search_module_if_needed(
         for field, value in inspect.getmembers(module):
             match field, value:
                 case _, KeybindType() if find_keybinds:
-                    keybinds += (value,)
+                    new_keybinds.append(value)
 
+                case _, (GroupedOption() | NestedOption()) if find_options:
+                    logging.dev_warning(
+                        f"{module.__name__}: {type(value).__name__} instances must be explictly"
+                        f" specified in the options list!",
+                    )
                 case _, BaseOption() if find_options:
-                    options += (value,)
+                    new_options.append(value)
 
                 case _, HookProtocol() if find_hooks:
-                    hooks += (value,)
+                    new_hooks.append(value)
 
                 case "on_enable", Callable() if on_enable is None:
                     on_enable = cast(Callable[[], None], value)
@@ -89,9 +99,9 @@ def build_mod(
     version: str | None = None,
     mod_type: ModType | None = None,
     supported_games: Game | None = None,
-    keybinds: MutableSequence[KeybindType] | None = None,
-    options: MutableSequence[BaseOption] | None = None,
-    hooks: MutableSequence[HookProtocol] | None = None,
+    keybinds: Sequence[KeybindType] | None = None,
+    options: Sequence[BaseOption] | None = None,
+    hooks: Sequence[HookProtocol] | None = None,
     on_enable: Callable[[], None] | None = None,
     on_disable: Callable[[], None] | None = None,
 ) -> Mod:
