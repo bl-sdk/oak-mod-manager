@@ -21,6 +21,7 @@ from .options import (
     KeybindOption,
     NestedOption,
 )
+from .settings import default_load_mod_settings, default_save_mod_settings
 
 
 class Game(Flag):
@@ -66,7 +67,7 @@ class Mod:
     """
     A mod instance to display in the mods menu.
 
-    Attributes - Info:
+    Attributes - Metadata:
         name: The mod's name.
         author: The mod's author(s).
         description: A short description of the mod.
@@ -75,6 +76,7 @@ class Mod:
         mod_type: What type of mod this is. This influences ordering in the mod list.
         supported_games: The games this mod supports. When loaded in an unsupported game, a warning
                          will be displayed and the mod will be blocked from enabling.
+        settings_file: The file to save settings to. If None (the default), won't save settings.
 
     Attributes - Functionality:
         keybinds: The mod's keybinds. If not given, searches for them in instance variables.
@@ -82,7 +84,8 @@ class Mod:
         hooks: The mod's hooks. If not given, searches for them in instance variables.
 
     Attributes - Runtime:
-        is_enabled: True if the mod is currently considered enabled.
+        is_enabled: True if the mod is currently considered enabled. Not available in constructor.
+        auto_enable: True if to enable the mod on launch if it was also enabled last time.
         on_enable: A no-arg callback to run on mod enable. Useful when constructing via dataclass.
         on_disable: A no-arg callback to run on mod disable. Useful when constructing via dataclass.
     """
@@ -93,6 +96,7 @@ class Mod:
     version: str = "Unknown Version"
     mod_type: ModType = ModType.Standard
     supported_games: Game = Game.BL3 | Game.WL
+    settings_file: Path | None = None
 
     # Set the default to None so we can detect when these aren't provided
     # Don't type them as possibly None though, since we're going to fix it immediately in the
@@ -102,6 +106,7 @@ class Mod:
     hooks: Sequence[HookProtocol] = field(default=None)  # type: ignore
 
     is_enabled: bool = field(default=False, init=False)
+    auto_enable: bool = True
     on_enable: Callable[[], None] | None = None
     on_disable: Callable[[], None] | None = None
 
@@ -144,6 +149,8 @@ class Mod:
 
     def enable(self) -> None:
         """Called to enable the mod."""
+        if self.is_enabled:
+            return
         if Game.get_current() not in self.supported_games:
             return
 
@@ -155,8 +162,14 @@ class Mod:
         if self.on_enable is not None:
             self.on_enable()
 
+        if self.auto_enable:
+            self.save_settings()
+
     def disable(self) -> None:
         """Called to disable the mod."""
+        if not self.is_enabled:
+            return
+
         self.is_enabled = False
 
         for hook in self.hooks:
@@ -164,6 +177,21 @@ class Mod:
 
         if self.on_disable is not None:
             self.on_disable()
+
+        if self.auto_enable:
+            self.save_settings()
+
+    def load_settings(self) -> None:
+        """
+        Loads data for this mod from it's settings file - including auto enabling if needed.
+
+        This is called during `register_mod`, you generally won't need to call it yourself.
+        """
+        default_load_mod_settings(self)
+
+    def save_settings(self) -> None:
+        """Saves the current state of the mod to it's settings file."""
+        default_save_mod_settings(self)
 
     def iter_display_options(self) -> Iterator[BaseOption]:
         """
@@ -209,6 +237,7 @@ class Library(Mod):
     """Helper subclass for libraries, which are always enabled."""
 
     mod_type: Literal[ModType.Library] = ModType.Library
+    auto_enable: Literal[False] = False  # Don't auto enable, since we're always enabled
 
     def __post_init__(self) -> None:
         super().__post_init__()

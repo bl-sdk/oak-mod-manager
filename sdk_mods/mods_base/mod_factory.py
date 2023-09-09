@@ -1,5 +1,6 @@
 import inspect
 from collections.abc import Callable, Sequence
+from pathlib import Path
 from types import ModuleType
 from typing import Any, cast
 
@@ -99,9 +100,11 @@ def build_mod(
     version: str | None = None,
     mod_type: ModType | None = None,
     supported_games: Game | None = None,
+    settings_file: Path | None = None,
     keybinds: Sequence[KeybindType] | None = None,
     options: Sequence[BaseOption] | None = None,
     hooks: Sequence[HookProtocol] | None = None,
+    auto_enable: bool | None = None,
     on_enable: Callable[[], None] | None = None,
     on_disable: Callable[[], None] | None = None,
 ) -> Mod:
@@ -118,12 +121,15 @@ def build_mod(
         version: A string holding the mod's version. Defaults to module.__version__ if missing.
         mod_type: What type of mod this is.
         supported_games: The games this mod supports.
+        settings_file: The file to save settings to. Defaults to `settings.json` in the same dir
+                       this was called from.
         keybinds: The mod's keybinds. Defaults to searching for Keybind instances in the module's
                   namespace if missing. Note the order is not necesarily stable.
         options: The mod's options. Defaults to searching for OptionBase instances in the module's
                  namespace if missing. Note the order is not necesarily stable.
         hooks: The mod's hooks. Defaults to searching for hook functions in the module's namespace
                if missing.
+        auto_enable: True if to enable the mod on launch if it was also enabled last time.
         on_enable: A no-arg callback to run on mod enable. Defaults to searching for a callable
                    named `on_enable` in the module's namespace if missing.
         on_disable: A no-arg callback to run on mod disable. Defaults to searching for a callable
@@ -154,18 +160,23 @@ def build_mod(
 
     if (author := (author or getattr(module, "__author__", None))) is not None:
         kwargs["author"] = author
-    if description is not None:
-        kwargs["description"] = description
     if (version := (version or getattr(module, "__version__", None))) is not None:
         kwargs["version"] = version
-    if mod_type is not None:
-        kwargs["mod_type"] = mod_type
-    if supported_games is not None:
-        kwargs["supported_games"] = supported_games
-    if on_enable is not None:
-        kwargs["on_enable"] = on_enable
-    if on_disable is not None:
-        kwargs["on_disable"] = on_disable
+
+    if settings_file is None:
+        settings_file = Path(inspect.getfile(module)).with_name("settings.json")
+    kwargs["settings_file"] = settings_file
+
+    for arg, arg_name in (
+        (description, "description"),
+        (mod_type, "mod_type"),
+        (supported_games, "supported_games"),
+        (auto_enable, "auto_enable"),
+        (on_enable, "on_enable"),
+        (on_disable, "on_disable"),
+    ):
+        if arg is not None:
+            kwargs[arg_name] = arg
 
     mod = cls(**kwargs)
     register_mod(mod)

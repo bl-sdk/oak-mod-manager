@@ -262,8 +262,12 @@ def frontend_menu_change_hook(
     """Hook to detect closing nested menus."""
     active_menu: UObject = args.ActiveMenu
 
-    # If we transfered back to the main menu, regardless of how, clear the option stack
+    # If we transfered back to the main menu, regardless of how, save settings and clear the stack
     if active_menu.Class._inherits(MAIN_MENU_CLS):
+        # This should always be the mod, but double check
+        if len(option_stack) > 0 and isinstance(option_stack[0].cause, Mod):
+            option_stack[0].cause.save_settings()
+
         option_stack.clear()
         return
 

@@ -53,6 +53,7 @@ def register_mod(mod: Mod) -> None:
         The mod which was registered.
     """
     mod_list.append(mod)
+    mod.load_settings()
 
 
 def deregister_mod(mod: Mod) -> None:

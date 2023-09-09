@@ -1,13 +1,16 @@
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
 from dataclasses import KW_ONLY, dataclass, field
-from typing import Generic, Literal, Self, TypeVar
+from typing import Generic, Literal, Self, TypeAlias, TypeVar
 
 from unrealsdk import logging
 
 from .keybinds import KeybindType
-from .settings import JSON
 
+# Little ugly to repeat this from settings, but we can't import it from there cause it creates a
+# strong circular dependency - we need to import it to get JSON before we can define most options,
+# but it needs to import those options from us
+JSON: TypeAlias = dict[str, "JSON"] | list["JSON"] | str | int | float | bool | None
 J = TypeVar("J", bound=JSON)
 
 
@@ -255,8 +258,8 @@ class KeybindOption(ValueOption[str | None]):
     An option selecting a keybinding.
 
     Note this class only deals with displaying a key and letting the user rebind it, use `Keybind`
-    to handle press callbacks. By default, all keybinds in your mod will automatically have one of
-    these genrated for them, so you shouldn't need to instantiate them manually.
+    to handle press callbacks. It should not appear in your mod's option list, you should only
+    create instances of it during `iter_display_options` (as the default implementation does).
 
     Args:
         name: The option's name.
