@@ -3,7 +3,7 @@ from __future__ import annotations
 import functools
 from collections.abc import Callable
 from dataclasses import KW_ONLY, dataclass, field
-from typing import TYPE_CHECKING, TypeAlias, cast, overload
+from typing import TYPE_CHECKING, Any, TypeAlias, cast, overload
 
 from unrealsdk import find_enum
 from unrealsdk.hooks import Block
@@ -31,13 +31,14 @@ class KeybindType:
     back into the game. Standard blocking logic applies when multiple keybinds use the same key.
 
     Args:
-        name: The name to use in the keybinds menu
+        identifier: The keybind's identifier.
         key: The bound key, or None if unbound. Updated on rebind.
         callback: The callback to run when the key is pressed.
 
     Keyword Args:
-        description: A short description about the bind, to be used in the options menu.
-        description_title: The title to use for the description. If None, copies the name.
+        display_name: The keybind name to use for display. Defaults to copying the identifier.
+        description: A short description about the bind.
+        description_title: The title of the description. Defaults to copying the display name.
         is_hidden: If true, the keybind will not be shown in the options menu.
         is_rebindable: If the key may be rebound.
 
@@ -45,29 +46,36 @@ class KeybindType:
         default_key: What the key was originally when registered. Does not update on rebind.
     """
 
-    name: str
+    identifier: str
     key: str | None
 
     callback: KeybindCallback_Event | None = None
 
     _: KW_ONLY
+    display_name: str = None  # type: ignore
     description: str = ""
-    description_title: str | None = None
+    description_title: str = None  # type: ignore
     is_hidden: bool = False
     is_rebindable: bool = True
 
     default_key: str | None = field(init=False)
 
     def __post_init__(self) -> None:
+        if self.display_name is None:  # type: ignore
+            self.display_name = self.identifier
+        if self.description_title is None:  # type: ignore
+            self.description_title = self.display_name
+
         self.default_key = self.key
 
 
 @overload
 def keybind(
-    name: str,
+    identifier: str,
     key: str | None,
     callback: KeybindCallback_NoArgs,
     *,
+    display_name: str | None = None,
     description: str = "",
     description_title: str | None = None,
     is_hidden: bool = False,
@@ -79,10 +87,11 @@ def keybind(
 
 @overload
 def keybind(
-    name: str,
+    identifier: str,
     key: str | None,
     callback: None = None,
     *,
+    display_name: str | None = None,
     description: str = "",
     description_title: str | None = None,
     is_hidden: bool = False,
@@ -94,10 +103,11 @@ def keybind(
 
 @overload
 def keybind(
-    name: str,
+    identifier: str,
     key: str | None,
     callback: KeybindCallback_Event,
     *,
+    display_name: str | None = None,
     description: str = "",
     description_title: str | None = None,
     is_hidden: bool = False,
@@ -109,10 +119,11 @@ def keybind(
 
 @overload
 def keybind(
-    name: str,
+    identifier: str,
     key: str | None,
     callback: None = None,
     *,
+    display_name: str | None = None,
     description: str = "",
     description_title: str | None = None,
     is_hidden: bool = False,
@@ -123,10 +134,11 @@ def keybind(
 
 
 def keybind(
-    name: str,
+    identifier: str,
     key: str | None,
     callback: KeybindCallback_NoArgs | KeybindCallback_Event | None = None,
     *,
+    display_name: str | None = None,
     description: str = "",
     description_title: str | None = None,
     is_hidden: bool = False,
@@ -146,12 +158,13 @@ def keybind(
     is instead passed a single positional arg, the event which occured.
 
     Args:
-        name: The name to use in the keybinds menu
+        identifier: The keybind's identifier.
         key: The bound key, or None if unbound.
         callback: The callback to run when the key is pressed.
     Keyword Args:
-        description: A short description about the bind, to be used in the options menu.
-        description_title: The title to use for the description. If None, copies the name.
+        display_name: The keybind name to use for display. Defaults to copying the identifier.
+        description: A short description about the bind.
+        description_title: The title of the description. Defaults to copying the display name.
         is_hidden: If true, the keybind will not be shown in the options menu.
         is_rebindable: If the key may be rebound.
         event_filter: If not None, only runs the callback when the given event fires.
@@ -172,15 +185,17 @@ def keybind(
         else:
             event_func = cast(KeybindCallback_Event, func)
 
-        return KeybindType(
-            name,
-            key,
-            event_func,
-            description=description,
-            description_title=description_title,
-            is_hidden=is_hidden,
-            is_rebindable=is_rebindable,
-        )
+        kwargs: dict[str, Any] = {
+            "description": description,
+            "is_hidden": is_hidden,
+            "is_rebindable": is_rebindable,
+        }
+        if display_name is not None:
+            kwargs["display_name"] = display_name
+        if description_title is not None:
+            kwargs["description_title"] = description_title
+
+        return KeybindType(identifier, key, event_func, **kwargs)
 
     if callback is None:
         return decorator

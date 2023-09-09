@@ -109,7 +109,7 @@ def add_keybind_option(options_menu: UObject, option: KeybindOption) -> None:
 
     add_binding(
         options_menu,
-        option.name,
+        option.display_name,
         display_key,
         option.description_title,
         option.description,
@@ -151,8 +151,13 @@ def handle_keybind_press(options_menu: UObject, option: KeybindOption) -> None:
         refresh_current_options_menu(options_menu)
 
     DialogBox(
-        f'Rebind "{option.name}"',
+        f'Rebind "{option.display_name}"',
         [],
-        f'Rebinding "{option.name}"\nPress new input to bind.\n\n{{OakPC_PauseGame}}  Cancel',
+        (
+            f'Rebinding "{option.display_name}"\n'
+            f"Press new input to bind.\n"
+            f"\n"
+            f"{{OakPC_PauseGame}}  Cancel"
+        ),
         may_cancel=False,
     )

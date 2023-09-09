@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import MutableMapping, Sequence
-from typing import TYPE_CHECKING, TypeAlias, TypedDict
+from typing import TYPE_CHECKING, TypeAlias, TypedDict, cast
 
 from unrealsdk import logging
 
@@ -28,7 +28,7 @@ JSON: TypeAlias = dict[str, "JSON"] | list["JSON"] | str | int | float | bool | 
 class BasicModSettings(TypedDict, total=False):
     enabled: bool
     options: dict[str, JSON]
-    keybinds: dict[str, str]
+    keybinds: dict[str, str | None]
 
 
 def load_options_dict(options: Sequence[BaseOption], settings: MutableMapping[str, JSON]) -> None:
@@ -40,10 +40,10 @@ def load_options_dict(options: Sequence[BaseOption], settings: MutableMapping[st
         settings: The settings dict.
     """
     for option in options:
-        if option.name not in settings:
+        if option.identifier not in settings:
             continue
 
-        value = settings[option.name]
+        value = settings[option.identifier]
 
         match option:
             case HiddenOption():
@@ -65,7 +65,7 @@ def load_options_dict(options: Sequence[BaseOption], settings: MutableMapping[st
                     option.value = float(value)  # type: ignore
                 except ValueError:
                     logging.error(
-                        f"'{value}' is not a valid value for option '{option.name}', sticking"
+                        f"'{value}' is not a valid value for option '{option.identifier}', sticking"
                         f" with the default",
                     )
             case DropdownOption() | SpinnerOption():
@@ -74,7 +74,7 @@ def load_options_dict(options: Sequence[BaseOption], settings: MutableMapping[st
                     option.value = value
                 else:
                     logging.error(
-                        f"'{value}' is not a valid value for option '{option.name}', sticking"
+                        f"'{value}' is not a valid value for option '{option.identifier}', sticking"
                         f" with the default",
                     )
             case GroupedOption() | NestedOption():
@@ -82,12 +82,12 @@ def load_options_dict(options: Sequence[BaseOption], settings: MutableMapping[st
                     load_options_dict(option.children, value)
                 else:
                     logging.error(
-                        f"'{value}' is not a valid value for option '{option.name}', sticking"
+                        f"'{value}' is not a valid value for option '{option.identifier}', sticking"
                         f" with the default",
                     )
             case KeybindOption():
                 logging.dev_warning(
-                    f"Found a keybind option '{option.name}' in the options list. You should"
+                    f"Found a keybind option '{option.identifier}' in the options list. You should"
                     f" define a standard keybind instead, and only convert it into an option in"
                     f" `iter_display_options` (which is the default behaviour).",
                 )
@@ -122,8 +122,12 @@ def default_load_mod_settings(self: Mod) -> None:
     if "keybinds" in settings:
         saved_keybinds = settings["keybinds"]
         for keybind in self.keybinds:
-            if keybind.name in saved_keybinds:
-                keybind.key = str(saved_keybinds[keybind.name])
+            if keybind.identifier in saved_keybinds:
+                key = saved_keybinds[keybind.identifier]
+                if key is None:
+                    keybind.key = None
+                else:
+                    keybind.key = str(key)
 
     if self.auto_enable and settings.get("enabled", False):
         self.enable()
@@ -144,15 +148,16 @@ def create_options_dict(options: Sequence[BaseOption]) -> dict[str, JSON]:
             case ValueOption():
                 if isinstance(option, KeybindOption):
                     logging.dev_warning(
-                        f"Found a keybind option '{option.name}' in the options list. You should"
-                        f" define a standard keybind instead, and only convert it into an option in"
-                        f" `iter_display_options` (which is the default behaviour).",
+                        f"Found a keybind option '{option.identifier}' in the options list. You"
+                        f" should define a standard keybind instead, and only convert it into an"
+                        f" option in `iter_display_options` (which is the default behaviour).",
                     )
 
                 # The generics mean the type of value is technically unknown here
-                settings[option.name] = option.value  # type: ignore
+                value = cast(JSON, option.value)  # type: ignore
+                settings[option.identifier] = value
             case GroupedOption() | NestedOption():
-                settings[option.name] = create_options_dict(option.children)
+                settings[option.identifier] = create_options_dict(option.children)
             case _:
                 logging.error(
                     f"Couldn't save settings for unknown option type {type(option).__name__}",
@@ -178,7 +183,7 @@ def default_save_mod_settings(self: Mod) -> None:
         for keybind in self.keybinds:
             if not keybind.is_rebindable:
                 continue
-            keybind_settings[keybind.name] = keybind.key
+            keybind_settings[keybind.identifier] = keybind.key
 
         if len(keybind_settings) > 0:
             settings["keybinds"] = keybind_settings

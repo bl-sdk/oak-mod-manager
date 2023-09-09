@@ -252,7 +252,11 @@ class Library(Mod):
         """Custom display options, which remove the enabled switch."""
         seen_enabled = False
         for option in super().iter_display_options():
-            if not seen_enabled and option.name == "Enabled" and isinstance(option, BoolOption):
+            if (
+                not seen_enabled
+                and option.identifier == "Enabled"
+                and isinstance(option, BoolOption)
+            ):
                 seen_enabled = True
                 continue
             yield option

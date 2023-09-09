@@ -20,22 +20,30 @@ class BaseOption(ABC):
     Abstract base class for all options.
 
     Args:
-        name: The option's name.
+        identifier: The option's identifier.
     Keyword Args:
+        display_name: The option name to use for display. Defaults to copying the identifier.
         description: A short description about the option.
-        description_title: The title to use for the description. If None, copies the name.
+        description_title: The title of the description. Defaults to copying the display name.
         is_hidden: If true, the option will not be shown in the options menu.
     """
 
-    name: str
+    identifier: str
     _: KW_ONLY
+    display_name: str = None  # type: ignore
     description: str = ""
-    description_title: str | None = None
+    description_title: str = None  # type: ignore
     is_hidden: bool = False
 
     @abstractmethod
     def __init__(self) -> None:
         raise NotImplementedError
+
+    def __post_init__(self) -> None:
+        if self.display_name is None:  # type: ignore
+            self.display_name = self.identifier
+        if self.description_title is None:  # type: ignore
+            self.description_title = self.display_name
 
 
 @dataclass
@@ -44,11 +52,12 @@ class ValueOption(BaseOption, Generic[J]):
     Abstract base class for all options storing a value.
 
     Args:
-        name: The option's name.
+        identifier: The option's identifier.
         value: The option's value.
     Keyword Args:
+        display_name: The option name to use for display. Defaults to copying the identifier.
         description: A short description about the option.
-        description_title: The title to use for the description. If None, copies the name.
+        description_title: The title of the description. Defaults to copying the display name.
         is_hidden: If true, the option will not be shown in the options menu.
         on_change: If not None, a callback to run before updating the value. Passed a reference to
                    the option object and the new value. May be set using decorator syntax.
@@ -66,6 +75,7 @@ class ValueOption(BaseOption, Generic[J]):
         raise NotImplementedError
 
     def __post_init__(self) -> None:
+        super().__post_init__()
         self.default_value = self.value
 
     def __call__(self, on_change: Callable[[Self, J], None]) -> Self:
@@ -96,10 +106,11 @@ class HiddenOption(ValueOption[J]):
     A generic option which is always hidden. Use this to persist arbitrary (JSON-encodeable) data.
 
     Args:
-        name: The option's name.
+        identifier: The option's identifier.
     Keyword Args:
+        display_name: The option name to use for display. Defaults to copying the identifier.
         description: A short description about the option.
-        description_title: The title to use for the description. If None, copies the name.
+        description_title: The title of the description. Defaults to copying the display name.
     Extra Attributes:
         is_hidden: Always true.
     """
@@ -113,15 +124,16 @@ class SliderOption(ValueOption[float]):
     An option selecting a number within a range. Typically implemented as a slider.
 
     Args:
-        name: The option's name.
+        identifier: The option's identifier.
         value: The option's value.
         min_value: The minimum value.
         max_value: The maximum value.
         step: How much the value should move each step of the slider.
         is_integer: If True, the value is treated as an integer.
     Keyword Args:
+        display_name: The option name to use for display. Defaults to copying the identifier.
         description: A short description about the option.
-        description_title: The title to use for the description. If None, copies the name.
+        description_title: The title of the description. Defaults to copying the display name.
         is_hidden: If true, the option will not be shown in the options menu.
         on_change: If not None, a callback to run before updating the value. Passed a reference to
                    the option object and the new value. May be set using decorator syntax.
@@ -143,13 +155,14 @@ class SpinnerOption(ValueOption[str]):
     Also see DropDownOption, which may be more suitable for larger numbers of choices.
 
     Args:
-        name: The option's name.
+        identifier: The option's identifier.
         value: The option's value.
         choices: A list of choices for the value.
         wrap_enabled: If True, allows moving from the last choice back to the first, or vice versa.
     Keyword Args:
+        display_name: The option name to use for display. Defaults to copying the identifier.
         description: A short description about the option.
-        description_title: The title to use for the description. If None, copies the name.
+        description_title: The title of the description. Defaults to copying the display name.
         is_hidden: If true, the option will not be shown in the options menu.
         on_change: If not None, a callback to run before updating the value. Passed a reference to
                    the option object and the new value. May be set using decorator syntax.
@@ -167,13 +180,14 @@ class BoolOption(ValueOption[bool]):
     An option toggling a boolean value. Typically implemented as an "on/off" spinner.
 
     Args:
-        name: The option's name.
+        identifier: The option's identifier.
         value: The option's value.
         true_text: If not None, overwrites the default text used for the True option.
         false_text: If not None, overwrites the default text used for the False option.
     Keyword Args:
+        display_name: The option name to use for display. Defaults to copying the identifier.
         description: A short description about the option.
-        description_title: The title to use for the description. If None, copies the name.
+        description_title: The title of the description. Defaults to copying the display name.
         is_hidden: If true, the option will not be shown in the options menu.
         on_change: If not None, a callback to run before updating the value. Passed a reference to
                    the option object and the new value. May be set using decorator syntax.
@@ -193,12 +207,13 @@ class DropdownOption(ValueOption[str]):
     Also see SpinnerOption, which may be more suitable for smaller numbers of choices.
 
     Args:
-        name: The option's name.
+        identifier: The option's identifier.
         value: The option's value.
         choices: A list of choices for the value.
     Keyword Args:
+        display_name: The option name to use for display. Defaults to copying the identifier.
         description: A short description about the option.
-        description_title: The title to use for the description. If None, copies the name.
+        description_title: The title of the description. Defaults to copying the display name.
         is_hidden: If true, the option will not be shown in the options menu.
         on_change: If not None, a callback to run before updating the value. Passed a reference to
                    the option object and the new value. May be set using decorator syntax.
@@ -218,10 +233,11 @@ class ButtonOption(BaseOption):
     descriptions.
 
     Args:
-        name: The option's name.
+        identifier: The option's identifier.
     Keyword Args:
+        display_name: The option name to use for display. Defaults to copying the identifier.
         description: A short description about the option.
-        description_title: The title to use for the description. If None, copies the name.
+        description_title: The title of the description. Defaults to copying the display name.
         is_hidden: If true, the option will not be shown in the options menu.
         on_press: If not None, the callback to run when the button is pressed. Passed a reference to
                   the option object.
@@ -262,12 +278,13 @@ class KeybindOption(ValueOption[str | None]):
     create instances of it during `iter_display_options` (as the default implementation does).
 
     Args:
-        name: The option's name.
+        identifier: The option's identifier.
         value: The option's value.
         is_rebindable: True if the key may be rebound.
     Keyword Args:
+        display_name: The option name to use for display. Defaults to copying the identifier.
         description: A short description about the option.
-        description_title: The title to use for the description. If None, copies the name.
+        description_title: The title of the description. Defaults to copying the display name.
         is_hidden: If true, the option will not be shown in the options menu.
         on_change: If not None, a callback to run before updating the value. Passed a reference to
                    the option object and the new value. May be set using decorator syntax.
@@ -290,9 +307,10 @@ class KeybindOption(ValueOption[str | None]):
             A new binding option.
         """
         return cls(
-            name=bind.name,
+            identifier=bind.identifier,
             value=bind.key,
             is_rebindable=bind.is_rebindable,
+            display_name=bind.display_name,
             description=bind.description,
             description_title=bind.description_title,
             is_hidden=bind.is_hidden,
@@ -313,8 +331,9 @@ class GroupedOption(BaseOption):
         name: The option's name, used as the group title.
         children: The group of child options.
     Keyword Args:
+        display_name: The option name to use for display. Defaults to copying the identifier.
         description: A short description about the option.
-        description_title: The title to use for the description. If None, copies the name.
+        description_title: The title of the description. Defaults to copying the display name.
         is_hidden: If true, the option will not be shown in the options menu.
     """
 
@@ -331,11 +350,12 @@ class NestedOption(ButtonOption):
     seperate variables might cause them to be gathered twice.
 
     Args:
-        name: The option's name.
+        identifier: The option's identifier.
         children: The group of child options.
     Keyword Args:
+        display_name: The option name to use for display. Defaults to copying the identifier.
         description: A short description about the option.
-        description_title: The title to use for the description. If None, copies the name.
+        description_title: The title of the description. Defaults to copying the display name.
         is_hidden: If true, the option will not be shown in the options menu.
         on_press: If not None, the callback to run when the button is pressed (and the nested menu
                   opened). Passed a reference to the option object.

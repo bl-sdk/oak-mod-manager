@@ -96,12 +96,12 @@ def draw_options(
 
         match option:
             case ButtonOption():
-                add_button(self, option.name, option.description_title, option.description)
+                add_button(self, option.display_name, option.description_title, option.description)
 
             case BoolOption():
                 add_bool_spinner(
                     self,
-                    option.name,
+                    option.display_name,
                     option.value,
                     option.true_text,
                     option.false_text,
@@ -112,7 +112,7 @@ def draw_options(
             case DropdownOption():
                 add_dropdown(
                     self,
-                    option.name,
+                    option.display_name,
                     option.choices.index(option.value),
                     option.choices,
                     option.description_title,
@@ -122,7 +122,7 @@ def draw_options(
             case SliderOption():
                 add_slider(
                     self,
-                    option.name,
+                    option.display_name,
                     option.value,
                     option.min_value,
                     option.max_value,
@@ -135,7 +135,7 @@ def draw_options(
             case SpinnerOption():
                 add_spinner(
                     self,
-                    option.name,
+                    option.display_name,
                     option.choices.index(option.value),
                     option.choices,
                     option.wrap_enabled,
@@ -155,7 +155,7 @@ def draw_options(
                 # nested call do it, so the first title is the most nested
                 # If we're empty, or a different type, draw our own header
                 if len(option.children) == 0 or not isinstance(option.children[0], GroupedOption):
-                    add_title(self, " - ".join(g.name for g in group_stack))
+                    add_title(self, " - ".join(g.display_name for g in group_stack))
                     option_stack[-1].drawn_options.append(option)
 
                 draw_options(self, option.children, group_stack)
@@ -167,11 +167,24 @@ def draw_options(
                 if idx != len(options) - 1 and not isinstance(options[idx + 1], GroupedOption):
                     # This will print an empty string if we're on the last stack - which is about
                     # the best we can do, we still want a gap
-                    add_title(self, " - ".join(g.name for g in group_stack))
+                    add_title(self, " - ".join(g.display_name for g in group_stack))
                     option_stack[-1].drawn_options.append(option)
 
             case _:
                 logging.dev_warning(f"Encountered unknown option type {type(option)}")
+
+
+def get_option_header() -> str:
+    """
+    Gets the header to display at the top of the options menu, based on the current option stack.
+
+    Returns:
+        The option header
+    """
+    return " - ".join(
+        info.cause.name if isinstance(info.cause, Mod) else info.cause.display_name
+        for info in option_stack
+    )
 
 
 def open_options_menu(main_menu: UObject, mod: Mod) -> None:
@@ -185,7 +198,7 @@ def open_options_menu(main_menu: UObject, mod: Mod) -> None:
     option_stack.append(OptionStackInfo(mod, []))
     open_custom_options(
         main_menu,
-        " - ".join(info.cause.name for info in option_stack),
+        get_option_header(),
         functools.partial(draw_options, options=tuple(mod.iter_display_options()), group_stack=[]),
     )
 
@@ -247,7 +260,7 @@ def open_nested_options_menu(nested: NestedOption) -> None:
 
     open_custom_options(
         main_menu,
-        " - ".join(info.cause.name for info in option_stack),
+        get_option_header(),
         functools.partial(draw_options, options=nested.children, group_stack=[]),
     )
 
