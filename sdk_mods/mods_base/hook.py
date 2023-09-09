@@ -1,4 +1,5 @@
 import functools
+import inspect
 from collections.abc import Callable
 from types import EllipsisType
 from typing import Any, Literal, Protocol, Self, TypeAlias, cast, overload, runtime_checkable
@@ -141,6 +142,7 @@ def hook(
     hook_type: Type,
     *,
     auto_enable: bool = False,
+    hook_identifier: str | None = None,
 ) -> Callable[[AnyPreHook], HookProtocol] | Callable[[AnyPostHook], HookProtocol]:
     """
     Decorator to register a function as a hook.
@@ -154,8 +156,12 @@ def hook(
     Args:
         hook_func: The unrealscript function to hook.
         hook_type: What type of hook to add.
+    Keyword Args:
         auto_enable: If true, enables the hook after registering it. Should only be set on the
                      outermost decorator.
+        hook_identifier: If not None, specified a custom hook identifier. May only be set on the
+                         innermost decorator. If None, generates one using the wrapped function's
+                         module and qualified name.
     """
 
     def decorator(func: AnyPreHook | AnyPostHook) -> HookProtocol:
@@ -173,7 +179,22 @@ def hook(
             else:
                 # Didn't find an existing hook, initalize our own data
                 func.hook_funcs = []
-                func.hook_identifier = f"{__name__}.hook-id.{id(func)}"
+
+                if hook_identifier is None:
+                    # Don't want to add qualname to the protocol, but we know it must exist since
+                    # it's actually a function
+                    func_name = func.__qualname__  # type: ignore
+
+                    module_name = (
+                        "unknown_module"
+                        if (module := inspect.getmodule(func)) is None
+                        else module.__name__
+                    )
+
+                    func.hook_identifier = f"{__name__}:hook-id:{module_name}.{func_name}"
+                else:
+                    func.hook_identifier = hook_identifier
+
                 func.obj_to_bind_hooks_to = None
 
             func.enable = _hook_enable.__get__(func, type(func))
