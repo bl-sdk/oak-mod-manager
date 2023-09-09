@@ -58,18 +58,9 @@ def pop() -> None:
 
 @overload
 def add(
-    key: None,
-    event: None,
-    callback: MenuKeybindCallback_KeyAndEvent,
-) -> None:
-    ...
-
-
-@overload
-def add(
-    key: None,
+    key: str,
     event: EInputEvent,
-    callback: MenuKeybindCallback_KeyOnly,
+    callback: MenuKeybindCallback_NoArgs,
 ) -> None:
     ...
 
@@ -85,9 +76,9 @@ def add(
 
 @overload
 def add(
-    key: str,
+    key: None,
     event: EInputEvent,
-    callback: MenuKeybindCallback_NoArgs,
+    callback: MenuKeybindCallback_KeyOnly,
 ) -> None:
     ...
 
@@ -95,18 +86,18 @@ def add(
 @overload
 def add(
     key: None,
-    event: None = None,
-    callback: None = None,
-) -> Callable[[MenuKeybindCallback_KeyAndEvent], None]:
+    event: None,
+    callback: MenuKeybindCallback_KeyAndEvent,
+) -> None:
     ...
 
 
 @overload
 def add(
-    key: None,
+    key: str,
     event: EInputEvent = EInputEvent.IE_Pressed,
     callback: None = None,
-) -> Callable[[MenuKeybindCallback_KeyOnly], None]:
+) -> Callable[[MenuKeybindCallback_NoArgs], None]:
     ...
 
 
@@ -121,10 +112,19 @@ def add(
 
 @overload
 def add(
-    key: str,
+    key: None,
     event: EInputEvent = EInputEvent.IE_Pressed,
     callback: None = None,
-) -> Callable[[MenuKeybindCallback_NoArgs], None]:
+) -> Callable[[MenuKeybindCallback_KeyOnly], None]:
+    ...
+
+
+@overload
+def add(
+    key: None,
+    event: None = None,
+    callback: None = None,
+) -> Callable[[MenuKeybindCallback_KeyAndEvent], None]:
     ...
 
 
