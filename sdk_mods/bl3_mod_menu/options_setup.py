@@ -1,6 +1,9 @@
 import functools
 from collections.abc import Sequence
+from dataclasses import dataclass
+from typing import Any
 
+import unrealsdk
 from mods_base import (
     BaseOption,
     BoolOption,
@@ -9,11 +12,15 @@ from mods_base import (
     GroupedOption,
     KeybindOption,
     Mod,
+    NestedOption,
     SliderOption,
     SpinnerOption,
+    get_pc,
+    hook,
 )
 from unrealsdk import logging
-from unrealsdk.unreal import UObject
+from unrealsdk.hooks import Type
+from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 from .keybinds import add_keybind_option
 from .native.options_setup import (
@@ -26,17 +33,20 @@ from .native.options_setup import (
 )
 from .native.options_transition import open_custom_options, refresh_options
 
-# The mod we're currently displaying, or None if not in a custom options menu
-open_mod: Mod | None = None
-
-# The options which we drew last time we updated one of our options menus
-last_drawn_options: list[BaseOption] = []
+OPTIONS_MENU_CLS = unrealsdk.find_class("GFxOptionsMenu")
 
 
-def on_options_close() -> None:
-    """Callback to be run when the options menu is closed."""
-    global open_mod
-    open_mod = None
+@dataclass
+class OptionStackInfo:
+    # What caused this level to be drawn
+    cause: Mod | NestedOption
+    # The list of options which were drawn, used to retrive option by their index on modify
+    drawn_options: list[BaseOption]
+    # The menu object this is drawn within, or None if yet to draw
+    options_menu: UObject | None = None
+
+
+option_stack: list[OptionStackInfo] = []
 
 
 def is_options_menu_open() -> bool:
@@ -46,7 +56,19 @@ def is_options_menu_open() -> bool:
     Returns:
         True if the options menu is open.
     """
-    return open_mod is not None
+    return len(option_stack) > 0
+
+
+def get_displayed_option_at_idx(idx: int) -> BaseOption:
+    """
+    Gets the currently displayed option at the given index.
+
+    Args:
+        idx: The index to get.
+    Returns:
+        THe option which was displayed at that index.
+    """
+    return option_stack[-1].drawn_options[idx]
 
 
 def draw_options(
@@ -62,13 +84,15 @@ def draw_options(
         options: A list of the options to draw.
         group_stack: The stack of `GroupedOption`s which led to this list being drawn.
     """
+    option_stack[-1].options_menu = self
+
     for idx, option in enumerate(options):
         if option.is_hidden:
             continue
 
         # Grouped options are a little more complex, it handles this manually
         if not isinstance(option, GroupedOption):
-            last_drawn_options.append(option)
+            option_stack[-1].drawn_options.append(option)
 
         match option:
             case ButtonOption():
@@ -132,7 +156,7 @@ def draw_options(
                 # If we're empty, or a different type, draw our own header
                 if len(option.children) == 0 or not isinstance(option.children[0], GroupedOption):
                     add_title(self, " - ".join(g.name for g in group_stack))
-                    last_drawn_options.append(option)
+                    option_stack[-1].drawn_options.append(option)
 
                 draw_options(self, option.children, group_stack)
 
@@ -144,27 +168,10 @@ def draw_options(
                     # This will print an empty string if we're on the last stack - which is about
                     # the best we can do, we still want a gap
                     add_title(self, " - ".join(g.name for g in group_stack))
-                    last_drawn_options.append(option)
+                    option_stack[-1].drawn_options.append(option)
 
             case _:
                 logging.dev_warning(f"Encountered unknown option type {type(option)}")
-
-
-def setup_options_for_mod(mod: Mod, self: UObject) -> None:
-    """
-    Sets up the options menu for a given mod.
-
-    Intended to be passed to one of the option transition functions behind a functools.partial.
-
-    Args:
-        mod: The mod to setup options for.
-        self: The options menu being drawn.
-    """
-    global open_mod, last_drawn_options
-    last_drawn_options.clear()
-    open_mod = mod
-
-    draw_options(self, tuple(mod.iter_display_options()), [])
 
 
 def open_options_menu(main_menu: UObject, mod: Mod) -> None:
@@ -175,10 +182,15 @@ def open_options_menu(main_menu: UObject, mod: Mod) -> None:
         main_menu: The main menu to open under.
         mod: The mod to open the options for.
     """
-    open_custom_options(main_menu, mod.name, functools.partial(setup_options_for_mod, mod))
+    option_stack.append(OptionStackInfo(mod, []))
+    open_custom_options(
+        main_menu,
+        " - ".join(info.cause.name for info in option_stack),
+        functools.partial(draw_options, options=tuple(mod.iter_display_options()), group_stack=[]),
+    )
 
 
-def refresh_options_menu(options_menu: UObject, preserve_scroll: bool = True) -> None:
+def refresh_current_options_menu(options_menu: UObject, preserve_scroll: bool = True) -> None:
     """
     Refreshes the currently open options menu.
 
@@ -186,11 +198,79 @@ def refresh_options_menu(options_menu: UObject, preserve_scroll: bool = True) ->
         options_menu: The current options menu.
         preserve_scroll: If true, preserves the current scroll position.
     """
-    if open_mod is None:
-        raise RuntimeError("Tried to refresh a mod options screen without having an associated mod")
+    option_info = option_stack[-1]
+
+    option_info.drawn_options.clear()
 
     refresh_options(
         options_menu,
-        functools.partial(setup_options_for_mod, open_mod),
+        functools.partial(
+            draw_options,
+            options=(
+                tuple(option_info.cause.iter_display_options())
+                if isinstance(option_info.cause, Mod)
+                else option_info.cause.children
+            ),
+            group_stack=[],
+        ),
         preserve_scroll,
     )
+
+
+# Avoid circular import
+from .outer_menu import MAIN_MENU_CLS  # noqa: E402
+
+
+def open_nested_options_menu(nested: NestedOption) -> None:
+    """
+    Opens a nested options menu.
+
+    Args:
+        options_menu: The current options menu.
+        nested: The nested options to draw
+    """
+    if (
+        main_menu := next(
+            (
+                # Look for the uppermost main menu object in the menu stack
+                entry.MenuObject
+                for entry in reversed(get_pc().MenuStack.MenuStack)
+                if (menu_obj := entry.MenuObject) is not None
+                and menu_obj.Class._inherits(MAIN_MENU_CLS)
+            ),
+            None,
+        )
+    ) is None:
+        raise RuntimeError("Unable to find main menu movie when drawing nested option")
+
+    option_stack.append(OptionStackInfo(nested, []))
+
+    open_custom_options(
+        main_menu,
+        " - ".join(info.cause.name for info in option_stack),
+        functools.partial(draw_options, options=nested.children, group_stack=[]),
+    )
+
+
+@hook("/Script/OakGame.GFxFrontendMenu:OnMenuStackChanged", Type.POST, auto_enable=True)
+def frontend_menu_change_hook(
+    _1: UObject,
+    args: WrappedStruct,
+    _3: Any,
+    _4: BoundFunction,
+) -> None:
+    """Hook to detect closing nested menus."""
+    active_menu: UObject = args.ActiveMenu
+
+    # If we transfered back to the main menu, regardless of how, clear the option stack
+    if active_menu.Class._inherits(MAIN_MENU_CLS):
+        option_stack.clear()
+        return
+
+    # If we changed to the menu one below the current, i.e. we closed the current menu, pop it
+    if (
+        active_menu.Class._inherits(OPTIONS_MENU_CLS)
+        and len(option_stack) > 1
+        and option_stack[-2].options_menu == active_menu.CurrentMenu
+    ):
+        option_stack.pop()

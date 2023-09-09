@@ -6,6 +6,7 @@ from mods_base import (
     ButtonOption,
     DropdownOption,
     KeybindOption,
+    NestedOption,
     SliderOption,
     SpinnerOption,
     ValueOption,
@@ -21,7 +22,11 @@ from .native.options_getters import (
     get_number_value,
     get_spinner_selected_idx,
 )
-from .options_setup import is_options_menu_open, last_drawn_options
+from .options_setup import (
+    get_displayed_option_at_idx,
+    is_options_menu_open,
+    open_nested_options_menu,
+)
 
 
 def update_option_value(option: ValueOption[J], value: J) -> None:
@@ -52,13 +57,16 @@ def unimplemented_option_clicked(
     button = args.PressedButton
     for idx, entry in enumerate(obj.ContentPanel.AllCells):
         if entry.Cell == button:
-            option = last_drawn_options[idx]
+            option = get_displayed_option_at_idx(idx)
             break
     else:
         raise ValueError("Couldn't find option which was pressed!")
 
     match option:
-        # TODO: nested
+        case NestedOption():
+            open_nested_options_menu(option)
+            if option.on_press is not None:
+                option.on_press(option)
         case ButtonOption():
             if option.on_press is not None:
                 option.on_press(option)

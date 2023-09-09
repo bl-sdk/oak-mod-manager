@@ -117,7 +117,7 @@ def add_keybind_option(options_menu: UObject, option: KeybindOption) -> None:
 
 
 # Avoid circular import
-from .options_setup import refresh_options_menu  # noqa: E402
+from .options_setup import refresh_current_options_menu  # noqa: E402
 
 
 def handle_keybind_press(options_menu: UObject, option: KeybindOption) -> None:
@@ -148,7 +148,7 @@ def handle_keybind_press(options_menu: UObject, option: KeybindOption) -> None:
             get_pc().MenuStack.Pop()
         menu_keybinds.pop()
 
-        refresh_options_menu(options_menu)
+        refresh_current_options_menu(options_menu)
 
     DialogBox(
         f'Rebind "{option.name}"',

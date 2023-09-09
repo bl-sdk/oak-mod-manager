@@ -1,5 +1,3 @@
-# ruff: noqa: D103
-
 import re
 from typing import Any
 
@@ -15,7 +13,7 @@ from .native.outer_menu import (
     set_add_menu_item_callback,
     set_menu_state,
 )
-from .options_setup import on_options_close, open_options_menu
+from .options_setup import open_options_menu
 
 MAIN_MENU_CLS = unrealsdk.find_class("GFxOakMainMenu")
 
@@ -41,6 +39,7 @@ def add_menu_item_hook(
     big: bool,
     always_minus_one: int,
 ) -> int:
+    """Hook to inject the outermot mods option."""
     idx = add_menu_item(self, text, callback_name, big, always_minus_one)
 
     if callback_name == "OnStoreClicked":
@@ -85,6 +84,7 @@ def frontend_menu_change_hook(
     _3: Any,
     _4: BoundFunction,
 ) -> None:
+    """Hook to refresh the mods list when leaving the options menu."""
     active_menu: UObject = args.ActiveMenu
 
     # If we transisitoned back onto the main menu, and we're looking at the mod list
@@ -95,8 +95,6 @@ def frontend_menu_change_hook(
         # Refresh it, so that we update the enabled/disabled coloring
         draw_mods_list(active_menu)
 
-        on_options_close()
-
 
 @hook("/Script/OakGame.GFxOakMainMenu:OnOtherButtonClicked", Type.PRE, auto_enable=True)
 def other_button_hook(
@@ -105,6 +103,7 @@ def other_button_hook(
     _3: Any,
     _4: BoundFunction,
 ) -> None:
+    """Hook to detect clicking menu items."""
     pressed_idx: int
     pressed_button = args.PressedButton
     for idx, entry in enumerate(obj.MenuItems):
