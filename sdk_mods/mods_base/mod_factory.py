@@ -6,6 +6,7 @@ from typing import Any, cast
 
 from unrealsdk import logging
 
+from .command import AbstractCommand
 from .hook import HookProtocol
 from .keybinds import KeybindType
 from .mod import Game, Mod, ModType
@@ -18,12 +19,14 @@ def search_module_if_needed(
     keybinds: Sequence[KeybindType] | None,
     options: Sequence[BaseOption] | None,
     hooks: Sequence[HookProtocol] | None,
+    commands: Sequence[AbstractCommand] | None,
     on_enable: Callable[[], None] | None,
     on_disable: Callable[[], None] | None,
 ) -> tuple[
     Sequence[KeybindType],
     Sequence[BaseOption],
     Sequence[HookProtocol],
+    Sequence[AbstractCommand],
     Callable[[], None] | None,
     Callable[[], None] | None,
 ]:
@@ -35,6 +38,7 @@ def search_module_if_needed(
         keybinds: The set of specified keybinds, or None if to search for them.
         options: The set of specified options, or None if to search for them.
         hooks: The set of specified hooks, or None if to search for them.
+        commands: The set of specified commands, or None if to search for them.
         on_enable: The specified enable callback, or None if to search for one.
         on_disable: The specified disable callback, or None if to search for one.
     Returns:
@@ -55,6 +59,11 @@ def search_module_if_needed(
     new_hooks: list[HookProtocol] = []
     if find_hooks := hooks is None:
         hooks = new_hooks
+        need_to_search_module = True
+
+    new_commands: list[AbstractCommand] = []
+    if find_commands := commands is None:
+        commands = new_commands
         need_to_search_module = True
 
     if on_enable is None:
@@ -79,6 +88,9 @@ def search_module_if_needed(
                 case _, HookProtocol() if find_hooks:
                     new_hooks.append(value)
 
+                case _, AbstractCommand() if find_commands:
+                    new_commands.append(value)
+
                 case "on_enable", Callable() if on_enable is None:
                     on_enable = cast(Callable[[], None], value)
 
@@ -88,7 +100,7 @@ def search_module_if_needed(
                 case _:
                     pass
 
-    return keybinds, options, hooks, on_enable, on_disable
+    return keybinds, options, hooks, new_commands, on_enable, on_disable
 
 
 def build_mod(
@@ -104,6 +116,7 @@ def build_mod(
     keybinds: Sequence[KeybindType] | None = None,
     options: Sequence[BaseOption] | None = None,
     hooks: Sequence[HookProtocol] | None = None,
+    commands: Sequence[AbstractCommand] | None = None,
     auto_enable: bool | None = None,
     on_enable: Callable[[], None] | None = None,
     on_disable: Callable[[], None] | None = None,
@@ -129,6 +142,8 @@ def build_mod(
                  namespace if missing. Note the order is not necesarily stable.
         hooks: The mod's hooks. Defaults to searching for hook functions in the module's namespace
                if missing.
+        commands: The mod's commands. Defaults to searching for AbstractCommand instances in the
+                  module's namespace if missing.
         auto_enable: True if to enable the mod on launch if it was also enabled last time.
         on_enable: A no-arg callback to run on mod enable. Defaults to searching for a callable
                    named `on_enable` in the module's namespace if missing.
@@ -142,11 +157,12 @@ def build_mod(
     if module is None:
         raise ValueError("Unable to find calling module when using build_mod factory!")
 
-    keybinds, options, hooks, on_enable, on_disable = search_module_if_needed(
+    keybinds, options, hooks, commands, on_enable, on_disable = search_module_if_needed(
         module,
         keybinds,
         options,
         hooks,
+        commands,
         on_enable,
         on_disable,
     )
@@ -156,6 +172,7 @@ def build_mod(
         "keybinds": keybinds,
         "options": options,
         "hooks": hooks,
+        "commands": commands,
     }
 
     if (author := (author or getattr(module, "__author__", None))) is not None:

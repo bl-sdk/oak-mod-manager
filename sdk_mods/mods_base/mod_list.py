@@ -18,18 +18,27 @@ mod_list: list[Mod] = [
         author="bl-sdk",
         description="Base library for interacting with unreal objects.",
         version=unrealsdk.__version__,
+        keybinds=[],
+        options=[],
+        hooks=[],
+        commands=[],
     ),
     Library(
         name="pyunrealsdk",
         author="bl-sdk",
         description="Python bindings for unrealsdk.",
         version=pyunrealsdk.__version__,
+        keybinds=[],
+        options=[],
+        hooks=[],
+        commands=[],
     ),
     base_mod := Library(
         name="Python SDK Base",
         author="bl-sdk",
         description="Basic utilities used across all mods.",
         version=__version__,
+        keybinds=[],
         options=cast(
             list[BaseOption],
             [
@@ -39,6 +48,8 @@ mod_list: list[Mod] = [
                 ),
             ],
         ),
+        hooks=[],
+        commands=[],
     ),
 ]
 

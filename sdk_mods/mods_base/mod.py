@@ -11,6 +11,7 @@ from typing import Literal
 
 from unrealsdk import logging
 
+from .command import AbstractCommand
 from .hook import HookProtocol
 from .keybinds import KeybindType
 from .options import (
@@ -82,6 +83,7 @@ class Mod:
         keybinds: The mod's keybinds. If not given, searches for them in instance variables.
         options: The mod's options. If not given, searches for them in instance variables.
         hooks: The mod's hooks. If not given, searches for them in instance variables.
+        commands: The mod's commands. If not given, searches for them in instance variables.
 
     Attributes - Runtime:
         is_enabled: True if the mod is currently considered enabled. Not available in constructor.
@@ -104,6 +106,7 @@ class Mod:
     keybinds: Sequence[KeybindType] = field(default=None)  # type: ignore
     options: Sequence[BaseOption] = field(default=None)  # type: ignore
     hooks: Sequence[HookProtocol] = field(default=None)  # type: ignore
+    commands: Sequence[AbstractCommand] = field(default=None)  # type: ignore
 
     is_enabled: bool = field(default=False, init=False)
     auto_enable: bool = True
@@ -128,6 +131,11 @@ class Mod:
             self.hooks = new_hooks
             need_to_search_instance_vars = True
 
+        new_commands: list[AbstractCommand] = []
+        if find_commands := self.commands is None:  # type: ignore
+            self.commands = new_commands
+            need_to_search_instance_vars = True
+
         if not need_to_search_instance_vars:
             return
 
@@ -144,6 +152,8 @@ class Mod:
                     new_options.append(value)
                 case HookProtocol() if find_hooks:
                     new_hooks.append(value.bind(self))
+                case AbstractCommand() if find_commands:
+                    new_commands.append(value)
                 case _:
                     pass
 
@@ -158,6 +168,8 @@ class Mod:
 
         for hook in self.hooks:
             hook.enable()
+        for command in self.commands:
+            command.enable()
 
         if self.on_enable is not None:
             self.on_enable()
@@ -174,6 +186,8 @@ class Mod:
 
         for hook in self.hooks:
             hook.disable()
+        for command in self.commands:
+            command.disable()
 
         if self.on_disable is not None:
             self.on_disable()

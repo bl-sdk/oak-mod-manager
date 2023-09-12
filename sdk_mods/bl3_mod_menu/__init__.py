@@ -41,4 +41,5 @@ build_mod(
     keybinds=[],
     options=_options,
     hooks=[],
+    commands=[],
 )
