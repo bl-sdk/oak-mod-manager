@@ -2,20 +2,27 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 
 from mods_base import (
+    JSON,
     BaseOption,
     BoolOption,
     ButtonOption,
+    DropdownOption,
     GroupedOption,
+    KeybindOption,
     Mod,
     NestedOption,
+    SliderOption,
+    SpinnerOption,
     ValueOption,
 )
 from unrealsdk import logging
 
 from console_mod_menu.draw import draw
-from console_mod_menu.menu_loop import get_stack_header
+from console_mod_menu.menu_loop import get_stack_header, push_screen
+from console_mod_menu.option_formatting import get_option_value_str
 
 from . import AbstractScreen, draw_standard_commands, handle_standard_command_input
+from .option import BoolOptionScreen, ButtonOptionScreen, ChoiceOptionScreen, SliderOptionScreen
 
 
 @dataclass
@@ -62,16 +69,12 @@ class ModScreen(AbstractScreen):
                     stack.pop()
 
                 case ValueOption():
-                    value_str: str
-                    if isinstance(option, BoolOption):
-                        value_str = (option.false_text or "Off", option.true_text or "On")[
-                            option.value
-                        ]
-                    else:
-                        # The generics mean the type of value is technically unknown here
-                        value_str = str(option.value)  # type: ignore
+                    j_option: ValueOption[JSON] = option
 
-                    draw(f"[{drawn_idx}] {option.display_name} ({value_str})", indent=indent)
+                    draw(
+                        f"[{drawn_idx}] {option.display_name} ({get_option_value_str(j_option)})",
+                        indent=indent,
+                    )
 
                 case ButtonOption():
                     draw(f"[{drawn_idx}] {option.display_name}", indent=indent)
@@ -97,5 +100,15 @@ class ModScreen(AbstractScreen):
         except (ValueError, IndexError):
             return False
 
-        print("press", option)
+        match option:
+            case BoolOption():
+                push_screen(BoolOptionScreen(self, option))
+            case ButtonOption():
+                push_screen(ButtonOptionScreen(self, option))
+            case DropdownOption() | SpinnerOption():
+                push_screen(ChoiceOptionScreen(self, option))
+            case SliderOption():
+                push_screen(SliderOptionScreen(self, option))
+            case _:
+                logging.dev_warning(f"Encountered unknown option type {type(option)}")
         return False
