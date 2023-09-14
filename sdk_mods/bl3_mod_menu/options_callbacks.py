@@ -78,7 +78,10 @@ def unimplemented_option_clicked(
             update_option_value(option, option.choices[get_combo_box_selected_idx(button)])
         case SliderOption():
             assert button.Class.Name == "GbxGFxListItemNumber"
-            update_option_value(option, get_number_value(button))
+            value = get_number_value(button)
+            if option.is_integer:
+                value = round(value)
+            update_option_value(option, value)
         case SpinnerOption():
             assert button.Class.Name == "GbxGFxListItemComboBox"
             update_option_value(option, option.choices[get_spinner_selected_idx(button)])

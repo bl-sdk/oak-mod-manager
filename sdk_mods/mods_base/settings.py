@@ -63,6 +63,8 @@ def load_options_dict(options: Sequence[BaseOption], settings: MutableMapping[st
                     # Some of the JSON types won't support float conversion suppress the type
                     # error and catch the exception instead
                     option.value = float(value)  # type: ignore
+                    if option.is_integer:
+                        option.value = round(option.value)
                 except ValueError:
                     logging.error(
                         f"'{value}' is not a valid value for option '{option.identifier}', sticking"
