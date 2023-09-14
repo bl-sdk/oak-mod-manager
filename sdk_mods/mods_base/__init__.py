@@ -13,6 +13,7 @@ from .mod import Game, Library, Mod, ModType
 from .mod_factory import build_mod
 from .mod_list import deregister_mod, get_ordered_mod_list, register_mod
 from .options import (
+    JSON,
     BaseOption,
     BoolOption,
     ButtonOption,
@@ -47,6 +48,7 @@ __all__: tuple[str, ...] = (
     "GroupedOption",
     "HiddenOption",
     "hook",
+    "JSON",
     "keybind",
     "KeybindOption",
     "KeybindType",
