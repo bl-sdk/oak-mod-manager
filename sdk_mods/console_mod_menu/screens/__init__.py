@@ -1,12 +1,17 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
-from console_mod_menu.menu_loop import has_multiple_screens_open, pop_screen, quit_interactive_menu
-from console_mod_menu.write import write
+from console_mod_menu.draw import draw
+from console_mod_menu.menu_loop import (
+    has_multiple_screens_open,
+    pop_screen,
+    quit_interactive_menu,
+)
 
 
 @dataclass
 class AbstractScreen(ABC):
+    name: str
     unsaved_changes: bool = field(default=False, init=False)
 
     @abstractmethod
@@ -29,12 +34,12 @@ class AbstractScreen(ABC):
 
 def draw_standard_commands() -> None:
     """Draws the standard commands which apply across all screens."""
-    write("[Q] Quit")
+    draw("[Q] Quit")
 
     if has_multiple_screens_open():
-        write("[B] Back")
+        draw("[B] Back")
 
-    write("[?] Re-draw this screen")
+    draw("[?] Re-draw this screen")
 
 
 def handle_standard_command_input(line: str) -> bool:

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from mods_base import capture_next_console_line
 
-from .write import write
+from .draw import draw
 
 screen_stack: list[AbstractScreen] = []
 
@@ -30,6 +30,7 @@ def pop_screen() -> bool:
     if screen_stack[-1].unsaved_changes:
         push_screen(
             ConfirmScreen(
+                "Discard Changes?",
                 "You have unsaved changes. Do you want to discard them?",
                 on_confirm=screen_stack.pop,
             ),
@@ -50,19 +51,36 @@ def has_multiple_screens_open() -> bool:
     return len(screen_stack) > 1
 
 
-test = 1
+def get_stack_header() -> str:
+    """
+    Gets a header combining all the items in the stack.
+
+    Returns:
+        The stack header
+    """
+    return " / ".join(x.name for x in screen_stack)
+
+
+_should_restart_interactive_menu: bool = False
 
 
 def _handle_interactive_input(line: str) -> None:
     """Main input loop."""
+    global _should_restart_interactive_menu
     stripped = line.strip()
 
-    if not screen_stack[-1].handle_input(stripped):
-        write(f"Unrecognised input '{stripped}'. Please try again.\n")
+    parsed_input = screen_stack[-1].handle_input(stripped)
 
     if len(screen_stack) > 0:
         screen_stack[-1].draw()
         capture_next_console_line(_handle_interactive_input)
+
+    if not parsed_input:
+        draw(f"\nUnrecognised input '{stripped}'.")
+
+    if _should_restart_interactive_menu:
+        start_interactive_menu()
+    _should_restart_interactive_menu = False
 
 
 def start_interactive_menu() -> None:
@@ -84,13 +102,15 @@ def quit_interactive_menu(restart: bool = False) -> None:
     """
 
     def perform_quit() -> None:
+        global _should_restart_interactive_menu
         screen_stack.clear()
         if restart:
-            start_interactive_menu()
+            _should_restart_interactive_menu = True
 
     if any(screen.unsaved_changes for screen in screen_stack):
         push_screen(
             ConfirmScreen(
+                "Discard Changes?",
                 "You have unsaved changes. Do you want to discard them?",
                 on_confirm=perform_quit,
             ),
