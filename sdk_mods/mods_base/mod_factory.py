@@ -10,7 +10,7 @@ from .command import AbstractCommand
 from .hook import HookProtocol
 from .keybinds import KeybindType
 from .mod import Game, Mod, ModType
-from .mod_list import register_mod
+from .mod_list import deregister_mod, mod_list, register_mod
 from .options import BaseOption, GroupedOption, NestedOption
 
 
@@ -100,7 +100,19 @@ def search_module_if_needed(
                 case _:
                     pass
 
-    return keybinds, options, hooks, new_commands, on_enable, on_disable
+    return keybinds, options, hooks, commands, on_enable, on_disable
+
+
+def deregister_using_settings_file(settings_file: Path) -> None:
+    """
+    Deregisters all mods using the given settings file.
+
+    Args:
+        settings_file: The settings file path to deregister mods using.
+    """
+    mods_to_remove = [mod for mod in mod_list if mod.settings_file == settings_file]
+    for mod in mods_to_remove:
+        deregister_mod(mod)
 
 
 def build_mod(
@@ -120,6 +132,7 @@ def build_mod(
     auto_enable: bool | None = None,
     on_enable: Callable[[], None] | None = None,
     on_disable: Callable[[], None] | None = None,
+    deregister_same_settings: bool = True,
 ) -> Mod:
     """
     Factory function to create and register a mod.
@@ -149,6 +162,9 @@ def build_mod(
                    named `on_enable` in the module's namespace if missing.
         on_disable: A no-arg callback to run on mod disable. Defaults to searching for a callable
                     named `on_disable` in the module's namespace if missing.
+        deregister_same_settings: If true, deregisters any existing mods that use the same settings
+                                  file. Useful so that reloading the module does not create multiple
+                                  entries in the mods menu.
     Returns:
         The created mod object.
     """
@@ -183,6 +199,8 @@ def build_mod(
     if settings_file is None:
         settings_file = Path(inspect.getfile(module)).with_name("settings.json")
     kwargs["settings_file"] = settings_file
+    if deregister_same_settings:
+        deregister_using_settings_file(settings_file)
 
     for arg, arg_name in (
         (description, "description"),
