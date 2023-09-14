@@ -27,8 +27,13 @@ def get_option_value_str(option: BaseOption) -> str | None:
     match option:
         case BoolOption():
             return (option.false_text or "Off", option.true_text or "On")[option.value]
-        case KeybindOption() if option.value is None:
-            return "..."
+        case KeybindOption():
+            key = str(option.value)
+            if option.value is None:
+                key = "Unbound"
+            if option.is_rebindable:
+                return key
+            return f"Locked: {key}"
         case ValueOption():
             # The generics mean the type of value is technically unknown here
             return str(option.value)  # type: ignore

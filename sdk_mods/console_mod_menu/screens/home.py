@@ -26,7 +26,7 @@ class HomeScreen(AbstractScreen):
 
         self.drawn_mod_list = get_ordered_mod_list()
         for idx, mod in enumerate(self.drawn_mod_list):
-            draw(f"[{idx}] {mod.name}")
+            draw(f"[{idx + 1}] {mod.name}")
 
         draw_standard_commands()
 
@@ -36,7 +36,7 @@ class HomeScreen(AbstractScreen):
 
         mod: Mod
         try:
-            mod = self.drawn_mod_list[int(line)]
+            mod = self.drawn_mod_list[int(line) - 1]
         except (ValueError, IndexError):
             return False
 

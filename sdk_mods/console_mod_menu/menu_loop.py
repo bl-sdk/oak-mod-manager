@@ -69,6 +69,11 @@ def _handle_interactive_input(line: str) -> None:
     global _should_restart_interactive_menu
     stripped = line.strip()
 
+    if stripped == (
+        "Help I got the menu stuck in an infinite loop and need a debug option to break out!"
+    ):
+        return
+
     parsed_input = screen_stack[-1].handle_input(stripped)
 
     if len(screen_stack) > 0:
@@ -76,7 +81,8 @@ def _handle_interactive_input(line: str) -> None:
         capture_next_console_line(_handle_interactive_input)
 
     if not parsed_input:
-        draw(f"\nUnrecognised input '{stripped}'.")
+        draw("")
+        draw(f"Unrecognised input '{stripped}'.")
 
     if _should_restart_interactive_menu:
         start_interactive_menu()

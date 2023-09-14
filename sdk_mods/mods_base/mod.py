@@ -68,6 +68,10 @@ class Mod:
     """
     A mod instance to display in the mods menu.
 
+    The various display strings may contain HTML tags + entities. All mod menus are expected to
+    handle them, parsing or striping as appropriate. Other forms of markup are allowed, but may be
+    handled incorrectly by some mod menus.
+
     Attributes - Metadata:
         name: The mod's name.
         author: The mod's author(s).

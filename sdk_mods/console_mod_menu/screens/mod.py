@@ -96,7 +96,7 @@ class ModScreen(AbstractScreen):
 
         option: BaseOption
         try:
-            option = self.drawn_options[int(line)]
+            option = self.drawn_options[int(line) - 1]
         except (ValueError, IndexError):
             return False
 
@@ -111,4 +111,4 @@ class ModScreen(AbstractScreen):
                 push_screen(SliderOptionScreen(self, option))
             case _:
                 logging.dev_warning(f"Encountered unknown option type {type(option)}")
-        return False
+        return True

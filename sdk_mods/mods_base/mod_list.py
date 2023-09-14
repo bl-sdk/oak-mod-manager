@@ -1,6 +1,6 @@
 import os
-import re
 from functools import cmp_to_key
+from html.parser import HTMLParser
 from pathlib import Path
 from typing import cast
 
@@ -80,7 +80,27 @@ def deregister_mod(mod: Mod) -> None:
     mod_list.remove(mod)
 
 
-RE_HTML_TAG = re.compile("<.+?>")
+def html_to_plain_text(html: str) -> str:
+    """
+    Extracts plain text from HTML-containing text. This is *NOT* input sanitisation.
+
+    Removes tags, and decodes entities - `<b>&amp;</b>` becomes `&`.
+
+    Intended for use when accessing a mod name/description/option/etc., which may contain HTML tags,
+    but in a situation where such tags would be inappropriate.
+
+    Args:
+        html: The HTML-containing text.
+    Returns:
+        The extracted plain text.
+    """
+    extracted_data: list[str] = []
+
+    parser = HTMLParser()
+    parser.handle_data = lambda data: extracted_data.append(data)
+    parser.feed(html)
+
+    return "".join(extracted_data)
 
 
 def get_ordered_mod_list() -> list[Mod]:
@@ -106,11 +126,11 @@ def get_ordered_mod_list() -> list[Mod]:
 
         # Finally, sort by name
         # Strip html tags, whitespace, and compare case insensitively
-        a_stripped = RE_HTML_TAG.sub("", a.name).strip().lower()
-        b_stripped = RE_HTML_TAG.sub("", b.name).strip().lower()
-        if a_stripped < b_stripped:
+        a_plain = html_to_plain_text(a.name.strip()).lower()
+        b_plain = html_to_plain_text(b.name.strip()).lower()
+        if a_plain < b_plain:
             return -1
-        if a_stripped > b_stripped:
+        if a_plain > b_plain:
             return 1
         return 0
 
