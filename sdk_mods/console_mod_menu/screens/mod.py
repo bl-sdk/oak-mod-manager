@@ -18,10 +18,15 @@ from mods_base import (
 from unrealsdk import logging
 
 from console_mod_menu.draw import draw
-from console_mod_menu.menu_loop import get_stack_header, push_screen
 from console_mod_menu.option_formatting import get_option_value_str
 
-from . import AbstractScreen, draw_standard_commands, handle_standard_command_input
+from . import (
+    AbstractScreen,
+    draw_stack_header,
+    draw_standard_commands,
+    handle_standard_command_input,
+    push_screen,
+)
 from .option import BoolOptionScreen, ButtonOptionScreen, ChoiceOptionScreen, SliderOptionScreen
 
 
@@ -83,7 +88,7 @@ class ModScreen(AbstractScreen):
                     logging.dev_warning(f"Encountered unknown option type {type(option)}")
 
     def draw(self) -> None:  # noqa: D102
-        draw(get_stack_header())
+        draw_stack_header()
 
         self.drawn_options = []
         self.draw_options_list(tuple(self.mod.iter_display_options()), [])
@@ -112,3 +117,6 @@ class ModScreen(AbstractScreen):
             case _:
                 logging.dev_warning(f"Encountered unknown option type {type(option)}")
         return True
+
+    def on_close(self) -> None:  # noqa: D102
+        self.mod.save_settings()

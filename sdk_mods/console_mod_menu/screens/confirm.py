@@ -1,17 +1,14 @@
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Literal
+from typing import Any
 
 from console_mod_menu.draw import draw
-from console_mod_menu.menu_loop import pop_screen
 
-from . import AbstractScreen
+from . import AbstractScreen, pop_screen
 
 
 @dataclass
 class ConfirmScreen(AbstractScreen):
-    unsaved_changes: Literal[False] = field(default=False, init=False)
-
     msg: str
     # Return values are ignored
     on_confirm: Callable[[], Any]
@@ -23,8 +20,6 @@ class ConfirmScreen(AbstractScreen):
         draw("[N] No")
 
     def handle_input(self, line: str) -> bool:  # noqa: D102
-        # Just make extra sure we can actually pop this screen
-        self.unsaved_changes = False
         pop_screen()
 
         if line[0] in ("Y", "y"):

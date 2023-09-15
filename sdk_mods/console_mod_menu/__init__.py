@@ -2,7 +2,7 @@ import argparse
 
 from mods_base import Game, Library, build_mod, command
 
-from .menu_loop import start_interactive_menu
+from .screens import start_interactive_menu
 
 __all__: list[str] = [
     "__version__",
