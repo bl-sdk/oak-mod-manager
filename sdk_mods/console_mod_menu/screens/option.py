@@ -150,7 +150,12 @@ class SliderOptionScreen(OptionScreen[SliderOption, float]):
     def draw_option(self) -> None:  # noqa: D102
         draw(f"Enter the new value [{self.option.min_value}-{self.option.max_value}]")
 
+        draw_standard_commands()
+
     def handle_input(self, line: str) -> bool:  # noqa: D102
+        if handle_standard_command_input(line):
+            return True
+
         value: float
         try:
             value = float(line)

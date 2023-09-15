@@ -1,6 +1,6 @@
 import argparse
 
-from mods_base import Game, Library, build_mod, command
+from mods_base import Library, build_mod, command
 
 from .screens import start_interactive_menu
 
@@ -25,7 +25,6 @@ build_mod(
     name="Console Mod Menu",
     author="bl-sdk",
     description="Adds a console-based mod menu. Type 'mods' to get started.",
-    supported_games=Game.BL3,
     keybinds=[],
     options=[],
     hooks=[],
