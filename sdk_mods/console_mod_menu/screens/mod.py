@@ -27,12 +27,13 @@ from . import (
     handle_standard_command_input,
     push_screen,
 )
+from .keybind import KeybindOptionScreen
 from .option import BoolOptionScreen, ButtonOptionScreen, ChoiceOptionScreen, SliderOptionScreen
 
 
 @dataclass
 class ModScreen(AbstractScreen):
-    name: str = field(default="", init=False)
+    name: str = field(init=False)
     mod: Mod
 
     drawn_options: list[BaseOption] = field(default_factory=list, init=False)
@@ -107,13 +108,15 @@ class ModScreen(AbstractScreen):
 
         match option:
             case BoolOption():
-                push_screen(BoolOptionScreen(self, option))
+                push_screen(BoolOptionScreen(option))
             case ButtonOption():
-                push_screen(ButtonOptionScreen(self, option))
+                push_screen(ButtonOptionScreen(option))
             case DropdownOption() | SpinnerOption():
-                push_screen(ChoiceOptionScreen(self, option))
+                push_screen(ChoiceOptionScreen(option))
             case SliderOption():
-                push_screen(SliderOptionScreen(self, option))
+                push_screen(SliderOptionScreen(option))
+            case KeybindOption():
+                push_screen(KeybindOptionScreen(option))
             case _:
                 logging.dev_warning(f"Encountered unknown option type {type(option)}")
         return True

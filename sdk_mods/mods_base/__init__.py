@@ -6,7 +6,13 @@ __version_info__: tuple[int, int] = (1, 0)
 __version__: str = f"{__version_info__[0]}.{__version_info__[1]}"
 
 from . import menu_keybinds
-from .command import AbstractCommand, ArgParseCommand, capture_next_console_line, command
+from .command import (
+    AbstractCommand,
+    ArgParseCommand,
+    capture_next_console_line,
+    command,
+    remove_next_console_line_capture,
+)
 from .hook import hook
 from .keybinds import EInputEvent, KeybindType, keybind
 from .mod import Game, Library, Mod, ModType
@@ -59,6 +65,7 @@ __all__: tuple[str, ...] = (
     "ModType",
     "NestedOption",
     "register_mod",
+    "remove_next_console_line_capture",
     "SliderOption",
     "SpinnerOption",
     "ValueOption",

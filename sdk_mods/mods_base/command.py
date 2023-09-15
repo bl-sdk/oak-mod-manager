@@ -150,3 +150,8 @@ def capture_next_console_line(callback: Callable[[str], None]) -> None:
         )
 
     add_command(NEXT_LINE, lambda line, _: callback(line))
+
+
+def remove_next_console_line_capture() -> None:
+    """If a next console line capture is currently active, removes it."""
+    remove_command(NEXT_LINE)

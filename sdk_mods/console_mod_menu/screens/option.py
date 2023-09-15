@@ -10,7 +10,6 @@ from mods_base import (
     BoolOption,
     ButtonOption,
     DropdownOption,
-    KeybindOption,
     SliderOption,
     SpinnerOption,
     ValueOption,
@@ -26,17 +25,13 @@ from . import (
     handle_standard_command_input,
 )
 
-if TYPE_CHECKING:
-    from .mod import ModScreen
-
 T = TypeVar("T", bound=BaseOption)
 J = TypeVar("J", bound=JSON)
 
 
 @dataclass
 class OptionScreen(AbstractScreen, Generic[T, J]):
-    name: str = field(default="", init=False)
-    parent: ModScreen
+    name: str = field(init=False)
     option: T
 
     def __post_init__(self) -> None:
@@ -87,6 +82,7 @@ class OptionScreen(AbstractScreen, Generic[T, J]):
         self.option.value = new_value
 
 
+@dataclass
 class ButtonOptionScreen(OptionScreen[ButtonOption, None]):
     def draw_option(self) -> None:  # noqa: D102
         if self.option.on_press is not None:
@@ -105,6 +101,7 @@ class ButtonOptionScreen(OptionScreen[ButtonOption, None]):
         return False
 
 
+@dataclass
 class BoolOptionScreen(OptionScreen[BoolOption, bool]):
     def draw_option(self) -> None:  # noqa: D102
         draw(f"[1] {self.option.false_text or 'Off'}")
@@ -126,6 +123,7 @@ class BoolOptionScreen(OptionScreen[BoolOption, bool]):
         return False
 
 
+@dataclass
 class ChoiceOptionScreen(OptionScreen[DropdownOption | SpinnerOption, str]):
     def draw_option(self) -> None:  # noqa: D102
         for idx, val in enumerate(self.option.choices):
@@ -147,6 +145,7 @@ class ChoiceOptionScreen(OptionScreen[DropdownOption | SpinnerOption, str]):
         return True
 
 
+@dataclass
 class SliderOptionScreen(OptionScreen[SliderOption, float]):
     def draw_option(self) -> None:  # noqa: D102
         draw(f"Enter the new value [{self.option.min_value}-{self.option.max_value}]")
