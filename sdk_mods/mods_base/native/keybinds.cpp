@@ -1,6 +1,7 @@
 #include "pyunrealsdk/pch.h"
 #include "pyunrealsdk/hooks.h"
 #include "pyunrealsdk/logging.h"
+#include "pyunrealsdk/static_py_object.h"
 #include "pyunrealsdk/type_casters.h"
 #include "pyunrealsdk/unreal_bindings/uenum.h"
 #include "unrealsdk/memory.h"
@@ -19,10 +20,10 @@ using namespace unrealsdk::unreal;
 auto key_struct_type =
     validate_type<UScriptStruct>(unrealsdk::find_object(L"ScriptStruct", L"/Script/InputCore.Key"));
 auto key_name_prop = key_struct_type->find_prop_and_validate<UNameProperty>(L"KeyName"_fn);
-auto input_event_enum = pyunrealsdk::unreal::enum_as_py_enum(
+pyunrealsdk::StaticPyObject input_event_enum = pyunrealsdk::unreal::enum_as_py_enum(
     validate_type<UEnum>(unrealsdk::find_object(L"Enum", L"/Script/Engine.EInputEvent")));
 
-py::object keybind_callback = py::reinterpret_steal<py::object>(nullptr);
+pyunrealsdk::StaticPyObject keybind_callback{};
 
 using AOakPlayerController = UObject;
 using FKey = void;
@@ -47,7 +48,7 @@ uintptr_t oakpc_inputkey_hook(AOakPlayerController* self,
                               EInputEvent input_event,
                               float press_duration,
                               uint32_t gamepad_id) {
-    if (keybind_callback.ptr() != nullptr) {
+    if (keybind_callback) {
         try {
             auto key_name = WrappedStruct{key_struct_type, key}.get<UNameProperty>(key_name_prop);
 
@@ -89,38 +90,4 @@ PYBIND11_MODULE(keybinds, m) {
         "Args:\n"
         "    callback: The callback to use.",
         "callback"_a);
-}
-
-/**
- * @brief Cleans up the static python references we have, before we're unloaded.
- */
-void finalize(void) {
-    py::gil_scoped_acquire gil;
-
-    // Release does not decrement the ref counter
-    auto handle = keybind_callback.release();
-    if (handle.ptr() != nullptr) {
-        handle.dec_ref();
-    }
-
-    handle = input_event_enum.release();
-    if (handle.ptr() != nullptr) {
-        handle.dec_ref();
-    }
-}
-
-// NOLINTNEXTLINE(readability-identifier-naming)
-BOOL APIENTRY DllMain(HMODULE h_module, DWORD ul_reason_for_call, LPVOID /*unused*/) {
-    switch (ul_reason_for_call) {
-        case DLL_PROCESS_ATTACH:
-            DisableThreadLibraryCalls(h_module);
-            break;
-        case DLL_PROCESS_DETACH:
-            finalize();
-            break;
-        case DLL_THREAD_ATTACH:
-        case DLL_THREAD_DETACH:
-            break;
-    }
-    return TRUE;
 }

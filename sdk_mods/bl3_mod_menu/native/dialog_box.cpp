@@ -1,5 +1,6 @@
 #include "pyunrealsdk/pch.h"
 #include "pyunrealsdk/logging.h"
+#include "pyunrealsdk/static_py_object.h"
 #include "unrealsdk/memory.h"
 #include "unrealsdk/unreal/class_name.h"
 #include "unrealsdk/unreal/classes/properties/uarrayproperty.h"
@@ -13,24 +14,11 @@ using namespace unrealsdk::unreal;
 using namespace unrealsdk::memory;
 
 bool injecting_next_call = false;
-py::object configure_callback{};
+pyunrealsdk::StaticPyObject configure_callback{};
 
 auto info_struct_type = validate_type<UScriptStruct>(
     unrealsdk::find_object(L"ScriptStruct", L"/Script/OakGame.GbxGFxDialogBoxInfo"));
 auto choices_prop = info_struct_type->find_prop_and_validate<UArrayProperty>(L"Choices"_fn);
-
-/**
- * @brief Deletes the stored configure callback.
- */
-void delete_configure_callback(void) {
-    const py::gil_scoped_acquire gil{};
-
-    // Release does not decrement the ref counter
-    auto handle = configure_callback.release();
-    if (handle.ptr() != nullptr) {
-        handle.dec_ref();
-    }
-}
 
 const constinit Pattern<21> DISPLAY_NAT_HELP_DIALOG{
     "40 55"                 // push rbp
@@ -88,8 +76,6 @@ UGbxGFxDialogBox* show_dialog_hook(UGbxPlayerController* pc, FGbxGFxDialogBoxInf
             pyunrealsdk::logging::log_python_exception(ex);
         }
 
-        delete_configure_callback();
-
         // Restore the actual array, so calling code cleans it up properly
         *arr.base = arr_backup;
 
@@ -122,29 +108,4 @@ PYBIND11_MODULE(dialog_box, m) {
         "    self: The current `OakGameInstance` to open using.\n"
         "    callback: The setup callback to use.",
         "self"_a, "callback"_a);
-}
-
-/**
- * @brief Cleans up the static python references we have, before we're unloaded.
- */
-void finalize(void) {
-    py::gil_scoped_acquire gil;
-
-    delete_configure_callback();
-}
-
-// NOLINTNEXTLINE(readability-identifier-naming)
-BOOL APIENTRY DllMain(HMODULE h_module, DWORD ul_reason_for_call, LPVOID /*unused*/) {
-    switch (ul_reason_for_call) {
-        case DLL_PROCESS_ATTACH:
-            DisableThreadLibraryCalls(h_module);
-            break;
-        case DLL_PROCESS_DETACH:
-            finalize();
-            break;
-        case DLL_THREAD_ATTACH:
-        case DLL_THREAD_DETACH:
-            break;
-    }
-    return TRUE;
 }

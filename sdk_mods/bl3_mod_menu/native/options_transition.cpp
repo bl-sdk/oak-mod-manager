@@ -1,5 +1,6 @@
 #include "pyunrealsdk/pch.h"
 #include "pyunrealsdk/logging.h"
+#include "pyunrealsdk/static_py_object.h"
 #include "unrealsdk/memory.h"
 #include "unrealsdk/unreal/classes/properties/copyable_property.h"
 #include "unrealsdk/unreal/classes/properties/uenumproperty.h"
@@ -100,20 +101,7 @@ namespace injection {
 
 bool inject_options_this_call = false;
 FText options_name_to_inject{};
-py::object injection_callback{};
-
-/**
- * @brief Deletes the stored injection callback.
- */
-void delete_injection_callback(void) {
-    const py::gil_scoped_acquire gil{};
-
-    // Release does not decrement the ref counter
-    auto handle = injection_callback.release();
-    if (handle.ptr() != nullptr) {
-        handle.dec_ref();
-    }
-}
+pyunrealsdk::StaticPyObject injection_callback{};
 
 /*
 
@@ -227,8 +215,6 @@ void option_base_create_content_panel_item_hook(UGFxOptionBase* self,
         try {
             const py::gil_scoped_acquire gil{};
             injection_callback(pyunrealsdk::type_casters::cast(self));
-
-            injection::delete_injection_callback();
         } catch (const std::exception& ex) {
             pyunrealsdk::logging::log_python_exception(ex);
         }
@@ -364,29 +350,4 @@ PYBIND11_MODULE(options_transition, m) {
         "    callback: The setup callback to use.\n"
         "    preserve_scroll: If true, preserves the current scroll position.",
         "self"_a, "callback"_a, "preserve_scroll"_a = true);
-}
-
-/**
- * @brief Cleans up the static python references we have, before we're unloaded.
- */
-void finalize(void) {
-    py::gil_scoped_acquire gil;
-
-    injection::delete_injection_callback();
-}
-
-// NOLINTNEXTLINE(readability-identifier-naming)
-BOOL APIENTRY DllMain(HMODULE h_module, DWORD ul_reason_for_call, LPVOID /*unused*/) {
-    switch (ul_reason_for_call) {
-        case DLL_PROCESS_ATTACH:
-            DisableThreadLibraryCalls(h_module);
-            break;
-        case DLL_PROCESS_DETACH:
-            finalize();
-            break;
-        case DLL_THREAD_ATTACH:
-        case DLL_THREAD_DETACH:
-            break;
-    }
-    return TRUE;
 }

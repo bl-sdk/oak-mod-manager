@@ -1,5 +1,6 @@
 #include "pyunrealsdk/pch.h"
 #include "pyunrealsdk/logging.h"
+#include "pyunrealsdk/static_py_object.h"
 #include "unrealsdk/hook_manager.h"
 #include "unrealsdk/memory.h"
 #include "unrealsdk/unreal/classes/properties/uobjectproperty.h"
@@ -10,6 +11,8 @@
 
 using namespace unrealsdk::unreal;
 using namespace unrealsdk::memory;
+
+pyunrealsdk::StaticPyObject add_menu_item_callback{};
 
 #pragma region UGFxMainAndPauseBaseMenu::AddMenuItem
 
@@ -34,19 +37,6 @@ const constinit Pattern<40> ADD_MENU_ITEM_PATTERN{
 
 };
 
-/**
- * @brief Dummy menu item callback which does nothing.
- */
-int32_t noop_add_menu_item_callback(UObject* self,
-                                    FText* text,
-                                    FName callback_name,
-                                    bool big,
-                                    int32_t always_minus_one) {
-    return add_menu_item_ptr(self, text, callback_name, big, always_minus_one);
-}
-
-std::function<add_menu_item_func> add_menu_item_callback = noop_add_menu_item_callback;
-
 int32_t add_menu_item_hook(UObject* self,
                            FText* text,
                            FName callback_name,
@@ -59,7 +49,24 @@ int32_t add_menu_item_hook(UObject* self,
             (std::string)*text, callback_name, big);
     }
 
-    return add_menu_item_callback(self, text, callback_name, big, always_minus_one);
+    if (add_menu_item_callback) {
+        try {
+            const py::gil_scoped_acquire gil{};
+
+            auto converted_self = pyunrealsdk::type_casters::cast(self);
+            py::str converted_text = (std::string)*text;
+
+            auto ret = add_menu_item_callback(converted_self, converted_text, callback_name, big,
+                                              always_minus_one);
+
+            return py::cast<int32_t>(ret);
+
+        } catch (const std::exception& ex) {
+            pyunrealsdk::logging::log_python_exception(ex);
+        }
+    }
+
+    return add_menu_item_ptr(self, text, callback_name, big, always_minus_one);
 }
 
 #pragma endregion
@@ -129,26 +136,7 @@ PYBIND11_MODULE(outer_menu, m) {
 
     m.def(
         "set_add_menu_item_callback",
-        [](const py::object& callback) {
-            add_menu_item_callback = [callback](UObject* self, FText* text, FName callback_name,
-                                                bool big, int32_t always_minus_one) {
-                try {
-                    const py::gil_scoped_acquire gil{};
-
-                    auto converted_self = pyunrealsdk::type_casters::cast(self);
-                    py::str converted_text = (std::string)*text;
-
-                    auto ret = callback(converted_self, converted_text, callback_name, big,
-                                        always_minus_one);
-
-                    return py::cast<int32_t>(ret);
-
-                } catch (const std::exception& ex) {
-                    pyunrealsdk::logging::log_python_exception(ex);
-                    return add_menu_item_ptr(self, text, callback_name, big, always_minus_one);
-                }
-            };
-        },
+        [](const py::object& callback) { add_menu_item_callback = callback; },
         "Sets the callback to use when GFxMainAndPauseBaseMenu::AddMenuItem is called.\n"
         "\n"
         "This callback will be passed all 5 args positionally, and must return the return\n"
@@ -194,29 +182,4 @@ PYBIND11_MODULE(outer_menu, m) {
         "    self: The object to get the state of.\n"
         "Returns:\n"
         "    The object's menu state.");
-}
-
-/**
- * @brief Cleans up the static python references we have, before we're unloaded.
- */
-void finalize(void) {
-    py::gil_scoped_acquire gil;
-
-    add_menu_item_callback = noop_add_menu_item_callback;
-}
-
-// NOLINTNEXTLINE(readability-identifier-naming)
-BOOL APIENTRY DllMain(HMODULE h_module, DWORD ul_reason_for_call, LPVOID /*unused*/) {
-    switch (ul_reason_for_call) {
-        case DLL_PROCESS_ATTACH:
-            DisableThreadLibraryCalls(h_module);
-            break;
-        case DLL_PROCESS_DETACH:
-            finalize();
-            break;
-        case DLL_THREAD_ATTACH:
-        case DLL_THREAD_DETACH:
-            break;
-    }
-    return TRUE;
 }
