@@ -6,9 +6,10 @@ from mods_base import (
     EInputEvent,
     KeybindOption,
     get_pc,
-    menu_keybinds,
+    raw_keybinds,
     remove_next_console_line_capture,
 )
+from unrealsdk.hooks import Block
 
 from console_mod_menu.draw import draw
 from console_mod_menu.key_matching import KNOWN_KEYS, suggest_key
@@ -99,22 +100,22 @@ class RebindPressScreen(AbstractScreen):
 
     def draw(self) -> None:  # noqa: D102
         draw(
-            "Close console, make sure you're on a menu, then press the key you want to bind to."
-            " This screen will automatically close after the press.",
+            "Close console, then press the key you want to bind to. This screen will automatically"
+            " close after being bound.",
         )
         draw_standard_commands()
 
         if self.is_bind_active:
-            menu_keybinds.pop()
-        menu_keybinds.push()
+            raw_keybinds.pop()
+        raw_keybinds.push()
 
         # Closing console only triggers a release event
-        @menu_keybinds.add(None, EInputEvent.IE_Pressed)
-        def key_handler(key: str) -> None:  # pyright: ignore[reportUnusedFunction]
+        @raw_keybinds.add(None, EInputEvent.IE_Pressed)
+        def key_handler(key: str) -> type[Block]:  # pyright: ignore[reportUnusedFunction]
             self.parent.update_value(key)
 
             self.is_bind_active = False
-            menu_keybinds.pop()
+            raw_keybinds.pop()
 
             get_pc().OakHud.DisplayRolloutNotification(
                 "Console Mod Menu",
@@ -127,13 +128,15 @@ class RebindPressScreen(AbstractScreen):
             remove_next_console_line_capture()
             _handle_interactive_input("B")
 
+            return Block
+
     def handle_input(self, line: str) -> bool:  # noqa: D102
         return handle_standard_command_input(line)
 
     def on_close(self) -> None:  # noqa: D102
         if self.is_bind_active:
             self.is_bind_active = False
-            menu_keybinds.pop()
+            raw_keybinds.pop()
 
 
 @dataclass

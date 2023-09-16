@@ -1,7 +1,7 @@
 from enum import StrEnum
 
 import unrealsdk
-from mods_base import BoolOption, DropdownOption, EInputEvent, KeybindOption, get_pc, menu_keybinds
+from mods_base import BoolOption, DropdownOption, EInputEvent, KeybindOption, get_pc, raw_keybinds
 from unrealsdk.unreal import UObject
 
 from .dialog_box import DialogBox
@@ -131,9 +131,9 @@ def handle_keybind_press(options_menu: UObject, option: KeybindOption) -> None:
     if not option.is_rebindable:
         return
 
-    menu_keybinds.push()
+    raw_keybinds.push()
 
-    @menu_keybinds.add(None, EInputEvent.IE_Pressed)
+    @raw_keybinds.add(None, EInputEvent.IE_Pressed)
     def key_handler(key: str) -> None:  # pyright: ignore[reportUnusedFunction]
         if key not in ("Escape", "Gamepad_Special_Left"):
             new_key = None if key == option.value else key
@@ -146,7 +146,7 @@ def handle_keybind_press(options_menu: UObject, option: KeybindOption) -> None:
         menu_stack = get_pc().MenuStack
         if menu_stack.GetTopMenu() != options_menu:
             get_pc().MenuStack.Pop()
-        menu_keybinds.pop()
+        raw_keybinds.pop()
 
         refresh_current_options_menu(options_menu)
 

@@ -3,21 +3,10 @@ from __future__ import annotations
 import functools
 from collections.abc import Callable
 from dataclasses import KW_ONLY, dataclass, field
-from typing import TYPE_CHECKING, Any, TypeAlias, cast, overload
+from typing import Any, TypeAlias, cast, overload
 
-from unrealsdk import find_enum
-from unrealsdk.hooks import Block
+from .raw_keybinds import EInputEvent, KeybindBlockSignal
 
-from .native.keybinds import set_gameplay_keybind_callback
-
-if TYPE_CHECKING:
-    from .native.keybinds import _EInputEvent  # pyright: ignore[reportPrivateUsage]
-
-    EInputEvent: TypeAlias = _EInputEvent
-else:
-    EInputEvent = find_enum("EInputEvent")
-
-KeybindBlockSignal: TypeAlias = None | Block | type[Block]
 KeybindCallback_Event: TypeAlias = Callable[[EInputEvent], KeybindBlockSignal]
 KeybindCallback_NoArgs: TypeAlias = Callable[[], KeybindBlockSignal]
 
@@ -200,28 +189,3 @@ def keybind(
     if callback is None:
         return decorator
     return decorator(callback)
-
-
-# Must import after defining keybind to avoid circular import
-from .mod_list import mod_list  # noqa: E402
-
-
-def gameplay_keybind_callback(key: str, event: EInputEvent) -> KeybindBlockSignal:
-    """Gameplay keybind handler."""
-
-    should_block = False
-    for mod in mod_list:
-        for bind in mod.keybinds:
-            if bind.callback is None:
-                continue
-            if bind.key != key:
-                continue
-
-            ret = bind.callback(event)
-            if ret == Block or isinstance(ret, Block):
-                should_block = True
-
-    return Block if should_block else None
-
-
-set_gameplay_keybind_callback(gameplay_keybind_callback)

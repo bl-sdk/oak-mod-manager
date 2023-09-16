@@ -5,7 +5,7 @@ from unrealsdk.unreal import UObject
 __version_info__: tuple[int, int] = (1, 0)
 __version__: str = f"{__version_info__[0]}.{__version_info__[1]}"
 
-from . import menu_keybinds
+from . import raw_keybinds
 from .command import (
     AbstractCommand,
     ArgParseCommand,
@@ -60,7 +60,7 @@ __all__: tuple[str, ...] = (
     "KeybindOption",
     "KeybindType",
     "Library",
-    "menu_keybinds",
+    "raw_keybinds",
     "Mod",
     "ModType",
     "NestedOption",
