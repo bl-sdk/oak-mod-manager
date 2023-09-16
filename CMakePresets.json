@@ -5,7 +5,7 @@
       "name": "_base",
       "hidden": true,
       "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "installDir": "${sourceDir}/sdk_mods/",
+      "installDir": "${sourceDir}/",
       "architecture": {
         "value": "x64",
         "strategy": "external"
@@ -24,7 +24,7 @@
         "rhs": ""
       },
       "generator": "Ninja",
-      "toolchainFile": "pyunrealsdk/common_cmake/clang-x64.cmake"
+      "toolchainFile": "libs/pyunrealsdk/common_cmake/clang-x64.cmake"
     },
     {
       "name": "_clang_cross_x64",
@@ -34,7 +34,7 @@
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
       },
-      "toolchainFile": "pyunrealsdk/common_cmake/clang-cross-x64.cmake"
+      "toolchainFile": "libs/pyunrealsdk/common_cmake/clang-cross-x64.cmake"
     },
     {
       "name": "_mingw_x64",
@@ -44,7 +44,7 @@
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
       },
-      "toolchainFile": "pyunrealsdk/common_cmake/x86_64-w64-mingw32.cmake"
+      "toolchainFile": "libs/pyunrealsdk/common_cmake/x86_64-w64-mingw32.cmake"
     },
     {
       "name": "_msvc",
