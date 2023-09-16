@@ -50,7 +50,7 @@ def load_options_dict(options: Sequence[BaseOption], settings: MutableMapping[st
                 option.value = value
 
             # For all other option types, try validate the type before setting it, we don't want
-            # a "malicous" settings file to corrupt the types at runtime
+            # a "malicious" settings file to corrupt the types at runtime
 
             case BoolOption():
                 # Special case a false string

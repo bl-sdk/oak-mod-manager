@@ -75,17 +75,17 @@ void setup(void) {
         option_menu_entry_clicked + START_MENU_TRANSITION_OFFSET);
 }
 
+// No transition just feels better ¯\_(ツ)_/¯
+const constexpr auto MENU_TRANSITION_NONE = 13;
+// As long as no one implements splitscreen this should be safe...
+const constexpr auto CONTROLLER_ID = 0;
+
 /**
  * @brief Starts a transition into the options menu.
  *
  * @param self The menu to transition from.
  */
 void start_options_transition(UGFxMainAndPauseBaseMenu* self) {
-    // No transition just feels better ¯\_(ツ)_/¯
-    const constexpr auto MENU_TRANSITION_NONE = 13;
-    // As long as no one implements splitscreen this should be safe...
-    const constexpr auto CONTROLLER_ID = 0;
-
     set_first_options_ptr(ACCESSIBILITY_OPTION_MENU_TYPE);
 
     auto soft_object_ptr =
@@ -106,7 +106,7 @@ pyunrealsdk::StaticPyObject injection_callback{};
 /*
 
 To fit in the options list, we want a hook in the middle of `UGFxOptionBase::Refresh`.
-This function looks aproximately like:
+This function looks approximately like:
 ```
 this->ContentPanel->RemoveAllListItems();
 this->SomeList->Resize(0);
@@ -290,6 +290,7 @@ void setup(void) {
 
 }  // namespace scroll
 
+// NOLINTNEXTLINE(readability-identifier-length)
 PYBIND11_MODULE(options_transition, m) {
     transition::setup();
     injection::setup();
@@ -297,7 +298,7 @@ PYBIND11_MODULE(options_transition, m) {
 
     m.def(
         "open_custom_options",
-        [](py::object self, std::wstring name, py::object callback) {
+        [](const py::object& self, const std::wstring& name, const py::object& callback) {
             auto converted_self = pyunrealsdk::type_casters::cast<UObject*>(self);
 
             injection::inject_options_this_call = true;
@@ -309,7 +310,7 @@ PYBIND11_MODULE(options_transition, m) {
         "Opens a custom options menu.\n"
         "\n"
         "Uses a callback to specify the menu's entries. This callback takes a single\n"
-        "positional arg, the option menu to add entires to. It's return value is ignored.\n"
+        "positional arg, the option menu to add entries to. It's return value is ignored.\n"
         "\n"
         "Args:\n"
         "    self: The current menu object to open under.\n"
@@ -319,7 +320,7 @@ PYBIND11_MODULE(options_transition, m) {
 
     m.def(
         "refresh_options",
-        [](py::object self, py::object callback, bool preserve_scroll) {
+        [](const py::object& self, const py::object& callback, bool preserve_scroll) {
             auto converted_self = pyunrealsdk::type_casters::cast<UObject*>(self);
 
             float scroll_pos = 0;
@@ -343,7 +344,7 @@ PYBIND11_MODULE(options_transition, m) {
         "Refreshes the current custom options menu, allowing changing it's entries.\n"
         "\n"
         "Uses a callback to specify the menu's entries. This callback takes a single\n"
-        "positional arg, the option menu to add entires to. It's return value is ignored.\n"
+        "positional arg, the option menu to add entries to. It's return value is ignored.\n"
         "\n"
         "Args:\n"
         "    self: The current menu object to open under.\n"

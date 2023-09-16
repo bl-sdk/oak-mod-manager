@@ -23,9 +23,8 @@ using UOptionDescriptionItem = UObject;
 
 namespace {
 
-FName OPTION_CALLBACK = L"OnUnimplementedOptionClicked"_fn;
-
-auto OPTION_DESCRIPTION_ITEM = unrealsdk::unreal::find_class(L"OptionDescriptionItem"_fn);
+const FName OPTION_CALLBACK = L"OnUnimplementedOptionClicked"_fn;
+const auto OPTION_DESCRIPTION_ITEM = unrealsdk::unreal::find_class(L"OptionDescriptionItem"_fn);
 
 /**
  * @brief Creates an option description item object.
@@ -97,7 +96,7 @@ const constinit Pattern<14> SETUP_SLIDER_ITEM{
 using setup_slider_item_func = UObject* (*)(UGFxOptionBase* self,
                                             UOptionDescriptionItem* description,
                                             float32_t default_value,
-                                            FName* callback);
+                                            const FName* callback);
 setup_slider_item_func setup_slider_item_ptr = SETUP_SLIDER_ITEM.sigscan<setup_slider_item_func>();
 
 void add_slider(UGFxOptionBase* self,
@@ -164,7 +163,7 @@ const constinit Pattern<106> SETUP_SPINNER_ITEM{
 using setup_spinner_item_func = UObject* (*)(UGFxOptionBase* self,
                                              UOptionDescriptionItem* description,
                                              int32_t default_idx,
-                                             FName* callback);
+                                             const FName* callback);
 setup_spinner_item_func setup_spinner_item_ptr =
     SETUP_SPINNER_ITEM.sigscan<setup_spinner_item_func>();
 
@@ -182,7 +181,7 @@ const constinit Pattern<25> SETUP_SPINNER_ITEM_AS_BOOL{
 using setup_spinner_item_as_bool_func = UObject* (*)(UGFxOptionBase* self,
                                                      UOptionDescriptionItem* description,
                                                      int32_t default_idx,
-                                                     FName* callback);
+                                                     const FName* callback);
 setup_spinner_item_as_bool_func setup_spinner_item_as_bool_ptr =
     SETUP_SPINNER_ITEM_AS_BOOL.sigscan<setup_spinner_item_as_bool_func>();
 
@@ -289,7 +288,7 @@ using setup_dropdown_item_func = UObject* (*)(UGFxOptionBase* self,
                                               UOptionDescriptionItem* description,
                                               TArray<FText> options,
                                               int32_t default_idx,
-                                              FName* callback);
+                                              const FName* callback);
 setup_dropdown_item_func setup_dropdown_item_ptr =
     SETUP_DROPDOWN_ITEM.sigscan<setup_dropdown_item_func>();
 
@@ -326,7 +325,7 @@ const constinit Pattern<19> SETUP_BUTTON_ITEM{
 
 using setup_button_item_func = UObject* (*)(UGFxOptionBase* self,
                                             UOptionDescriptionItem* description,
-                                            FName* callback);
+                                            const FName* callback);
 setup_button_item_func setup_button_item_ptr = SETUP_BUTTON_ITEM.sigscan<setup_button_item_func>();
 
 void add_button(UGFxOptionBase* self,
@@ -385,7 +384,7 @@ const constinit Pattern<54> BIND_UFUNCTION{
     "4C 8B C6"        // mov r8, rsi
 };
 
-using bind_ufunction_func = void (*)(void* self, UGFxOptionBase* obj, FName* func_name);
+using bind_ufunction_func = void (*)(void* self, UGFxOptionBase* obj, const FName* func_name);
 bind_ufunction_func bind_ufunction_ptr = BIND_UFUNCTION.sigscan<bind_ufunction_func>();
 
 // I think this might actually be as low as 16, but better safe than sorry
@@ -402,7 +401,7 @@ void add_binding(UGFxOptionBase* self,
     // There should only ever be one options menu open at a time, so multiple controls will just
     // bind the same object to the same function
     static uint8_t fake_delegate[TBASEDELEGATE_SIZE];
-    bind_ufunction_ptr(fake_delegate, self, &OPTION_CALLBACK);
+    bind_ufunction_ptr(static_cast<uint8_t*>(fake_delegate), self, &OPTION_CALLBACK);
 
     // Pass the display value to both columns just in case
     setup_controls_item_ptr(self, desc_item, &converted_display, &converted_display,
@@ -411,10 +410,11 @@ void add_binding(UGFxOptionBase* self,
 
 }  // namespace controls
 
+// NOLINTNEXTLINE(readability-identifier-length)
 PYBIND11_MODULE(options_setup, m) {
     m.def(
         "add_title",
-        [](py::object self, const std::wstring& name) {
+        [](const py::object& self, const std::wstring& name) {
             title::add_title(pyunrealsdk::type_casters::cast<UObject*>(self), name);
         },
         "Adds a title to the options list.\n"
@@ -426,7 +426,7 @@ PYBIND11_MODULE(options_setup, m) {
 
     m.def(
         "add_slider",
-        [](py::object self, const std::wstring& name, float32_t value, float32_t slider_min,
+        [](const py::object& self, const std::wstring& name, float32_t value, float32_t slider_min,
            float32_t slider_max, float32_t slider_step, bool slider_is_integer,
            const std::optional<std::wstring>& description_title, const std::wstring& description) {
             slider::add_slider(pyunrealsdk::type_casters::cast<UObject*>(self), name, value,
@@ -451,7 +451,7 @@ PYBIND11_MODULE(options_setup, m) {
 
     m.def(
         "add_spinner",
-        [](py::object self, const std::wstring& name, int32_t idx,
+        [](const py::object& self, const std::wstring& name, int32_t idx,
            const std::vector<std::wstring>& options, bool wrap_enabled,
            const std::optional<std::wstring>& description_title, const std::wstring& description) {
             spinner::add_spinner(pyunrealsdk::type_casters::cast<UObject*>(self), name, idx,
@@ -474,7 +474,7 @@ PYBIND11_MODULE(options_setup, m) {
 
     m.def(
         "add_bool_spinner",
-        [](py::object self, const std::wstring& name, bool value,
+        [](const py::object& self, const std::wstring& name, bool value,
            const std::optional<std::wstring>& true_text,
            const std::optional<std::wstring>& false_text,
            const std::optional<std::wstring>& description_title, const std::wstring& description) {
@@ -497,7 +497,7 @@ PYBIND11_MODULE(options_setup, m) {
 
     m.def(
         "add_dropdown",
-        [](py::object self, const std::wstring& name, int32_t idx,
+        [](const py::object& self, const std::wstring& name, int32_t idx,
            const std::vector<std::wstring>& options,
            const std::optional<std::wstring>& description_title, const std::wstring& description) {
             dropdown::add_dropdown(pyunrealsdk::type_casters::cast<UObject*>(self), name, idx,
@@ -518,7 +518,7 @@ PYBIND11_MODULE(options_setup, m) {
 
     m.def(
         "add_button",
-        [](py::object self, const std::wstring& name,
+        [](const py::object& self, const std::wstring& name,
            const std::optional<std::wstring>& description_title, const std::wstring& description) {
             button::add_button(pyunrealsdk::type_casters::cast<UObject*>(self), name,
                                description_title, description);
@@ -535,7 +535,7 @@ PYBIND11_MODULE(options_setup, m) {
 
     m.def(
         "add_binding",
-        [](py::object self, const std::wstring& name, const std::wstring& display,
+        [](const py::object& self, const std::wstring& name, const std::wstring& display,
            const std::optional<std::wstring>& description_title, const std::wstring& description) {
             controls::add_binding(pyunrealsdk::type_casters::cast<UObject*>(self), name, display,
                                   description_title, description);

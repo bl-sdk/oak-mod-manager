@@ -40,7 +40,7 @@ OPTIONS_MENU_CLS = unrealsdk.find_class("GFxOptionsMenu")
 class OptionStackInfo:
     # What caused this level to be drawn
     cause: Mod | NestedOption
-    # The list of options which were drawn, used to retrive option by their index on modify
+    # The list of options which were drawn, used to retrieve option by their index on modify
     drawn_options: list[BaseOption]
     # The menu object this is drawn within, or None if yet to draw
     options_menu: UObject | None = None
@@ -275,7 +275,7 @@ def frontend_menu_change_hook(
     """Hook to detect closing nested menus."""
     active_menu: UObject = args.ActiveMenu
 
-    # If we transfered back to the main menu, regardless of how, save settings and clear the stack
+    # If we transferred back to the main menu, regardless of how, save settings and clear the stack
     if active_menu.Class._inherits(MAIN_MENU_CLS):
         # This should always be the mod, but double check
         if len(option_stack) > 0 and isinstance(option_stack[0].cause, Mod):

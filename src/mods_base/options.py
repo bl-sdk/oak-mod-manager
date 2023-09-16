@@ -325,7 +325,7 @@ class GroupedOption(BaseOption):
 
     Note that this class must be explicitly specified in the options list of a mod, it is *not*
     picked up by the automatic gathering. This is to avoid issues where storing the child options in
-    seperate variables might cause them to be gathered twice.
+    separate variables might cause them to be gathered twice.
 
     Args:
         name: The option's name, used as the group title.
@@ -347,7 +347,7 @@ class NestedOption(ButtonOption):
 
     Note that this class must be explicitly specified in the options list of a mod, it is *not*
     picked up by the automatic gathering. This is to avoid issues where storing the child options in
-    seperate variables might cause them to be gathered twice.
+    separate variables might cause them to be gathered twice.
 
     Args:
         identifier: The option's identifier.

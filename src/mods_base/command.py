@@ -45,10 +45,10 @@ class AbstractCommand(ABC):
         """
         Checks if a command matching this one is registered.
 
-        Note this doesn't necesarily mean it's registered to this command.
+        Note this doesn't necessarily mean it's registered to this command.
 
         Returns:
-            Trye if a command matching this one is registered.
+            True if a command matching this one is registered.
         """
         return has_command(self.cmd)
 

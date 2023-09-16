@@ -54,10 +54,9 @@ int32_t add_menu_item_hook(UObject* self,
             const py::gil_scoped_acquire gil{};
 
             auto converted_self = pyunrealsdk::type_casters::cast(self);
-            py::str converted_text = (std::string)*text;
 
-            auto ret = add_menu_item_callback(converted_self, converted_text, callback_name, big,
-                                              always_minus_one);
+            auto ret = add_menu_item_callback(converted_self, (std::string)*text, callback_name,
+                                              big, always_minus_one);
 
             return py::cast<int32_t>(ret);
 
@@ -115,7 +114,8 @@ PYBIND11_MODULE(outer_menu, m) {
 
     m.def(
         "add_menu_item",
-        [](py::object self, py::str text, FName callback_name, bool big, int32_t always_minus_one) {
+        [](const py::object& self, const std::string& text, FName callback_name, bool big,
+           int32_t always_minus_one) {
             auto converted_self = pyunrealsdk::type_casters::cast<UObject*>(self);
             FText converted_text{text};
 
@@ -148,7 +148,7 @@ PYBIND11_MODULE(outer_menu, m) {
 
     m.def(
         "begin_configure_menu_items",
-        [](py::object self) {
+        [](const py::object& self) {
             begin_configure_menu_items_ptr(pyunrealsdk::type_casters::cast<UObject*>(self));
         },
         "Calls GFxMainAndPauseBaseMenu::AddMenuItem.\n"
@@ -159,7 +159,7 @@ PYBIND11_MODULE(outer_menu, m) {
 
     m.def(
         "set_menu_state",
-        [](py::object self, int32_t state) {
+        [](const py::object& self, int32_t state) {
             set_menu_state_ptr(pyunrealsdk::type_casters::cast<UObject*>(self), state);
         },
         "Calls GFxMainAndPauseBaseMenu::SetMenuState.\n"
@@ -171,7 +171,7 @@ PYBIND11_MODULE(outer_menu, m) {
 
     m.def(
         "get_menu_state",
-        [](py::object self) {
+        [](const py::object& self) {
             auto obj = pyunrealsdk::type_casters::cast<UObject*>(self);
             return *reinterpret_cast<int32_t*>(reinterpret_cast<uintptr_t>(obj)
                                                + menu_state_offset);

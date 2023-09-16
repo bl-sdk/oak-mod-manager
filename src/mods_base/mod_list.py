@@ -4,9 +4,8 @@ from html.parser import HTMLParser
 from pathlib import Path
 from typing import cast
 
-import unrealsdk
-
 import pyunrealsdk
+import unrealsdk
 
 from . import __version__
 from .mod import Library, Mod, ModType

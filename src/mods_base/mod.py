@@ -149,8 +149,8 @@ class Mod:
                     new_keybinds.append(value)
                 case GroupedOption() | NestedOption() if find_options:
                     logging.dev_warning(
-                        f"{self.name}: {type(value).__name__} instances must be explictly specified"
-                        f" in the options list!",
+                        f"{self.name}: {type(value).__name__} instances must be explicitly"
+                        f" specified in the options list!",
                     )
                 case BaseOption() if find_options:
                     new_options.append(value)

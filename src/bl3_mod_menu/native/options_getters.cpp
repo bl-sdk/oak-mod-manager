@@ -63,10 +63,11 @@ spinner_get_current_selection_index_func spinner_get_current_selection_index_ptr
     read_offset<spinner_get_current_selection_index_func>(
         SPINNER_GET_CURRENT_SELECTION_INDEX.sigscan());
 
+// NOLINTNEXTLINE(readability-identifier-length)
 PYBIND11_MODULE(options_getters, m) {
     m.def(
         "get_combo_box_selected_idx",
-        [](py::object self) {
+        [](const py::object& self) {
             return combo_box_get_selected_index_ptr(
                 pyunrealsdk::type_casters::cast<UObject*>(self));
         },
@@ -78,7 +79,7 @@ PYBIND11_MODULE(options_getters, m) {
 
     m.def(
         "get_number_value",
-        [](py::object self) {
+        [](const py::object& self) {
             return number_get_current_value_ptr(pyunrealsdk::type_casters::cast<UObject*>(self));
         },
         "Gets the value of a GbxGFxListItemNumber.\n"
@@ -89,7 +90,7 @@ PYBIND11_MODULE(options_getters, m) {
 
     m.def(
         "get_spinner_selected_idx",
-        [](py::object self) {
+        [](const py::object& self) {
             return spinner_get_current_selection_index_ptr(
                 pyunrealsdk::type_casters::cast<UObject*>(self));
         },

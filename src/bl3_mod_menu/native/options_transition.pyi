@@ -17,7 +17,7 @@ def open_custom_options(
     Opens a custom options menu.
 
     Uses a callback to specify the menu's entries. This callback takes a single
-    positional arg, the option menu to add entires to. It's return value is ignored.
+    positional arg, the option menu to add entries to. It's return value is ignored.
 
     Args:
         self: The current menu object to open under.
@@ -34,7 +34,7 @@ def refresh_options(
     Refreshes the current custom options menu, allowing changing it's entries.
 
     Uses a callback to specify the menu's entries. This callback takes a single
-    positional arg, the option menu to add entires to. It's return value is ignored.
+    positional arg, the option menu to add entries to. It's return value is ignored.
 
     Args:
         self: The current menu object to open under.

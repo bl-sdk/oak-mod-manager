@@ -177,7 +177,7 @@ def hook(
                     func.obj_to_bind_hooks_to = wrapped_func.obj_to_bind_hooks_to
                     break
             else:
-                # Didn't find an existing hook, initalize our own data
+                # Didn't find an existing hook, initialize our own data
                 func.hook_funcs = []
 
                 if hook_identifier is None:

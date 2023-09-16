@@ -158,7 +158,7 @@ def add(
         event: The event to filter to, or None to be passed all events.
         callback: The callback to run. If None, this function acts as a decorator factory,
     Returns:
-        If the callback was not explictly provided, a decorator to register it.
+        If the callback was not explicitly provided, a decorator to register it.
     """
 
     def decorator(callback: RawKeybindCallback_Any) -> None:

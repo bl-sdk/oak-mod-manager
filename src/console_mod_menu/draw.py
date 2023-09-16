@@ -9,7 +9,7 @@ def draw(msg: str, indent: int = 0) -> None:
     """
     Draws a message to console for the interactive mod menu.
 
-    The empty string will draw an empty line. Any other messsage may have word wrapping applied.
+    The empty string will draw an empty line. Any other message may have word wrapping applied.
 
     Args:
         msg: The message to write.

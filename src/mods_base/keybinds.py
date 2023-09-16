@@ -144,7 +144,7 @@ def keybind(
     The input callback usually takes no args, and may return the Block sentinel to prevent passing
     the input back into the game. Standard blocking logic applies when multiple keybinds use the
     same key. If the event filter is set to None, such that the callback is fired for all events, it
-    is instead passed a single positional arg, the event which occured.
+    is instead passed a single positional arg, the event which occurred.
 
     Args:
         identifier: The keybind's identifier.

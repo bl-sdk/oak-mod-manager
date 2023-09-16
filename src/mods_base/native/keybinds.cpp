@@ -53,10 +53,10 @@ uintptr_t oakpc_inputkey_hook(AOakPlayerController* self,
             auto key_name = WrappedStruct{key_struct_type, key}.get<UNameProperty>(key_name_prop);
 
             const py::gil_scoped_acquire gil{};
-            auto pc = pyunrealsdk::type_casters::cast(self);
+            auto player_controller = pyunrealsdk::type_casters::cast(self);
             auto event_enum = input_event_enum(input_event);
 
-            auto ret = keybind_callback(pc, key_name, event_enum);
+            auto ret = keybind_callback(player_controller, key_name, event_enum);
 
             if (pyunrealsdk::hooks::is_block_sentinel(ret)) {
                 return 0;

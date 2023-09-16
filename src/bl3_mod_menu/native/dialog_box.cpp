@@ -48,11 +48,12 @@ const constinit Pattern<23> SHOW_DIALOG{
 using UGbxPlayerController = UObject;
 using UGbxGFxDialogBox = UObject;
 using FGbxGFxDialogBoxInfo = void;
-using show_dialog_func = UGbxGFxDialogBox* (*)(UGbxPlayerController* pc,
+using show_dialog_func = UGbxGFxDialogBox* (*)(UGbxPlayerController* player_controller,
                                                FGbxGFxDialogBoxInfo* info);
 show_dialog_func show_dialog_ptr;
 
-UGbxGFxDialogBox* show_dialog_hook(UGbxPlayerController* pc, FGbxGFxDialogBoxInfo* info) {
+UGbxGFxDialogBox* show_dialog_hook(UGbxPlayerController* player_controller,
+                                   FGbxGFxDialogBoxInfo* info) {
     if (injecting_next_call) {
         injecting_next_call = false;
 
@@ -63,15 +64,15 @@ UGbxGFxDialogBox* show_dialog_hook(UGbxPlayerController* pc, FGbxGFxDialogBoxInf
         // longer exists
         // To avoid this, swap it out with an empty array for this call
         auto arr = info_struct.get<UArrayProperty>(choices_prop);
-        TArray<void> arr_backup = *arr.base;
+        const TArray<void> arr_backup = *arr.base;
         *arr.base = TArray<void>{nullptr, 0, 0};
 
         try {
-            py::gil_scoped_acquire gil{};
+            const py::gil_scoped_acquire gil{};
 
             configure_callback(pyunrealsdk::type_casters::cast(&info_struct));
 
-            show_dialog_ptr(pc, info);
+            show_dialog_ptr(player_controller, info);
         } catch (const std::exception& ex) {
             pyunrealsdk::logging::log_python_exception(ex);
         }
@@ -82,16 +83,17 @@ UGbxGFxDialogBox* show_dialog_hook(UGbxPlayerController* pc, FGbxGFxDialogBoxInf
         return nullptr;
     }
 
-    return show_dialog_ptr(pc, info);
+    return show_dialog_ptr(player_controller, info);
 }
 
+// NOLINTNEXTLINE(readability-identifier-length)
 PYBIND11_MODULE(dialog_box, m) {
     detour(SHOW_DIALOG.sigscan(), show_dialog_hook, &show_dialog_ptr,
            "UGbxGFxCoreDialogBoxHelpers::ShowDialog");
 
     m.def(
         "show_dialog_box",
-        [](py::object self, py::object callback) {
+        [](const py::object& self, const py::object& callback) {
             injecting_next_call = true;
             configure_callback = callback;
 

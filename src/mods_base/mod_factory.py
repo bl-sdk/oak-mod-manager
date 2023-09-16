@@ -79,7 +79,7 @@ def search_module_if_needed(
 
                 case _, (GroupedOption() | NestedOption()) if find_options:
                     logging.dev_warning(
-                        f"{module.__name__}: {type(value).__name__} instances must be explictly"
+                        f"{module.__name__}: {type(value).__name__} instances must be explicitly"
                         f" specified in the options list!",
                     )
                 case _, BaseOption() if find_options:
@@ -150,9 +150,9 @@ def build_mod(
         settings_file: The file to save settings to. Defaults to `settings.json` in the same dir
                        this was called from.
         keybinds: The mod's keybinds. Defaults to searching for Keybind instances in the module's
-                  namespace if missing. Note the order is not necesarily stable.
+                  namespace if missing. Note the order is not necessarily stable.
         options: The mod's options. Defaults to searching for OptionBase instances in the module's
-                 namespace if missing. Note the order is not necesarily stable.
+                 namespace if missing. Note the order is not necessarily stable.
         hooks: The mod's hooks. Defaults to searching for hook functions in the module's namespace
                if missing.
         commands: The mod's commands. Defaults to searching for AbstractCommand instances in the

@@ -78,7 +78,7 @@ class DialogBox:
 
     on_press: Callable[[DialogBoxChoice], None] | None = field(default=None, kw_only=True)
 
-    _controler_default_idx: int | None = field(default=None, init=False, repr=False)
+    _controller_default_idx: int | None = field(default=None, init=False, repr=False)
     _result_mapping: dict[str, DialogBoxChoice] = field(
         default_factory=dict,
         init=False,
@@ -89,7 +89,7 @@ class DialogBox:
         seen_default = False
         for idx, choice in enumerate(self.choices):
             if not seen_default and choice.controller_default:
-                self._controler_default_idx = idx
+                self._controller_default_idx = idx
 
             lower_action = choice.action.lower()
             if lower_action in self._result_mapping:
@@ -136,8 +136,8 @@ class DialogBox:
             ]
             struct.bCanCancel = self.may_cancel
 
-            if self._controler_default_idx is not None:
-                struct.InitialChoiceIndex = self._controler_default_idx
+            if self._controller_default_idx is not None:
+                struct.InitialChoiceIndex = self._controller_default_idx
 
         _dialog_stack.append(self)
         show_dialog_box(ENGINE.GameInstance, setup_callback)
