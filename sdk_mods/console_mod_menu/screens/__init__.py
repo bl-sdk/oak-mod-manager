@@ -27,9 +27,6 @@ class AbstractScreen(ABC):
         """
         raise NotImplementedError
 
-    def on_close(self) -> None:  # noqa: B027
-        """Callback run when the menu is closed."""
-
 
 screen_stack: list[AbstractScreen] = []
 
@@ -96,9 +93,7 @@ def quit_interactive_menu(restart: bool = False) -> None:
     """
     global _should_restart_interactive_menu
 
-    while len(screen_stack) > 0:
-        screen = screen_stack.pop()
-        screen.on_close()
+    screen_stack.clear()
 
     if restart:
         _should_restart_interactive_menu = True

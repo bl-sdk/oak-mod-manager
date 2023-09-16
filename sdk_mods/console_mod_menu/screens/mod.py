@@ -108,18 +108,15 @@ class ModScreen(AbstractScreen):
 
         match option:
             case BoolOption():
-                push_screen(BoolOptionScreen(option))
+                push_screen(BoolOptionScreen(self.mod, option))
             case ButtonOption():
-                push_screen(ButtonOptionScreen(option))
+                push_screen(ButtonOptionScreen(self.mod, option))
             case DropdownOption() | SpinnerOption():
-                push_screen(ChoiceOptionScreen(option))
+                push_screen(ChoiceOptionScreen(self.mod, option))
             case SliderOption():
-                push_screen(SliderOptionScreen(option))
+                push_screen(SliderOptionScreen(self.mod, option))
             case KeybindOption():
-                push_screen(KeybindOptionScreen(option))
+                push_screen(KeybindOptionScreen(self.mod, option))
             case _:
                 logging.dev_warning(f"Encountered unknown option type {type(option)}")
         return True
-
-    def on_close(self) -> None:  # noqa: D102
-        self.mod.save_settings()

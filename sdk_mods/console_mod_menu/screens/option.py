@@ -10,6 +10,7 @@ from mods_base import (
     BoolOption,
     ButtonOption,
     DropdownOption,
+    Mod,
     SliderOption,
     SpinnerOption,
     ValueOption,
@@ -32,6 +33,7 @@ J = TypeVar("J", bound=JSON)
 @dataclass
 class OptionScreen(AbstractScreen, Generic[T, J]):
     name: str = field(init=False)
+    mod: Mod
     option: T
 
     def __post_init__(self) -> None:
@@ -80,6 +82,8 @@ class OptionScreen(AbstractScreen, Generic[T, J]):
         if self.option.on_change is not None:
             self.option.on_change(self.option, new_value)
         self.option.value = new_value
+
+        self.mod.save_settings()
 
 
 @dataclass
