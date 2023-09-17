@@ -5,7 +5,7 @@
       "name": "_base",
       "hidden": true,
       "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "installDir": "${sourceDir}/",
+      "installDir": "${sourceDir}/out/install/${presetName}",
       "architecture": {
         "value": "x64",
         "strategy": "external"

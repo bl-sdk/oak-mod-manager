@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.24)
 
 project(oak_mod_manager)
 
-add_subdirectory(libs/pyunrealsdk EXCLUDE_FROM_ALL)
+add_subdirectory(libs/pyunrealsdk)
 
 pyunrealsdk_add_module(keybinds src/mods_base/native/keybinds.cpp)
 
@@ -15,7 +15,7 @@ pyunrealsdk_add_module(outer_menu src/bl3_mod_menu/native/outer_menu.cpp)
 install(
     TARGETS
         keybinds
-    DESTINATION src/mods_base/native
+    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/src/mods_base/native
 )
 
 install(
@@ -25,5 +25,5 @@ install(
         options_setup
         options_transition
         outer_menu
-    DESTINATION src/bl3_mod_menu/native
+    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/src/bl3_mod_menu/native
 )

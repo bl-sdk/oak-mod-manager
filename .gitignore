@@ -26,3 +26,4 @@ CMakeUserPresets.json
 __pycache__
 
 *.pyd
+*-sdk-*.zip
