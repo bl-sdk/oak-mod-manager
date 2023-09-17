@@ -1,9 +1,8 @@
 [files]
 extend-exclude = [
-    "libs/fmt",
-    "libs/minhook",
-    "libs/pybind11",
-    "libs/unrealsdk/libs",
+    "fmt",
+    "minhook",
+    "pybind11",
     "LICENSE",
     ".typos.toml"
 ]
