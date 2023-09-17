@@ -265,7 +265,7 @@ jobs:
           -j ${{ env.CLANG_TIDY_JOBS }}                                         `
           -p "out\build\${{ matrix.preset }}"                                   `
           -export-fixes clang-tidy-fixes.yml                                    `
-          $([Regex]::Escape("$pwd\src"))
+          $([Regex]::Escape("$pwd\src") + ".+\.(c|cpp|h|hpp)$")
 
     - name: Process clang-tidy warnings
       uses: asarium/clang-tidy-action@v1
