@@ -39,7 +39,8 @@ def cmake_install(build_dir: Path) -> None:
 
 ZIP_MODS_FOLDER = Path("sdk_mods")
 ZIP_STUBS_FOLDER = ZIP_MODS_FOLDER / ".stubs"
-ZIP_PLUGINS_FOLDER = Path("OakGame") / "Binaries" / "Win64" / "Plugins"
+ZIP_EXECUTABLE_FOLDER = Path("OakGame") / "Binaries" / "Win64"
+ZIP_PLUGINS_FOLDER = ZIP_EXECUTABLE_FOLDER / "Plugins"
 
 
 def _zip_init_script(zip_file: ZipFile, init_script: Path) -> None:
@@ -49,8 +50,9 @@ def _zip_init_script(zip_file: ZipFile, init_script: Path) -> None:
         str(ZIP_PLUGINS_FOLDER / "unrealsdk.env"),
         textwrap.dedent(
             # Path.relative_to doesn't work when where's no common base, need to use os.path
+            # While the file goes in the plugins folder, this path is relative to *the executable*
             f"""
-            PYUNREALSDK_INIT_SCRIPT={path.relpath(output_init_script, ZIP_PLUGINS_FOLDER)}
+            PYUNREALSDK_INIT_SCRIPT={path.relpath(output_init_script, ZIP_EXECUTABLE_FOLDER)}
             """,
         )[1:-1],
     )
