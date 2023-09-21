@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import re
+import shutil
 import subprocess
 import textwrap
 from functools import cache
@@ -90,15 +91,23 @@ def _zip_stubs(zip_file: ZipFile, stubs_dir: Path) -> None:
         )
 
 
+INSTALL_EXECUTABLE_FOLDER_NAME = ".exe_folder"
+
+
 def _zip_dlls(zip_file: ZipFile, install_dir: Path) -> None:
+    exe_folder = install_dir / INSTALL_EXECUTABLE_FOLDER_NAME
+
     for file in install_dir.glob("**/*"):
         if not file.is_file():
             continue
 
-        zip_file.write(
-            file,
-            ZIP_PLUGINS_FOLDER / file.relative_to(install_dir),
-        )
+        dest: Path
+        if file.is_relative_to(exe_folder):
+            dest = ZIP_EXECUTABLE_FOLDER / file.relative_to(exe_folder)
+        else:
+            dest = ZIP_PLUGINS_FOLDER / file.relative_to(install_dir)
+
+        zip_file.write(file, dest)
 
     py_stem = next(install_dir.glob("python*.zip")).stem
     zip_file.writestr(
@@ -185,10 +194,12 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
+    install_dir = INSTALL_DIR_BASE / str(args.preset)
+
     if not args.skip_install:
+        shutil.rmtree(install_dir, ignore_errors=True)
         cmake_install(BUILD_DIR_BASE / args.preset)
 
-    install_dir = INSTALL_DIR_BASE / str(args.preset)
     assert install_dir.exists() and install_dir.is_dir(), "install dir doesn't exist"
 
     for prefix, arg, mods in (
