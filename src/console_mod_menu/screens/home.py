@@ -17,7 +17,7 @@ from .mod import ModScreen
 
 @dataclass
 class HomeScreen(AbstractScreen):
-    name: Literal["Mods"] = "Mods"
+    name: Literal["Mods"] = "Mods"  # pyright: ignore[reportIncompatibleVariableOverride]
 
     drawn_mod_list: list[Mod] = field(default_factory=list, init=False)
 

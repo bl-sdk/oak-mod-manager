@@ -115,7 +115,10 @@ class HiddenOption(ValueOption[J]):
         is_hidden: Always true.
     """
 
-    is_hidden: Literal[True] = field(default=True, init=False)
+    is_hidden: Literal[True] = field(  # pyright: ignore[reportIncompatibleVariableOverride]
+        default=True,
+        init=False,
+    )
 
 
 @dataclass

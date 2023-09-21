@@ -254,8 +254,12 @@ class Mod:
 class Library(Mod):
     """Helper subclass for libraries, which are always enabled."""
 
-    mod_type: Literal[ModType.Library] = ModType.Library
-    auto_enable: Literal[False] = False  # Don't auto enable, since we're always enabled
+    mod_type: Literal[  # pyright: ignore[reportIncompatibleVariableOverride]
+        ModType.Library
+    ] = ModType.Library
+
+    # Don't auto enable, since we're always enabled
+    auto_enable: Literal[False] = False  # pyright: ignore[reportIncompatibleVariableOverride]
 
     def __post_init__(self) -> None:
         super().__post_init__()
