@@ -8,17 +8,17 @@ on: [
 
 env:
   # Important to pin the clang version, cause we also use it for linting
-  CLANG_VERSION: 16
+  CLANG_VERSION: 17
   CLANG_TIDY_JOBS: 4
   # Since we use rather new c++ features, we need a rather new version of MinGW
   # LLVM MinGW seems to be the newest prebuilt binaries around
-  LLVM_MINGW_VERSION: llvm-mingw-20230320-msvcrt-ubuntu-18.04-x86_64
-  LLVM_MINGW_DOWNLOAD: https://github.com/mstorsjo/llvm-mingw/releases/download/20230320/llvm-mingw-20230320-msvcrt-ubuntu-18.04-x86_64.tar.xz
+  LLVM_MINGW_VERSION: llvm-mingw-20230919-msvcrt-ubuntu-20.04-x86_64
+  LLVM_MINGW_DOWNLOAD: https://github.com/mstorsjo/llvm-mingw/releases/download/20230919/llvm-mingw-20230919-msvcrt-ubuntu-20.04-x86_64.tar.xz
   # xwin settings
-  XWIN_VERSION: xwin-0.2.12-x86_64-unknown-linux-musl
-  XWIN_DOWNLOAD: https://github.com/Jake-Shadle/xwin/releases/download/0.2.12/xwin-0.2.12-x86_64-unknown-linux-musl.tar.gz
+  XWIN_VERSION: xwin-0.3.1-x86_64-unknown-linux-musl
+  XWIN_DOWNLOAD: https://github.com/Jake-Shadle/xwin/releases/download/0.3.1/xwin-0.3.1-x86_64-unknown-linux-musl.tar.gz
   # Python settings
-  PYTHON_VERSION: "3.11.4"
+  PYTHON_VERSION: "3.11.5"
 
 jobs:
   cache-clang:
@@ -67,6 +67,9 @@ jobs:
       uses: TheMrMilchmann/setup-msvc-dev@v2
       with:
         arch: x64
+
+    - name: Setup CMake and Ninja
+      uses: lukka/get-cmake@latest
 
     # We only actually need this python version to run the download script, we're not going to link
     # against it, so don't need to specify arch
@@ -117,13 +120,13 @@ jobs:
         ]
 
     steps:
-    - name: Setup apt packages
+    - name: Setup CMake and Ninja
+      uses: lukka/get-cmake@latest
+
+    - name: Setup msitools
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
-        # msitools so we can extract the python files
-        # ninja as our build generator, it's quicker than make
-        # tree for debugging
-        packages: msitools ninja-build tree
+        packages: msitools
         version: ${{ runner.os }}-apt
 
     # Both Clang and MinGW install quick enough that it's not worth caching
@@ -235,6 +238,9 @@ jobs:
         key: ${{ runner.os }}-clang-${{ env.CLANG_VERSION }}
         fail-on-cache-miss: true
 
+    - name: Setup CMake and Ninja
+      uses: lukka/get-cmake@latest
+
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
@@ -265,7 +271,12 @@ jobs:
           -j ${{ env.CLANG_TIDY_JOBS }}                                         `
           -p "out\build\${{ matrix.preset }}"                                   `
           -export-fixes clang-tidy-fixes.yml                                    `
-          $([Regex]::Escape("$pwd\src") + ".+\.(c|cpp|h|hpp)$")
+          $([Regex]::Escape("$pwd\src") + ".+\.(c|cpp|h|hpp)$")                 `
+          -extra-arg="-Wno-unknown-pragmas"
+      # For some reason, the above started giving unknown pragma errors in library headers (both
+      # unrealsdk and python) in clang-tidy 17
+      # It compiles fine, doesn't show up in clangd, and doesn't happen in the unrealsdk build, so
+      # just suppressing it for now
 
     - name: Process clang-tidy warnings
       uses: asarium/clang-tidy-action@v1
@@ -320,7 +331,6 @@ jobs:
       with:
         options: "--check --verbose"
         src: "./src"
-
 
   pyright:
     runs-on: ubuntu-latest

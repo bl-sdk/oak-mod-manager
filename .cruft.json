@@ -1,6 +1,6 @@
 {
   "template": "git@github.com:bl-sdk/common_dotfiles.git",
-  "commit": "c6cad57d450e0b696fb8586daaf29814427ef7c1",
+  "commit": "a66f9767ed477bfa89d6ca505392d226ebdd4275",
   "checkout": null,
   "context": {
     "cookiecutter": {
