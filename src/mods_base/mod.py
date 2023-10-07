@@ -181,8 +181,14 @@ class Mod:
         if self.auto_enable:
             self.save_settings()
 
-    def disable(self) -> None:
-        """Called to disable the mod."""
+    def disable(self, dont_update_setting: bool = False) -> None:
+        """
+        Called to disable the mod.
+
+        Args:
+            dont_update_setting: If true, prevents updating the enabled flag in the settings file.
+                                 Should be set for automated disables, and clear for manual ones.
+        """
         if not self.is_enabled:
             return
 
@@ -196,7 +202,7 @@ class Mod:
         if self.on_disable is not None:
             self.on_disable()
 
-        if self.auto_enable:
+        if self.auto_enable and not dont_update_setting:
             self.save_settings()
 
     def load_settings(self) -> None:
@@ -267,7 +273,7 @@ class Library(Mod):
         if Game.get_current() in self.supported_games:
             self.enable()
 
-    def disable(self) -> None:
+    def disable(self, dont_update_setting: bool = False) -> None:
         """No-op to prevent the library from being disabled."""
 
     def iter_display_options(self) -> Iterator[BaseOption]:

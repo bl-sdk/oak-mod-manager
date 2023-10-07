@@ -74,7 +74,7 @@ def deregister_mod(mod: Mod) -> None:
         mod: The mod to remove.
     """
     if mod.is_enabled:
-        mod.disable()
+        mod.disable(dont_update_setting=True)
 
     mod_list.remove(mod)
 
