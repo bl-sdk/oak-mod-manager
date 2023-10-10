@@ -4,10 +4,10 @@ from mods_base import Library, build_mod, command
 
 from .screens import start_interactive_menu
 
-__all__: list[str] = [
+__all__: tuple[str, ...] = (
     "__version__",
     "__version_info__",
-]
+)
 
 __version_info__: tuple[int, int] = (1, 0)
 __version__: str = f"{__version_info__[0]}.{__version_info__[1]}"

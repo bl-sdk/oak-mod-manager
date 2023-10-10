@@ -1,26 +1,17 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from enum import auto
 from typing import TypeAlias
 
+from mods_base import EInputEvent
 from unrealsdk.hooks import Block
 from unrealsdk.unreal import UObject
-from unrealsdk.unreal._uenum import UnrealEnum
 
 __all__: tuple[str, ...] = ("set_keybind_callback",)
 
-class _EInputEvent(UnrealEnum):
-    IE_Pressed = auto()
-    IE_Released = auto()
-    IE_Repeat = auto()
-    IE_DoubleClick = auto()
-    IE_Axis = auto()
-    IE_MAX = auto()
-
 _OakPlayerController: TypeAlias = UObject
 _KeybindCallback: TypeAlias = Callable[
-    [_OakPlayerController, str, _EInputEvent],
+    [_OakPlayerController, str, EInputEvent],
     None | Block | type[Block],
 ]
 

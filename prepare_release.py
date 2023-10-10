@@ -154,6 +154,7 @@ if __name__ == "__main__":
 
     BASE_MOD = Path("src") / "mods_base"
     BL3_MENU = Path("src") / "bl3_mod_menu"
+    KEYBINDS = Path("src") / "keybinds"
     WL_MENU = Path("src") / "console_mod_menu"
 
     INIT_SCRIPT = Path("src") / "__main__.py"
@@ -203,14 +204,16 @@ if __name__ == "__main__":
     assert install_dir.exists() and install_dir.is_dir(), "install dir doesn't exist"
 
     for prefix, arg, mods in (
-        ("bl3", args.bl3, [BASE_MOD, BL3_MENU]),
-        ("wl", args.wl, [BASE_MOD, WL_MENU]),
-        ("unified", args.unified, [BASE_MOD, BL3_MENU, WL_MENU]),
+        ("bl3", args.bl3, [BASE_MOD, KEYBINDS, BL3_MENU]),
+        ("wl", args.wl, [BASE_MOD, KEYBINDS, WL_MENU]),
+        ("unified", args.unified, [BASE_MOD, KEYBINDS, BL3_MENU, WL_MENU]),
     ):
         if not arg:
             continue
+
         name = f"{prefix}-sdk-{args.preset}.zip"
         print(f"Zipping {name} ...")
+
         zip_release(
             Path(name),
             INIT_SCRIPT,

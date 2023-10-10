@@ -3,10 +3,29 @@ from __future__ import annotations
 import functools
 from collections.abc import Callable
 from dataclasses import KW_ONLY, dataclass, field
-from typing import Any, TypeAlias, cast, overload
+from typing import TYPE_CHECKING, Any, TypeAlias, cast, overload
 
-from .raw_keybinds import EInputEvent, KeybindBlockSignal
+from unrealsdk.hooks import Block
 
+if TYPE_CHECKING:
+    from enum import auto
+
+    from unrealsdk.unreal._uenum import UnrealEnum  # pyright: ignore[reportMissingModuleSource]
+
+    class EInputEvent(UnrealEnum):
+        IE_Pressed = auto()
+        IE_Released = auto()
+        IE_Repeat = auto()
+        IE_DoubleClick = auto()
+        IE_Axis = auto()
+        IE_MAX = auto()
+
+else:
+    from unrealsdk import find_enum
+
+    EInputEvent = find_enum("EInputEvent")
+
+KeybindBlockSignal: TypeAlias = None | Block | type[Block]
 KeybindCallback_Event: TypeAlias = Callable[[EInputEvent], KeybindBlockSignal]
 KeybindCallback_NoArgs: TypeAlias = Callable[[], KeybindBlockSignal]
 
