@@ -3,7 +3,9 @@ import re
 import shutil
 import subprocess
 import textwrap
+from collections.abc import Iterator, Sequence
 from functools import cache
+from io import BytesIO
 from os import path
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
@@ -38,8 +40,33 @@ def cmake_install(build_dir: Path) -> None:
     subprocess.check_call(["cmake", "--build", build_dir, "--target", "install"])
 
 
+def iter_mod_files(mod_folder: Path, debug: bool) -> Iterator[Path]:
+    """
+    Iterates through all files in the given mod folder which are valid to export.
+
+    Args:
+        mod_folder: Path to the mod folder to iterate through.
+        debug: True if creating a debug zip.
+    Yields:
+        Valid files to export.
+    """
+    for file in mod_folder.glob("**/*"):
+        if not file.is_file():
+            continue
+        if file.parent.name == "__pycache__":
+            continue
+
+        if file.suffix == ".cpp":
+            continue
+        if file.suffix == ".pyd" and file.stem.endswith("_d") != debug:
+            continue
+
+        yield file
+
+
 ZIP_MODS_FOLDER = Path("sdk_mods")
 ZIP_STUBS_FOLDER = ZIP_MODS_FOLDER / ".stubs"
+ZIP_SETTINGS_FOLDER = ZIP_MODS_FOLDER / "settings"
 ZIP_EXECUTABLE_FOLDER = Path("OakGame") / "Binaries" / "Win64"
 ZIP_PLUGINS_FOLDER = ZIP_EXECUTABLE_FOLDER / "Plugins"
 
@@ -59,22 +86,30 @@ def _zip_init_script(zip_file: ZipFile, init_script: Path) -> None:
     )
 
 
-def _zip_mod_folders(zip_file: ZipFile, mod_folders: list[Path], debug: bool) -> None:
+def _zip_mod_folders(zip_file: ZipFile, mod_folders: Sequence[Path], debug: bool) -> None:
     for mod in mod_folders:
-        for file in mod.glob("**/*"):
-            if not file.is_file():
-                continue
-            if file.parent.name == "__pycache__":
-                continue
+        # If the mod contains any .pyds
+        if next(mod.glob("**/*.pyd"), None) is not None:
+            # We have to add it as a raw folder
+            for file in iter_mod_files(mod, debug):
+                zip_file.write(
+                    file,
+                    ZIP_MODS_FOLDER / mod.name / file.relative_to(mod),
+                )
+        else:
+            # Otherwise, we can add it as a .sdkmod
+            buffer = BytesIO()
+            with ZipFile(buffer, "w", ZIP_DEFLATED, compresslevel=9) as sdkmod_zip:
+                for file in iter_mod_files(mod, debug):
+                    sdkmod_zip.write(
+                        file,
+                        mod.name / file.relative_to(mod),
+                    )
 
-            if file.suffix == ".cpp":
-                continue
-            if file.suffix == ".pyd" and file.stem.endswith("_d") != debug:
-                continue
-
-            zip_file.write(
-                file,
-                ZIP_MODS_FOLDER / mod.name / file.relative_to(mod),
+            buffer.seek(0)
+            zip_file.writestr(
+                str(ZIP_MODS_FOLDER / (mod.name + ".sdkmod")),
+                buffer.read(),
             )
 
 
@@ -88,6 +123,19 @@ def _zip_stubs(zip_file: ZipFile, stubs_dir: Path) -> None:
         zip_file.write(
             file,
             ZIP_STUBS_FOLDER / file.relative_to(stubs_dir),
+        )
+
+
+def _zip_settings(zip_file: ZipFile, settings_dir: Path) -> None:
+    for file in settings_dir.glob("**/*"):
+        if not file.is_file():
+            continue
+        if file.suffix == ".json":
+            continue
+
+        zip_file.write(
+            file,
+            ZIP_SETTINGS_FOLDER / file.relative_to(settings_dir),
         )
 
 
@@ -125,9 +173,10 @@ def _zip_dlls(zip_file: ZipFile, install_dir: Path) -> None:
 def zip_release(
     output: Path,
     init_script: Path,
-    mod_folders: list[Path],
+    mod_folders: Sequence[Path],
     debug: bool,
     stubs_dir: Path,
+    settings_dir: Path,
     install_dir: Path,
 ) -> None:
     """
@@ -139,6 +188,7 @@ def zip_release(
         mod_folders: A list of mod folders to include in the zip.
         debug: True if this is a debug release.
         stubs_dir: The stubs dir to include.
+        settings_dir: The settings dir to include. All json files are ignored.
         install_dir: The CMake install dir to copy the dlls from.
     """
 
@@ -146,6 +196,7 @@ def zip_release(
         _zip_init_script(zip_file, init_script)
         _zip_mod_folders(zip_file, mod_folders, debug)
         _zip_stubs(zip_file, stubs_dir)
+        _zip_settings(zip_file, settings_dir)
         _zip_dlls(zip_file, install_dir)
 
 
@@ -163,6 +214,7 @@ if __name__ == "__main__":
     INSTALL_DIR_BASE = Path("out") / "install"
 
     STUBS_DIR = Path("libs") / "pyunrealsdk" / "stubs"
+    SETTINGS_DIR = Path("src") / "settings"
 
     parser = ArgumentParser(description="Prepares a release zip.")
     parser.add_argument(
@@ -203,10 +255,12 @@ if __name__ == "__main__":
 
     assert install_dir.exists() and install_dir.is_dir(), "install dir doesn't exist"
 
+    COMMON_FOLDERS = (BASE_MOD, KEYBINDS)
+
     for prefix, arg, mods in (
-        ("bl3", args.bl3, [BASE_MOD, KEYBINDS, BL3_MENU]),
-        ("wl", args.wl, [BASE_MOD, KEYBINDS, WL_MENU]),
-        ("unified", args.unified, [BASE_MOD, KEYBINDS, BL3_MENU, WL_MENU]),
+        ("bl3", args.bl3, (*COMMON_FOLDERS, BL3_MENU)),
+        ("wl", args.wl, (*COMMON_FOLDERS, WL_MENU)),
+        ("unified", args.unified, (*COMMON_FOLDERS, BL3_MENU, WL_MENU)),
     ):
         if not arg:
             continue
@@ -220,5 +274,6 @@ if __name__ == "__main__":
             mods,
             "debug" in args.preset,
             STUBS_DIR,
+            SETTINGS_DIR,
             install_dir,
         )

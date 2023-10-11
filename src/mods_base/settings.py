@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import MutableMapping, Sequence
+from pathlib import Path
 from typing import TYPE_CHECKING, TypeAlias, TypedDict, cast
 
 from unrealsdk import logging
@@ -23,6 +24,9 @@ if TYPE_CHECKING:
     from .mod import Mod
 
 JSON: TypeAlias = dict[str, "JSON"] | list["JSON"] | str | int | float | bool | None
+
+SETTINGS_DIR = Path(__file__).parent.parent / "settings"
+SETTINGS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class BasicModSettings(TypedDict, total=False):

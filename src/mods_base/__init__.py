@@ -32,6 +32,7 @@ from .options import (
     SpinnerOption,
     ValueOption,
 )
+from .settings import SETTINGS_DIR
 
 __all__: tuple[str, ...] = (
     "__version__",
@@ -60,12 +61,13 @@ __all__: tuple[str, ...] = (
     "KeybindOption",
     "KeybindType",
     "Library",
-    "raw_keybinds",
     "Mod",
     "ModType",
     "NestedOption",
+    "raw_keybinds",
     "register_mod",
     "remove_next_console_line_capture",
+    "SETTINGS_DIR",
     "SliderOption",
     "SpinnerOption",
     "ValueOption",

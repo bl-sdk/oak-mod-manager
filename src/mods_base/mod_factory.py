@@ -12,6 +12,7 @@ from .keybinds import KeybindType
 from .mod import Game, Mod, ModType
 from .mod_list import deregister_mod, mod_list, register_mod
 from .options import BaseOption, GroupedOption, NestedOption
+from .settings import SETTINGS_DIR
 
 
 def search_module_if_needed(
@@ -147,8 +148,8 @@ def build_mod(
         version: A string holding the mod's version. Defaults to module.__version__ if missing.
         mod_type: What type of mod this is.
         supported_games: The games this mod supports.
-        settings_file: The file to save settings to. Defaults to `settings.json` in the same dir
-                       this was called from.
+        settings_file: The file to save settings to. Defaults to `<module.__name__>.json` in the
+                       settings dir.
         keybinds: The mod's keybinds. Defaults to searching for Keybind instances in the module's
                   namespace if missing. Note the order is not necessarily stable.
         options: The mod's options. Defaults to searching for OptionBase instances in the module's
@@ -197,7 +198,7 @@ def build_mod(
         kwargs["version"] = version
 
     if settings_file is None:
-        settings_file = Path(inspect.getfile(module)).with_name("settings.json")
+        settings_file = SETTINGS_DIR / (module.__name__ + ".json")
     kwargs["settings_file"] = settings_file
     if deregister_same_settings:
         deregister_using_settings_file(settings_file)
