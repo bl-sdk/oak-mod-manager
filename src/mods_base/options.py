@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import KW_ONLY, dataclass, field
 from typing import Generic, Literal, Self, TypeAlias, TypeVar
 
@@ -10,7 +10,7 @@ from .keybinds import KeybindType
 # Little ugly to repeat this from settings, but we can't import it from there cause it creates a
 # strong circular dependency - we need to import it to get JSON before we can define most options,
 # but it needs to import those options from us
-JSON: TypeAlias = dict[str, "JSON"] | list["JSON"] | str | int | float | bool | None
+JSON: TypeAlias = Mapping[str, "JSON"] | Sequence["JSON"] | str | int | float | bool | None
 J = TypeVar("J", bound=JSON)
 
 
