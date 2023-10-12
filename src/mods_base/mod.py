@@ -140,26 +140,27 @@ class Mod:
             self.commands = new_commands
             need_to_search_instance_vars = True
 
-        if not need_to_search_instance_vars:
-            return
+        if need_to_search_instance_vars:
+            for _, value in inspect.getmembers(self):
+                match value:
+                    case KeybindType() if find_keybinds:
+                        new_keybinds.append(value)
+                    case GroupedOption() | NestedOption() if find_options:
+                        logging.dev_warning(
+                            f"{self.name}: {type(value).__name__} instances must be explicitly"
+                            f" specified in the options list!",
+                        )
+                    case BaseOption() if find_options:
+                        new_options.append(value)
+                    case HookProtocol() if find_hooks:
+                        new_hooks.append(value.bind(self))
+                    case AbstractCommand() if find_commands:
+                        new_commands.append(value)
+                    case _:
+                        pass
 
-        for _, value in inspect.getmembers(self):
-            match value:
-                case KeybindType() if find_keybinds:
-                    new_keybinds.append(value)
-                case GroupedOption() | NestedOption() if find_options:
-                    logging.dev_warning(
-                        f"{self.name}: {type(value).__name__} instances must be explicitly"
-                        f" specified in the options list!",
-                    )
-                case BaseOption() if find_options:
-                    new_options.append(value)
-                case HookProtocol() if find_hooks:
-                    new_hooks.append(value.bind(self))
-                case AbstractCommand() if find_commands:
-                    new_commands.append(value)
-                case _:
-                    pass
+        for option in self.options:
+            option.mod = self
 
     def enable(self) -> None:
         """Called to enable the mod."""
