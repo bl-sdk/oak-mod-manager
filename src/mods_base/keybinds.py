@@ -96,7 +96,7 @@ def keybind(
 @overload
 def keybind(
     identifier: str,
-    key: str | None,
+    key: str | None = None,
     callback: None = None,
     *,
     display_name: str | None = None,
@@ -128,7 +128,7 @@ def keybind(
 @overload
 def keybind(
     identifier: str,
-    key: str | None,
+    key: str | None = None,
     callback: None = None,
     *,
     display_name: str | None = None,
@@ -143,7 +143,7 @@ def keybind(
 
 def keybind(
     identifier: str,
-    key: str | None,
+    key: str | None = None,
     callback: KeybindCallback_NoArgs | KeybindCallback_Event | None = None,
     *,
     display_name: str | None = None,
