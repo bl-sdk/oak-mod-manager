@@ -26,7 +26,7 @@ class HomeScreen(AbstractScreen):
 
         self.drawn_mod_list = get_ordered_mod_list()
         for idx, mod in enumerate(self.drawn_mod_list):
-            draw(f"[{idx + 1}] {mod.name}")
+            draw(f"[{idx + 1}] {mod.name}" + (" (Disabled)" if not mod.is_enabled else ""))
 
         draw_standard_commands()
 
