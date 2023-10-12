@@ -247,10 +247,10 @@ class Mod:
                 on_change=lambda _, now_enabled: self.enable() if now_enabled else self.disable(),
             )
 
-        if len(self.options) > 0:
+        if any(not opt.is_hidden for opt in self.options) > 0:
             yield GroupedOption("Options", self.options)
 
-        if len(self.keybinds) > 0:
+        if any(not kb.is_hidden for kb in self.keybinds) > 0:
             yield GroupedOption(
                 "Keybinds",
                 [KeybindOption.from_keybind(bind) for bind in self.keybinds],
