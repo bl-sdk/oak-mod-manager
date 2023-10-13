@@ -30,7 +30,7 @@ class BaseOption(ABC):
         description_title: The title of the description. Defaults to copying the display name.
         is_hidden: If true, the option will not be shown in the options menu.
     Extra attributes:
-        mod: The mod this option stores it's settings in, or None if not (yet) assoicated with one.
+        mod: The mod this option stores it's settings in, or None if not (yet) associated with one.
     """
 
     identifier: str
@@ -69,7 +69,7 @@ class ValueOption(BaseOption, Generic[J]):
         on_change: If not None, a callback to run before updating the value. Passed a reference to
                    the option object and the new value. May be set using decorator syntax.
     Extra Attributes:
-        mod: The mod this option stores it's settings in, or None if not (yet) assoicated with one.
+        mod: The mod this option stores it's settings in, or None if not (yet) associated with one.
         default_value: What the value was originally when registered. Does not update on change.
     """
 
@@ -113,8 +113,8 @@ class HiddenOption(ValueOption[J]):
     """
     A generic option which is always hidden. Use this to persist arbitrary (JSON-encodeable) data.
 
-    This class is explicitly intended to be modified programatically, unlike the other options which
-    are generally only modified by the mod menu.
+    This class is explicitly intended to be modified programmatically, unlike the other options
+    which are generally only modified by the mod menu.
 
     Args:
         identifier: The option's identifier.
@@ -124,7 +124,7 @@ class HiddenOption(ValueOption[J]):
         description_title: The title of the description. Defaults to copying the display name.
     Extra Attributes:
         is_hidden: Always true.
-        mod: The mod this option stores it's settings in, or None if not (yet) assoicated with one.
+        mod: The mod this option stores it's settings in, or None if not (yet) associated with one.
     """
 
     is_hidden: Literal[True] = field(  # pyright: ignore[reportIncompatibleVariableOverride]
@@ -162,7 +162,7 @@ class SliderOption(ValueOption[float]):
         on_change: If not None, a callback to run before updating the value. Passed a reference to
                    the option object and the new value. May be set using decorator syntax.
     Extra Attributes:
-        mod: The mod this option stores it's settings in, or None if not (yet) assoicated with one.
+        mod: The mod this option stores it's settings in, or None if not (yet) associated with one.
         default_value: What the value was originally when registered. Does not update on change.
     """
 
@@ -192,7 +192,7 @@ class SpinnerOption(ValueOption[str]):
         on_change: If not None, a callback to run before updating the value. Passed a reference to
                    the option object and the new value. May be set using decorator syntax.
     Extra Attributes:
-        mod: The mod this option stores it's settings in, or None if not (yet) assoicated with one.
+        mod: The mod this option stores it's settings in, or None if not (yet) associated with one.
         default_value: What the value was originally when registered. Does not update on change.
     """
 
@@ -218,7 +218,7 @@ class BoolOption(ValueOption[bool]):
         on_change: If not None, a callback to run before updating the value. Passed a reference to
                    the option object and the new value. May be set using decorator syntax.
     Extra Attributes:
-        mod: The mod this option stores it's settings in, or None if not (yet) assoicated with one.
+        mod: The mod this option stores it's settings in, or None if not (yet) associated with one.
         default_value: What the value was originally when registered. Does not update on change.
     """
 
@@ -245,7 +245,7 @@ class DropdownOption(ValueOption[str]):
         on_change: If not None, a callback to run before updating the value. Passed a reference to
                    the option object and the new value. May be set using decorator syntax.
     Extra Attributes:
-        mod: The mod this option stores it's settings in, or None if not (yet) assoicated with one.
+        mod: The mod this option stores it's settings in, or None if not (yet) associated with one.
         default_value: What the value was originally when registered. Does not update on change.
     """
 
@@ -270,7 +270,7 @@ class ButtonOption(BaseOption):
         on_press: If not None, the callback to run when the button is pressed. Passed a reference to
                   the option object.
     Extra Attributes:
-        mod: The mod this option stores it's settings in, or None if not (yet) assoicated with one.
+        mod: The mod this option stores it's settings in, or None if not (yet) associated with one.
     """
 
     _: KW_ONLY
@@ -319,7 +319,7 @@ class KeybindOption(ValueOption[str | None]):
         on_change: If not None, a callback to run before updating the value. Passed a reference to
                    the option object and the new value. May be set using decorator syntax.
     Extra Attributes:
-        mod: The mod this option stores it's settings in, or None if not (yet) assoicated with one.
+        mod: The mod this option stores it's settings in, or None if not (yet) associated with one.
         default_value: What the value was originally when registered. Does not update on change.
     """
 
@@ -367,7 +367,7 @@ class GroupedOption(BaseOption):
         description_title: The title of the description. Defaults to copying the display name.
         is_hidden: If true, the option will not be shown in the options menu.
     Extra Attributes:
-        mod: The mod this option stores it's settings in, or None if not (yet) assoicated with one.
+        mod: The mod this option stores it's settings in, or None if not (yet) associated with one.
     """
 
     children: Sequence[BaseOption]
@@ -393,7 +393,7 @@ class NestedOption(ButtonOption):
         on_press: If not None, the callback to run when the button is pressed (and the nested menu
                   opened). Passed a reference to the option object.
     Extra Attributes:
-        mod: The mod this option stores it's settings in, or None if not (yet) assoicated with one.
+        mod: The mod this option stores it's settings in, or None if not (yet) associated with one.
     """
 
     children: Sequence[BaseOption]
