@@ -1,14 +1,16 @@
-from mods_base import BaseOption, Game, Library, build_mod
+from mods_base import Game, GroupedOption
+from mods_base.mod_list import base_mod
 
 __all__: list[str] = [
+    "__author__",
     "__version__",
     "__version_info__",
 ]
 
 __version_info__: tuple[int, int] = (1, 0)
 __version__: str = f"{__version_info__[0]}.{__version_info__[1]}"
+__author__: str = "bl-sdk"
 
-_options: list[BaseOption] = []
 
 # Importing any native modules will fail if we're running in WL, so we need to guard this
 if Game.get_current() is Game.BL3:
@@ -27,19 +29,15 @@ if Game.get_current() is Game.BL3:
         outer_menu,  # noqa: F401  # pyright: ignore[reportUnusedImport]
     )
 
-    _options += [
-        keybinds.controller_style_option,
-        keybinds.switch_swap_option,
-    ]
+    base_mod.options.append(
+        GroupedOption(
+            "BL3 Mod Menu",
+            (
+                keybinds.controller_style_option,
+                keybinds.switch_swap_option,
+            ),
+        ),
+    )
+    base_mod.load_settings()
 
-build_mod(
-    cls=Library,
-    name="BL3 Mod Menu",
-    author="bl-sdk",
-    description="Adds an in game mod menu to BL3.",
-    supported_games=Game.BL3,
-    keybinds=[],
-    options=_options,
-    hooks=[],
-    commands=[],
-)
+base_mod.components.append(base_mod.ComponentInfo("BL3 Mod Menu", __version__))

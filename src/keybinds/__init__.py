@@ -1,5 +1,5 @@
-from mods_base import EInputEvent, Game, Library, build_mod
-from mods_base.mod_list import mod_list
+from mods_base import EInputEvent, Game
+from mods_base.mod_list import base_mod, mod_list
 from mods_base.raw_keybinds import raw_keybind_callback_stack
 from unrealsdk.hooks import Block
 from unrealsdk.unreal import UObject
@@ -7,12 +7,14 @@ from unrealsdk.unreal import UObject
 from .keybinds import set_keybind_callback
 
 __all__: tuple[str, ...] = (
+    "__author__",
     "__version__",
     "__version_info__",
 )
 
 __version_info__: tuple[int, int] = (1, 0)
 __version__: str = f"{__version_info__[0]}.{__version_info__[1]}"
+__author__: str = "bl-sdk"
 
 
 def handle_raw_keybind(pc: UObject, key: str, event: EInputEvent) -> bool:
@@ -90,13 +92,4 @@ def keybind_handler(pc: UObject, key: str, event: EInputEvent) -> None | Block |
     return None
 
 
-build_mod(
-    cls=Library,
-    name="Keybinds",
-    author="bl-sdk",
-    description="Provides the hooks which allow keybinds to function.",
-    keybinds=[],
-    options=[],
-    hooks=[],
-    commands=[],
-)
+base_mod.components.append(base_mod.ComponentInfo("Keybinds", __version__))

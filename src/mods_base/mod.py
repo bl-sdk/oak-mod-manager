@@ -235,10 +235,19 @@ class Mod:
                 description=f"This mod is incompatible with {Game.get_current().name}!",
             )
 
+        # Displat the author and version in the title, if they're not the empty string
+        description_title = ""
+        if self.author:
+            description_title += f"By {self.author}"
+        if self.author and self.version:
+            description_title += "  -  "
+        if self.version:
+            description_title += self.version
+
         yield ButtonOption(
             "Description",
             description=self.description,
-            description_title=f"By {self.author}  -  {self.version}",
+            description_title=description_title or "Description",
         )
         if compatible_game:
             yield BoolOption(

@@ -1,54 +1,79 @@
 import os
+from dataclasses import dataclass, field
 from functools import cmp_to_key
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import cast
 
 import pyunrealsdk
 import unrealsdk
 
 from . import __version__
+from .command import AbstractCommand
+from .hook import HookProtocol
+from .keybinds import KeybindType
 from .mod import Library, Mod, ModType
 from .options import BaseOption, ButtonOption
+from .settings import SETTINGS_DIR
+
+
+@dataclass
+class BaseMod(Library):
+    name: str = "Python SDK"
+    author: str = "bl-sdk"
+    version: str = ""
+    settings_file: Path | None = SETTINGS_DIR / "python-sdk.json"
+
+    keybinds: list[KeybindType] = field(default_factory=list)  # type: ignore
+    options: list[BaseOption] = field(default_factory=list)  # type: ignore
+    hooks: list[HookProtocol] = field(default_factory=list)  # type: ignore
+    commands: list[AbstractCommand] = field(default_factory=list)  # type: ignore
+
+    @dataclass
+    class ComponentInfo:
+        name: str
+        version: str
+
+    # As an internal interface, the other submodules which the sdk ships with by default should add
+    # themselves to this list on the `base_mod` object, rather than registering as their own mod.
+    # This helps avoid cluttering the default mod list.
+    components: list[ComponentInfo] = field(default_factory=list)
+
+    @property
+    def description(self) -> str:
+        """Custom description getter, which builds it from the list of components."""
+
+        # We want to show components in alphabetical order
+        # Rather than use sorted, and throw away the result, might as well just do a proper sort
+        # Once already sorted, re-sorting should be relatively quick
+        self.components.sort(key=lambda c: c.name.lower())
+
+        description = "Components:\n"
+        for comp in self.components:
+            description += f"- {comp.name}: {comp.version}\n"
+
+        return description
+
+    @description.setter
+    def description(  # pyright: ignore[reportIncompatibleVariableOverride]
+        self,
+        _: str,
+    ) -> None:
+        """No-op description setter."""
+
 
 mod_list: list[Mod] = [
-    Library(
-        name="unrealsdk",
-        author="bl-sdk",
-        description="Base library for interacting with unreal objects.",
-        version=unrealsdk.__version__,
-        keybinds=[],
-        options=[],
-        hooks=[],
-        commands=[],
-    ),
-    Library(
-        name="pyunrealsdk",
-        author="bl-sdk",
-        description="Python bindings for unrealsdk.",
-        version=pyunrealsdk.__version__,
-        keybinds=[],
-        options=[],
-        hooks=[],
-        commands=[],
-    ),
-    base_mod := Library(
-        name="Python SDK Base",
-        author="bl-sdk",
-        description="Basic utilities used across all mods.",
-        version=__version__,
-        keybinds=[],
-        options=cast(
-            list[BaseOption],
-            [
-                ButtonOption(
-                    "Open Mods Folder",
-                    on_press=lambda _: os.startfile(Path(__file__).parent.parent),  # type: ignore
-                ),
-            ],
-        ),
-        hooks=[],
-        commands=[],
+    base_mod := BaseMod(
+        options=[
+            ButtonOption(
+                "Open Mods Folder",
+                on_press=lambda _: os.startfile(Path(__file__).parent.parent),  # type: ignore
+            ),
+        ],
+        components=[
+            BaseMod.ComponentInfo("Base", __version__),
+            BaseMod.ComponentInfo("unrealsdk", unrealsdk.__version__.partition(" ")[2]),
+            BaseMod.ComponentInfo("pyunrealsdk", pyunrealsdk.__version__.partition(" ")[2]),
+        ],
     ),
 ]
 

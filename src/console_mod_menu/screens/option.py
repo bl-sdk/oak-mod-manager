@@ -53,7 +53,9 @@ class OptionScreen(AbstractScreen, Generic[T, J]):
 
         if len(self.option.description) > 0:
             draw("=" * 32)
-            draw(self.option.description)
+            # Respect newlines - passing everything at once would let them get wrapped arbitrarily
+            for line in self.option.description.splitlines():
+                draw(line)
 
         draw("")
 
