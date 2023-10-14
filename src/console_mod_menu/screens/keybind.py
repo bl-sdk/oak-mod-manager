@@ -5,10 +5,10 @@ from dataclasses import dataclass, field
 from mods_base import (
     EInputEvent,
     KeybindOption,
-    get_pc,
     raw_keybinds,
     remove_next_console_line_capture,
 )
+from ui_utils import show_hud_message
 from unrealsdk.hooks import Block
 
 from console_mod_menu.draw import draw
@@ -117,10 +117,9 @@ class RebindPressScreen(AbstractScreen):
             self.is_bind_active = False
             raw_keybinds.pop()
 
-            get_pc().OakHud.DisplayRolloutNotification(
+            show_hud_message(
                 "Console Mod Menu",
                 f"'{self.parent.option.display_name}' bound to '{key}'",
-                3,
             )
 
             # Bit of hackery to inject back into the menu loop

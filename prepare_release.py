@@ -207,6 +207,7 @@ if __name__ == "__main__":
     BL3_MENU = Path("src") / "bl3_mod_menu"
     KEYBINDS = Path("src") / "keybinds"
     WL_MENU = Path("src") / "console_mod_menu"
+    UI_UTILS = Path("src") / "ui_utils"
 
     INIT_SCRIPT = Path("src") / "__main__.py"
 
@@ -255,7 +256,7 @@ if __name__ == "__main__":
 
     assert install_dir.exists() and install_dir.is_dir(), "install dir doesn't exist"
 
-    COMMON_FOLDERS = (BASE_MOD, KEYBINDS)
+    COMMON_FOLDERS = (BASE_MOD, KEYBINDS, UI_UTILS)
 
     for prefix, arg, mods in (
         ("bl3", args.bl3, (*COMMON_FOLDERS, BL3_MENU)),
