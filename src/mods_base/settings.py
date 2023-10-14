@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping, MutableMapping, Sequence
-from pathlib import Path
 from typing import TYPE_CHECKING, TypeAlias, TypedDict, cast
 
 from unrealsdk import logging
 
+from . import MODS_DIR
 from .options import (
     BaseOption,
     BoolOption,
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 JSON: TypeAlias = Mapping[str, "JSON"] | Sequence["JSON"] | str | int | float | bool | None
 
-SETTINGS_DIR = Path(__file__).parent.parent / "settings"
+SETTINGS_DIR = MODS_DIR / "settings"
 SETTINGS_DIR.mkdir(parents=True, exist_ok=True)
 
 

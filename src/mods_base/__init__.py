@@ -1,24 +1,37 @@
+from pathlib import Path
+
 import unrealsdk
 from unrealsdk.unreal import UObject
 
-# Define up here to avoid a circular import in mod_list
 __version_info__: tuple[int, int] = (1, 0)
 __version__: str = f"{__version_info__[0]}.{__version_info__[1]}"
 
-from . import raw_keybinds
-from .command import (
+MODS_DIR: Path = (
+    _mod_dir
+    if (_mod_dir := Path(__file__).parent.parent).is_dir()
+    else _mod_dir.parent  # If in a .sdkmod, need to go up an extra folder
+)
+del _mod_dir
+
+from . import raw_keybinds  # noqa: E402
+from .command import (  # noqa: E402
     AbstractCommand,
     ArgParseCommand,
     capture_next_console_line,
     command,
     remove_next_console_line_capture,
 )
-from .hook import hook
-from .keybinds import EInputEvent, KeybindType, keybind
-from .mod import Game, Library, Mod, ModType
-from .mod_factory import build_mod
-from .mod_list import deregister_mod, get_ordered_mod_list, html_to_plain_text, register_mod
-from .options import (
+from .hook import hook  # noqa: E402
+from .keybinds import EInputEvent, KeybindType, keybind  # noqa: E402
+from .mod import Game, Library, Mod, ModType  # noqa: E402
+from .mod_factory import build_mod  # noqa: E402
+from .mod_list import (  # noqa: E402
+    deregister_mod,
+    get_ordered_mod_list,
+    html_to_plain_text,
+    register_mod,
+)
+from .options import (  # noqa: E402
     JSON,
     BaseOption,
     BoolOption,
@@ -32,7 +45,7 @@ from .options import (
     SpinnerOption,
     ValueOption,
 )
-from .settings import SETTINGS_DIR
+from .settings import SETTINGS_DIR  # noqa: E402
 
 __all__: tuple[str, ...] = (
     "__version__",
@@ -62,6 +75,7 @@ __all__: tuple[str, ...] = (
     "KeybindType",
     "Library",
     "Mod",
+    "MODS_DIR",
     "ModType",
     "NestedOption",
     "raw_keybinds",

@@ -7,7 +7,7 @@ from pathlib import Path
 import pyunrealsdk
 import unrealsdk
 
-from . import __version__
+from . import MODS_DIR, __version__
 from .command import AbstractCommand
 from .hook import HookProtocol
 from .keybinds import KeybindType
@@ -66,7 +66,7 @@ mod_list: list[Mod] = [
         options=[
             ButtonOption(
                 "Open Mods Folder",
-                on_press=lambda _: os.startfile(Path(__file__).parent.parent),  # type: ignore
+                on_press=lambda _: os.startfile(MODS_DIR),  # type: ignore
             ),
         ],
         components=[

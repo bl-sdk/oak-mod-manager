@@ -12,26 +12,7 @@ _full_traceback = False
 while not logging.is_console_ready():
     pass
 
-
-def try_import_mod(name: str) -> None:
-    """
-    Tries to import the given mod.
-
-    Args:
-        name: The name of the module to import.
-    """
-    try:
-        importlib.import_module(name)
-    except Exception as ex:  # noqa: BLE001
-        logging.error(f"Failed to import mod '{name}'")
-
-        tb = traceback.extract_tb(ex.__traceback__)
-        if not _full_traceback:
-            tb = tb[-1:]
-
-        logging.error("".join(traceback.format_exception_only(ex)))
-        logging.error("".join(traceback.format_list(tb)))
-
+mods_to_import: list[str] = []
 
 for entry in Path(__file__).parent.iterdir():
     if entry.is_dir():
@@ -44,7 +25,7 @@ for entry in Path(__file__).parent.iterdir():
                 f" from being loaded. Move the inner folder up a level.",
             )
 
-        try_import_mod(entry.name)
+        mods_to_import.append(entry.name)
 
     elif entry.is_file():
         if entry.name.startswith(".") or entry.suffix != ".sdkmod":
@@ -69,4 +50,17 @@ for entry in Path(__file__).parent.iterdir():
             continue
 
         sys.path.append(str(entry))
-        try_import_mod(entry.stem)
+        mods_to_import.append(entry.stem)
+
+for name in mods_to_import:
+    try:
+        importlib.import_module(name)
+    except Exception as ex:  # noqa: BLE001
+        logging.error(f"Failed to import mod '{name}'")
+
+        tb = traceback.extract_tb(ex.__traceback__)
+        if not _full_traceback:
+            tb = tb[-1:]
+
+        logging.error("".join(traceback.format_exception_only(ex)))
+        logging.error("".join(traceback.format_list(tb)))
