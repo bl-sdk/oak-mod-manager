@@ -40,6 +40,33 @@ def cmake_install(build_dir: Path) -> None:
     subprocess.check_call(["cmake", "--build", build_dir, "--target", "install"])
 
 
+@cache
+def get_git_repo_version() -> str:
+    """
+    Gets a version string representing the current state of the git repo.
+
+    Returns:
+        The version string.
+    """
+    commit_hash = subprocess.run(
+        ["git", "show", "-s", "--format=%H"],
+        check=True,
+        stdout=subprocess.PIPE,
+        encoding="utf8",
+    ).stdout.strip()
+
+    # This command returns the list of modified files, so any output means dirty
+    is_dirty = any(
+        subprocess.run(
+            ["git", "status", "--porcelain"],
+            check=True,
+            stdout=subprocess.PIPE,
+        ).stdout,
+    )
+
+    return commit_hash[:8] + (", dirty" if is_dirty else "")
+
+
 def iter_mod_files(mod_folder: Path, debug: bool) -> Iterator[Path]:
     """
     Iterates through all files in the given mod folder which are valid to export.
@@ -217,6 +244,8 @@ if __name__ == "__main__":
     STUBS_DIR = Path("libs") / "pyunrealsdk" / "stubs"
     SETTINGS_DIR = Path("src") / "settings"
 
+    GIT_VERSION_FILE = BASE_MOD / "git_version.txt"
+
     parser = ArgumentParser(description="Prepares a release zip.")
     parser.add_argument(
         "preset",
@@ -246,6 +275,12 @@ if __name__ == "__main__":
         default=False,
         help="Create a unified release zip. Defaults to off.",
     )
+    parser.add_argument(
+        "--update-git-version-txt",
+        action=BooleanOptionalAction,
+        default=True,
+        help="Updates the `git_version.txt`. Defaults to on.",
+    )
     args = parser.parse_args()
 
     install_dir = INSTALL_DIR_BASE / str(args.preset)
@@ -255,6 +290,10 @@ if __name__ == "__main__":
         cmake_install(BUILD_DIR_BASE / args.preset)
 
     assert install_dir.exists() and install_dir.is_dir(), "install dir doesn't exist"
+
+    if args.update_git_version_txt:
+        with GIT_VERSION_FILE.open("w") as file:
+            file.write(get_git_repo_version())
 
     COMMON_FOLDERS = (BASE_MOD, KEYBINDS, UI_UTILS)
 

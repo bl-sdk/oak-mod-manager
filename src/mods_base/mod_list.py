@@ -9,6 +9,7 @@ import unrealsdk
 
 from . import MODS_DIR, __version__
 from .command import AbstractCommand
+from .dot_sdkmod import open_in_mod_dir
 from .hook import HookProtocol
 from .keybinds import KeybindType
 from .mod import Library, Mod, ModType
@@ -61,6 +62,12 @@ class BaseMod(Library):
         """No-op description setter."""
 
 
+try:
+    with open_in_mod_dir(Path(__file__).with_name("git_version.txt")) as file:
+        _base_mod_version = f"{__version__} ({file.read().strip()})"
+except FileNotFoundError:
+    _base_mod_version = __version__
+
 mod_list: list[Mod] = [
     base_mod := BaseMod(
         options=[
@@ -70,12 +77,14 @@ mod_list: list[Mod] = [
             ),
         ],
         components=[
-            BaseMod.ComponentInfo("Base", __version__),
+            BaseMod.ComponentInfo("Base", _base_mod_version),
+            # Both of these start their version strings with their module name, strip it out
             BaseMod.ComponentInfo("unrealsdk", unrealsdk.__version__.partition(" ")[2]),
             BaseMod.ComponentInfo("pyunrealsdk", pyunrealsdk.__version__.partition(" ")[2]),
         ],
     ),
 ]
+del _base_mod_version
 
 
 def register_mod(mod: Mod) -> None:
