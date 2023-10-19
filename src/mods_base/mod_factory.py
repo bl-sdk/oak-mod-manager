@@ -3,15 +3,15 @@ import functools
 import inspect
 import operator
 import tomllib
-import zipfile
 from collections.abc import Callable, Sequence
-from pathlib import Path, PurePosixPath, PureWindowsPath
+from pathlib import Path
 from types import ModuleType
 from typing import Any, TypedDict
 
 from unrealsdk import logging
 
 from .command import AbstractCommand
+from .dot_sdkmod import open_in_mod_dir
 from .hook import HookProtocol
 from .keybinds import KeybindType
 from .mod import Game, Mod, ModType
@@ -170,35 +170,13 @@ def load_pyproject(module: ModuleType) -> dict[str, Any]:
     Returns:
         The parsed toml data, or an empty dict if unable to find a pyproject.toml.
     """
-    module_file = Path(inspect.getfile(module))
-    dot_sdkmod = next(
-        (p for p in module_file.parents if p.is_file() and p.suffix == ".sdkmod"),
-        None,
-    )
+    pyproject = Path(inspect.getfile(module)).with_name("pyproject.toml")
 
-    if dot_sdkmod is None:
-        # If in extracted dir
-        pyproject = module_file.with_name("pyproject.toml")
-        if not (pyproject.exists() and pyproject.is_file()):
-            return {}
-
-        with pyproject.open("rb") as file:
+    try:
+        with open_in_mod_dir(pyproject, binary=True) as file:
             return tomllib.load(file)
-
-    # If in a .sdkmod
-    with zipfile.ZipFile(str(dot_sdkmod)) as zip_file:
-        inner_path = module_file.relative_to(dot_sdkmod).with_name("pyproject.toml")
-
-        # While the standard says zip files should use posix separators, some programs throw windows
-        # ones in, so just try both
-        for cls in (PurePosixPath, PureWindowsPath):
-            pyproject = zipfile.Path(zip_file, str(cls(inner_path)))
-            if pyproject.exists() and pyproject.is_file():
-                break
-        else:
-            return {}
-
-        return tomllib.loads(pyproject.read_text())
+    except (FileNotFoundError, tomllib.TOMLDecodeError):
+        return {}
 
 
 def update_fields_with_pyproject(module: ModuleType, fields: ModFactoryFields) -> None:
