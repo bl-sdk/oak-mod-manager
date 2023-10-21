@@ -1,10 +1,16 @@
 name: CI
 
-on: [
-  push,
-  pull_request,
-  workflow_dispatch
-]
+on:
+  push: {}
+  pull_request: {}
+  workflow_dispatch:
+    inputs:
+      new-release-tag:
+        description: >
+          New Release Tag. If given, creates a (draft) full release using the given tag, if empty,
+          updates the dev release.
+        type: string
+        required: false
 
 env:
   # Important to pin the clang version, cause we also use it for linting
@@ -48,10 +54,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        preset: [
-          "clang-release",
-          "msvc-release",
-        ]
+        preset:
+        - clang-release
+        - msvc-release
 
     steps:
     - name: Restore Clang Cache
@@ -99,14 +104,23 @@ jobs:
       working-directory: ${{ env.GITHUB_WORKSPACE }}
       run: cmake --build out/build/${{ matrix.preset }} --target install
 
-    - name: Prepare Release Zip
+    - name: Prepare Release Zip (dev ci)
+      if: inputs.new-release-tag == ''
       run: python prepare_release.py ${{ matrix.preset }} --skip-install --no-bl3 --no-wl --unified
 
+    - name: Prepare Release Zip (draft full)
+      if: inputs.new-release-tag != '' && contains(matrix.preset, 'msvc')
+      run: |
+        python prepare_release.py ${{ matrix.preset }} --skip-install
+        mv bl3-sdk-${{ matrix.preset }}.zip bl3-sdk.zip
+        mv wl-sdk-${{ matrix.preset }}.zip wl-sdk.zip
+
     - name: Upload Artifact
+      if: inputs.new-release-tag == '' || contains(matrix.preset, 'msvc')
       uses: actions/upload-artifact@v3
       with:
         name: ${{ matrix.preset }}
-        path: unified-sdk-${{ matrix.preset }}.zip
+        path: "*.zip"
 
   build-ubuntu:
     runs-on: ubuntu-latest
@@ -114,10 +128,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        preset: [
-          "mingw-release",
-          "clang-cross-release",
-        ]
+        preset:
+        - clang-cross-release
+        - mingw-release
 
     steps:
     - name: Setup CMake and Ninja
@@ -208,14 +221,16 @@ jobs:
       working-directory: ${{ env.GITHUB_WORKSPACE }}
       run: cmake --build out/build/${{ matrix.preset }} --target install
 
-    - name: Prepare Release Zip
+    - name: Prepare Release Zip (dev ci)
+      if: inputs.new-release-tag == ''
       run: python prepare_release.py ${{ matrix.preset }} --skip-install --no-bl3 --no-wl --unified
 
     - name: Upload Artifact
+      if: inputs.new-release-tag == ''
       uses: actions/upload-artifact@v3
       with:
         name: ${{ matrix.preset }}
-        path: unified-sdk-${{ matrix.preset }}.zip
+        path: "*.zip"
 
 # ==============================================================================
 
@@ -226,9 +241,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        preset: [
-          "clang-release",
-        ]
+        preset:
+        - clang-release
 
     steps:
     - name: Restore Clang Cache
@@ -357,3 +371,83 @@ jobs:
       uses: chartboost/ruff-action@v1
       with:
         src: "./src"
+
+# ==============================================================================
+
+  release-dev-ci:
+    runs-on: ubuntu-latest
+    if: >
+      github.ref == 'refs/heads/master'
+      && github.repository == 'bl-sdk/oak-mod-manager'
+      && inputs.new-release-tag == ''
+
+    needs:
+      - build-ubuntu
+      - build-windows
+      - clang-tidy
+      - clang-format
+      - spelling
+      - black
+      - pyright
+      - ruff
+
+    permissions:
+      contents: write
+
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+
+    - name: Upload releases
+      uses: andelf/nightly-release@main
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: nightly
+        files: "*/*.zip"
+        name: Automated Development Release
+        prerelease: true
+        body: >
+          This release is automatically built from the latest passing commits on master - it might
+          break things. Only use this if you know what you're doing.
+
+  release-draft-full:
+    runs-on: ubuntu-latest
+    if: >
+      github.ref == 'refs/heads/master'
+      && github.repository == 'bl-sdk/oak-mod-manager'
+      && inputs.new-release-tag != ''
+
+    needs:
+      - build-ubuntu
+      - build-windows
+      - clang-tidy
+      - clang-format
+      - spelling
+      - black
+      - pyright
+      - ruff
+
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+
+    - name: Create new release tag
+      uses: rickstaa/action-create-tag@v1
+      with:
+        tag: ${{ inputs.new-release-tag }}
+
+    - name: Upload releases
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ inputs.new-release-tag }}
+        files: "*/*.zip"
+        fail_on_unmatched_files: true
+        draft: true
+        generate_release_notes: true
