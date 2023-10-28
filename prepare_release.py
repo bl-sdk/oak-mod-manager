@@ -3,6 +3,7 @@ import re
 import shutil
 import subprocess
 import textwrap
+import tomllib
 from collections.abc import Iterator, Sequence
 from functools import cache
 from io import BytesIO
@@ -244,7 +245,7 @@ if __name__ == "__main__":
     STUBS_DIR = Path("libs") / "pyunrealsdk" / "stubs"
     SETTINGS_DIR = Path("src") / "settings"
 
-    GIT_VERSION_FILE = BASE_MOD / "git_version.txt"
+    PYPROJECT_FILE = BASE_MOD / "pyproject.toml"
 
     parser = ArgumentParser(description="Prepares a release zip.")
     parser.add_argument(
@@ -275,12 +276,6 @@ if __name__ == "__main__":
         default=False,
         help="Create a unified release zip. Defaults to off.",
     )
-    parser.add_argument(
-        "--update-git-version-txt",
-        action=BooleanOptionalAction,
-        default=True,
-        help="Updates the `git_version.txt`. Defaults to on.",
-    )
     args = parser.parse_args()
 
     install_dir = INSTALL_DIR_BASE / str(args.preset)
@@ -291,10 +286,18 @@ if __name__ == "__main__":
 
     assert install_dir.exists() and install_dir.is_dir(), "install dir doesn't exist"
 
-    if args.update_git_version_txt:
-        with GIT_VERSION_FILE.open("w") as file:
-            file.write(get_git_repo_version())
+    # Add the git hash to the displayed version in the pyproject
+    old_pyproject = PYPROJECT_FILE.read_text()
+    version_number = tomllib.loads(old_pyproject)["project"]["version"]
+    git_version = get_git_repo_version()
+    PYPROJECT_FILE.write_text(
+        old_pyproject.replace(
+            "# RELEASE_SCRIPT_REPLACE_ME_WITH_DISPLAY_VERSION",
+            f'version = "{version_number} ({git_version})"',
+        ),
+    )
 
+    # Zip up all the requested files
     COMMON_FOLDERS = (BASE_MOD, KEYBINDS, UI_UTILS)
 
     for prefix, arg, mods in (
@@ -317,3 +320,6 @@ if __name__ == "__main__":
             SETTINGS_DIR,
             install_dir,
         )
+
+    # Restore the old pyproject contents
+    PYPROJECT_FILE.write_text(old_pyproject)
