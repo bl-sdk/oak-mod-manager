@@ -1,13 +1,24 @@
+import tomllib
 from pathlib import Path
 
 import unrealsdk
 from unrealsdk.unreal import UObject
 
-# Need to define a few things first to avoid circular imports
-__version_info__: tuple[int, int] = (1, 0)
-__version__: str = f"{__version_info__[0]}.{__version_info__[1]}"
+from .dot_sdkmod import open_in_mod_dir
 
-if True:  # Inner block suppresses E402 for following imports
+# Need to define a few things first to avoid circular imports
+with open_in_mod_dir(Path(__file__).parent / "pyproject.toml", binary=True) as _pyproject:
+    # We're being a bit unsafe here, but we know what we expect to see, and given we expect to be
+    # in a .sdkmod it's quite unlikely that a regular user will unknowingly edit it
+    _pyproject_data = tomllib.load(_pyproject)
+    _version_str = _pyproject_data["project"]["version"]
+    _major, _, _minor = _version_str.partition(".")
+
+    __version_info__: tuple[int, int] = (int(_major), int(_minor))
+    __version__: str = _pyproject_data["tool"]["sdkmod"].get("version", _version_str)
+    del _major, _, _minor, _version_str, _pyproject_data, _pyproject
+
+    # This doesn't need to be in the inner block, but exiting would cause E402 for following imports
     MODS_DIR: Path = (
         _mod_dir
         if (_mod_dir := Path(__file__).parent.parent).is_dir()
@@ -23,7 +34,6 @@ from .command import (
     command,
     remove_next_console_line_capture,
 )
-from .dot_sdkmod import open_in_mod_dir
 from .hook import hook
 from .keybinds import EInputEvent, KeybindType, keybind
 from .mod import Game, Library, Mod, ModType
