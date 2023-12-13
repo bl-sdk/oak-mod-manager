@@ -1,4 +1,5 @@
 #include "pyunrealsdk/pch.h"
+#include "pyunrealsdk/debugging.h"
 #include "pyunrealsdk/logging.h"
 #include "pyunrealsdk/static_py_object.h"
 #include "unrealsdk/memory.h"
@@ -214,6 +215,8 @@ void option_base_create_content_panel_item_hook(UGFxOptionBase* self,
     if (option_type == INVALID_OPTION_TYPE) {
         try {
             const py::gil_scoped_acquire gil{};
+            pyunrealsdk::debug_this_thread();
+
             injection_callback(pyunrealsdk::type_casters::cast(self));
         } catch (const std::exception& ex) {
             pyunrealsdk::logging::log_python_exception(ex);

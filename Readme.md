@@ -2,6 +2,10 @@
 [![Support Discord](https://img.shields.io/static/v1?label=&message=Support%20Discord&logo=discord&color=424)](https://discord.gg/bXeqV8Ef9R)
 [![Developer Discord](https://img.shields.io/static/v1?label=&message=Developer%20Discord&logo=discord&color=222)](https://discord.gg/VJXtHvh)
 
+[For installation instructions / the mod database, see the project site.](https://bl-sdk.github.io/oak-mod-db/)
+
+<br>
+
 The [pyunrealsdk](https://github.com/bl-sdk/pyunrealsdk) mod manager for:
 - Borderlands 3
 - Wonderlands
