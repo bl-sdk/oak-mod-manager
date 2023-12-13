@@ -283,6 +283,11 @@ jobs:
 
         cmake . --preset ${{ matrix.preset }} -DCMAKE_DISABLE_PRECOMPILE_HEADERS=On
 
+        (Get-Content "out\build\${{ matrix.preset }}\compile_commands.json")    `
+          -replace "@CMakeFiles.+?\.modmap", ""                                 `
+        | Set-Content                                                           `
+          -Path "out\build\${{ matrix.preset }}\compile_commands.json"
+
     - name: Run clang-tidy
       working-directory: ${{ env.GITHUB_WORKSPACE }}
       run: |
@@ -363,6 +368,7 @@ jobs:
     - name: Run pyright
       uses: jakebailey/pyright-action@v1
       with:
+        pylance-version: latest-release
         working-directory: "./src/"
 
   ruff:

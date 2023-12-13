@@ -7,7 +7,10 @@ from typing import IO, Literal, overload
 
 
 @overload
-def open_in_mod_dir(path: Path, binary: Literal[False] = False) -> AbstractContextManager[IO[str]]:
+def open_in_mod_dir(
+    path: Path,
+    binary: Literal[False] = False,
+) -> AbstractContextManager[IO[str]]:
     ...
 
 

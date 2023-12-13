@@ -277,11 +277,13 @@ using scrolling_list_scroll_to_position_func = void (*)(UGbxGFxGridScrollingList
 scrolling_list_scroll_to_position_func scrolling_list_scroll_to_position_ptr;
 
 auto content_panel_prop = unrealsdk::unreal::find_class(L"GFxOptionBase"_fn)
-    -> find_prop_and_validate<UObjectProperty>(L"ContentPanel"_fn);
-auto ui_scroller_prop = content_panel_prop->get_property_class()
-                            -> find_prop_and_validate<UStructProperty>(L"UiScroller"_fn);
-auto scroll_position_prop = ui_scroller_prop->get_inner_struct()
-                                -> find_prop_and_validate<UFloatProperty>(L"ScrollPosition"_fn);
+                              ->find_prop_and_validate<UObjectProperty>(L"ContentPanel"_fn);
+auto ui_scroller_prop =
+    content_panel_prop->get_property_class()->find_prop_and_validate<UStructProperty>(
+        L"UiScroller"_fn);
+auto scroll_position_prop =
+    ui_scroller_prop->get_inner_struct()->find_prop_and_validate<UFloatProperty>(
+        L"ScrollPosition"_fn);
 
 /**
  * @brief Performs all required setup needed to be able to manipulate the options scrollbar.

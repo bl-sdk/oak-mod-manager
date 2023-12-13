@@ -7,9 +7,12 @@ from pathlib import Path
 from unrealsdk import logging
 
 try:
-    import debugpy
+    import debugpy  # pyright: ignore[reportMissingImports]
 
-    debugpy.listen(("localhost", 5678), in_process_debug_adapter=True)
+    debugpy.listen(  # pyright: ignore[reportUnknownMemberType]
+        ("localhost", 5678),
+        in_process_debug_adapter=True,
+    )
 except ImportError:
     pass
 

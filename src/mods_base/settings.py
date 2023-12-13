@@ -185,7 +185,7 @@ def default_save_mod_settings(self: Mod) -> None:
             settings["options"] = option_settings
 
     if len(self.keybinds) > 0:
-        keybind_settings = {}
+        keybind_settings: dict[str, str | None] = {}
         for keybind in self.keybinds:
             if not keybind.is_rebindable:
                 continue

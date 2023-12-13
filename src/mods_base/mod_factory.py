@@ -287,7 +287,7 @@ def update_fields_with_module_search(module: ModuleType, fields: ModFactoryField
             case KeybindType() if find_keybinds:
                 new_keybinds.append(value)
 
-            case (GroupedOption() | NestedOption()) if find_options:
+            case GroupedOption() | NestedOption() if find_options:
                 logging.dev_warning(
                     f"{module.__name__}: {type(value).__name__} instances must be explicitly"
                     f" specified in the options list!",
