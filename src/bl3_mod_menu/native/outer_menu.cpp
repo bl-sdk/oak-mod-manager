@@ -1,4 +1,5 @@
 #include "pyunrealsdk/pch.h"
+#include "pyunrealsdk/debugging.h"
 #include "pyunrealsdk/logging.h"
 #include "pyunrealsdk/static_py_object.h"
 #include "unrealsdk/hook_manager.h"
@@ -52,6 +53,7 @@ int32_t add_menu_item_hook(UObject* self,
     if (add_menu_item_callback) {
         try {
             const py::gil_scoped_acquire gil{};
+            pyunrealsdk::debug_this_thread();
 
             auto converted_self = pyunrealsdk::type_casters::cast(self);
 

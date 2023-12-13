@@ -1,4 +1,5 @@
 #include "pyunrealsdk/pch.h"
+#include "pyunrealsdk/debugging.h"
 #include "pyunrealsdk/hooks.h"
 #include "pyunrealsdk/logging.h"
 #include "pyunrealsdk/static_py_object.h"
@@ -53,6 +54,8 @@ uintptr_t oakpc_inputkey_hook(AOakPlayerController* self,
             auto key_name = WrappedStruct{key_struct_type, key}.get<UNameProperty>(key_name_prop);
 
             const py::gil_scoped_acquire gil{};
+            pyunrealsdk::debug_this_thread();
+
             auto player_controller = pyunrealsdk::type_casters::cast(self);
             auto event_enum = input_event_enum(input_event);
 

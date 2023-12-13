@@ -6,6 +6,13 @@ from pathlib import Path
 
 from unrealsdk import logging
 
+try:
+    import debugpy
+
+    debugpy.listen(("localhost", 5678), in_process_debug_adapter=True)
+except ImportError:
+    pass
+
 _full_traceback = False
 
 
