@@ -3,7 +3,7 @@ from typing import Any
 
 import unrealsdk
 from mods_base import Mod, get_ordered_mod_list, hook
-from unrealsdk.hooks import Type
+from unrealsdk.hooks import Block, Type
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 from .native.outer_menu import (
@@ -15,7 +15,7 @@ from .native.outer_menu import (
 )
 from .options_setup import open_options_menu
 
-MAIN_MENU_CLS = unrealsdk.find_class("GFxOakMainMenu")
+MAIN_PAUSE_MENU_CLS = unrealsdk.find_class("GFxMainAndPauseBaseMenu")
 
 RE_FONT_TAG = re.compile(r"\s+<font", re.I)
 DISABLED_GRAY = "#778899"  # lightslategray
@@ -39,12 +39,12 @@ def add_menu_item_hook(
     big: bool,
     always_minus_one: int,
 ) -> int:
-    """Hook to inject the outermot mods option."""
+    """Hook to inject the outermost mods option."""
     idx = add_menu_item(self, text, callback_name, big, always_minus_one)
 
-    if callback_name == "OnStoreClicked":
+    if callback_name in ("OnStoreClicked", "OnPhotoModeClicked"):
         global last_mods_menu_idx
-        last_mods_menu_idx = add_menu_item(self, "MODS", "OnOtherButtonClicked", False, -1)
+        last_mods_menu_idx = add_menu_item(self, "MODS", "OnInviteListClearClicked", False, -1)
 
     return idx
 
@@ -67,7 +67,7 @@ def draw_mods_list(main_menu: UObject) -> None:
         if not mod.is_enabled and not RE_FONT_TAG.match(mod.name):
             formatted_name = f"<font color='{DISABLED_GRAY}'>{mod.name}</font>"
 
-        add_menu_item(main_menu, formatted_name, "OnOtherButtonClicked", False, -1)
+        add_menu_item(main_menu, formatted_name, "OnInviteListClearClicked", False, -1)
 
     # If we have too many mods, they'll end up scrolling behind the news box
     # To avoid this, add some dummy entries
@@ -89,20 +89,24 @@ def frontend_menu_change_hook(
 
     # If we transisitoned back onto the main menu, and we're looking at the mod list
     if (
-        active_menu.Class._inherits(MAIN_MENU_CLS)
+        active_menu.Class._inherits(MAIN_PAUSE_MENU_CLS)
         and get_menu_state(active_menu) == MENU_STATE_MODS_LIST
     ):
         # Refresh it, so that we update the enabled/disabled coloring
         draw_mods_list(active_menu)
 
 
-@hook("/Script/OakGame.GFxOakMainMenu:OnOtherButtonClicked", Type.PRE, auto_enable=True)
+@hook(
+    "/Script/OakGame.GFxMainAndPauseBaseMenu:OnInviteListClearClicked",
+    Type.PRE,
+    auto_enable=True,
+)
 def other_button_hook(
     obj: UObject,
     args: WrappedStruct,
     _3: Any,
     _4: BoundFunction,
-) -> None:
+) -> None | type[Block]:
     """Hook to detect clicking menu items."""
     pressed_idx: int
     pressed_button = args.PressedButton
@@ -118,6 +122,10 @@ def other_button_hook(
     if menu_state == MENU_STATE_OUTERMOST_MAIN_MENU and pressed_idx == last_mods_menu_idx:
         set_menu_state(obj, MENU_STATE_MODS_LIST)
         draw_mods_list(obj)
+        return Block
 
     if menu_state == MENU_STATE_MODS_LIST:
         open_options_menu(obj, last_displayed_mod_list[pressed_idx])
+        return Block
+
+    return None
