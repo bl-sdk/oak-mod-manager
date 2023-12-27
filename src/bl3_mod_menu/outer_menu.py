@@ -2,7 +2,7 @@ import re
 from typing import Any
 
 import unrealsdk
-from mods_base import Mod, get_ordered_mod_list, hook
+from mods_base import BoolOption, Mod, get_ordered_mod_list, hook
 from unrealsdk.hooks import Block, Type
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
@@ -30,6 +30,40 @@ last_mods_menu_idx: int = -1
 # The list of mods we used when drawing the mod list last time
 last_displayed_mod_list: list[Mod] = []
 
+hide_behind_the_scenes = BoolOption(
+    "Hide Behind The Scenes Menu",
+    False,
+    description="Hides the 'Behind The Scenes' option from the main menu.",
+)
+hide_store = BoolOption(
+    "Hide Store Menu",
+    True,
+    description="Hides the 'Store' option from the main menu.",
+)
+hide_achievements = BoolOption(
+    "Hide Achievements Menu",
+    True,
+    description=(
+        "Hides the 'Achievements' option from the pause menu. Useful to prevent ruining SQ muscle"
+        " memory."
+    ),
+)
+hide_photo_mode = BoolOption(
+    "Hide Photo Mode Menu",
+    False,
+    description=(
+        "Hides the 'Photo Mode' option from the pause menu. Useful to prevent ruining SQ muscle"
+        " memory."
+    ),
+)
+
+hide_menu_options = {
+    "OnBehindTheScenesClicked": hide_behind_the_scenes,
+    "OnStoreClicked": hide_store,
+    "OnAchievementsClicked": hide_achievements,
+    "OnPhotoModeClicked": hide_photo_mode,
+}
+
 
 @set_add_menu_item_callback
 def add_menu_item_hook(
@@ -40,7 +74,13 @@ def add_menu_item_hook(
     always_minus_one: int,
 ) -> int:
     """Hook to inject the outermost mods option."""
-    idx = add_menu_item(self, text, callback_name, big, always_minus_one)
+    if callback_name in hide_menu_options and hide_menu_options[callback_name].value:
+        # Surprisingly, just setting the return value to -1 just works, no menu item is drawn and
+        # nothing seems to go wrong
+        idx = -1
+    else:
+        # Show the item properly
+        idx = add_menu_item(self, text, callback_name, big, always_minus_one)
 
     if callback_name in ("OnStoreClicked", "OnPhotoModeClicked"):
         global last_mods_menu_idx

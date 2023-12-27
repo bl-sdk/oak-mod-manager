@@ -26,7 +26,7 @@ if Game.get_current() is Game.BL3:
         keybinds,
         options_callbacks,  # noqa: F401  # pyright: ignore[reportUnusedImport]
         options_setup,  # noqa: F401  # pyright: ignore[reportUnusedImport]
-        outer_menu,  # noqa: F401  # pyright: ignore[reportUnusedImport]
+        outer_menu,
     )
 
     base_mod.options.append(
@@ -35,6 +35,10 @@ if Game.get_current() is Game.BL3:
             (
                 keybinds.controller_style_option,
                 keybinds.switch_swap_option,
+                outer_menu.hide_behind_the_scenes,
+                outer_menu.hide_store,
+                outer_menu.hide_achievements,
+                outer_menu.hide_photo_mode,
             ),
         ),
     )
