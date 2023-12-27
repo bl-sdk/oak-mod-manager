@@ -10,6 +10,7 @@ from . import MODS_DIR
 from .options import (
     BaseOption,
     BoolOption,
+    ButtonOption,
     DropdownOption,
     GroupedOption,
     HiddenOption,
@@ -162,8 +163,16 @@ def create_options_dict(options: Sequence[BaseOption]) -> dict[str, JSON]:
                 # The generics mean the type of value is technically unknown here
                 value = cast(JSON, option.value)  # type: ignore
                 settings[option.identifier] = value
+
             case GroupedOption() | NestedOption():
                 settings[option.identifier] = create_options_dict(option.children)
+
+            # Button option is the only standard option which is not abstract, but also not a value,
+            # and doesn't have children.
+            # Just no-op it so that it doesn't show an error
+            case ButtonOption():
+                pass
+
             case _:
                 logging.error(
                     f"Couldn't save settings for unknown option type {type(option).__name__}",
