@@ -36,6 +36,7 @@ Checks: >
     -cppcoreguidelines-non-private-member-variables-in-classes,
 CheckOptions:
     cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor: true
+    cppcoreguidelines-rvalue-reference-param-not-moved.IgnoreUnnamedParams: true
     misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic: true
 
     readability-identifier-naming.GlobalConstantCase:   UPPER_CASE

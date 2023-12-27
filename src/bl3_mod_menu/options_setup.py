@@ -231,7 +231,7 @@ def refresh_current_options_menu(options_menu: UObject, preserve_scroll: bool = 
 
 
 # Avoid circular import
-from .outer_menu import MAIN_MENU_CLS  # noqa: E402
+from .outer_menu import MAIN_PAUSE_MENU_CLS  # noqa: E402
 
 
 def open_nested_options_menu(nested: NestedOption) -> None:
@@ -249,7 +249,7 @@ def open_nested_options_menu(nested: NestedOption) -> None:
                 entry.MenuObject
                 for entry in reversed(get_pc().MenuStack.MenuStack)
                 if (menu_obj := entry.MenuObject) is not None
-                and menu_obj.Class._inherits(MAIN_MENU_CLS)
+                and menu_obj.Class._inherits(MAIN_PAUSE_MENU_CLS)
             ),
             None,
         )
@@ -276,7 +276,7 @@ def frontend_menu_change_hook(
     active_menu: UObject = args.ActiveMenu
 
     # If we transferred back to the main menu, regardless of how, save settings and clear the stack
-    if active_menu.Class._inherits(MAIN_MENU_CLS):
+    if active_menu.Class._inherits(MAIN_PAUSE_MENU_CLS):
         # This should always be the mod, but double check
         if len(option_stack) > 0 and isinstance(option_stack[0].cause, Mod):
             option_stack[0].cause.save_settings()
