@@ -13,7 +13,23 @@ try:
         ("localhost", 5678),
         in_process_debug_adapter=True,
     )
-except ImportError:
+
+    # Make WrappedArrays resolve the same as lists
+    from _pydevd_bundle.pydevd_resolver import (  # pyright: ignore[reportMissingImports]
+        tupleResolver,  # pyright: ignore[reportUnknownVariableType]
+    )
+    from _pydevd_bundle.pydevd_xml import (  # pyright: ignore[reportMissingImports]
+        _TYPE_RESOLVE_HANDLER,  # pyright: ignore[reportUnknownVariableType]
+    )
+    from unrealsdk.unreal import WrappedArray
+
+    if not _TYPE_RESOLVE_HANDLER._initialized:  # pyright: ignore[reportUnknownMemberType]
+        _TYPE_RESOLVE_HANDLER._initialize()  # pyright: ignore[reportUnknownMemberType]
+    _TYPE_RESOLVE_HANDLER._default_type_map.append(  # pyright: ignore[reportUnknownMemberType]
+        (WrappedArray, tupleResolver),
+    )
+
+except (ImportError, AttributeError):
     pass
 
 _full_traceback = False
