@@ -49,7 +49,12 @@ def cycle_next_message() -> None:
 
     title, msg, duration = queued_message
     queued_message = None
-    get_pc().DisplayRolloutNotification(title, msg, duration)
+
+    # Since we're on a thread, the user may have started loading since we were queued
+    # Just drop the message if we can't find the pc
+    pc = get_pc(possibly_loading=True)
+    if pc is not None:
+        pc.DisplayRolloutNotification(title, msg, duration)
 
 
 @hook("/Script/OakGame.OakPlayerController:DisplayRolloutNotification", Type.PRE, auto_enable=True)
