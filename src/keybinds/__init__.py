@@ -1,10 +1,20 @@
-from mods_base import EInputEvent, Game
-from mods_base.mod_list import base_mod, mod_list
-from mods_base.raw_keybinds import raw_keybind_callback_stack
-from unrealsdk.hooks import Block
-from unrealsdk.unreal import UObject
+from functools import wraps
+from typing import cast
 
-from .keybinds import set_keybind_callback
+from mods_base import KeybindType
+from mods_base.keybinds import KeybindCallback_Event, KeybindCallback_NoArgs
+from mods_base.mod_list import base_mod
+from mods_base.raw_keybinds import (
+    RawKeybind,
+    RawKeybindCallback_EventOnly,
+    RawKeybindCallback_KeyAndEvent,
+    RawKeybindCallback_KeyOnly,
+    RawKeybindCallback_NoArgs,
+)
+
+from .keybinds import deregister_keybind, register_keybind
+
+# from mods_base.raw_keybinds import raw_keybind_callback_stack
 
 __all__: tuple[str, ...] = (
     "__author__",
@@ -12,84 +22,103 @@ __all__: tuple[str, ...] = (
     "__version_info__",
 )
 
-__version_info__: tuple[int, int] = (1, 0)
+__version_info__: tuple[int, int] = (2, 0)
 __version__: str = f"{__version_info__[0]}.{__version_info__[1]}"
 __author__: str = "bl-sdk"
 
 
-def handle_raw_keybind(pc: UObject, key: str, event: EInputEvent) -> bool:
-    """
-    Handler which calls raw keybind callbacks.
+@wraps(KeybindType.enable)
+def enable_keybind(self: KeybindType) -> None:
+    if self.key is None or self.callback is None:
+        return
 
-    Args:
-        pc: The OakPlayerController which caused the event.
-        key: The key which was pressed.
-        event: Which type of input happened.
-    Returns:
-        True if the key event should be blocked.
-    """
-    _ = pc
-
-    should_block = False
-    if len(raw_keybind_callback_stack) > 0:
-        for callback in raw_keybind_callback_stack[-1]:
-            ret = callback(key, event)
-
-            if ret == Block or isinstance(ret, Block):
-                should_block = True
-
-    return should_block
-
-
-def handle_gameplay_keybind(pc: UObject, key: str, event: EInputEvent) -> bool:
-    """
-    Handler which calls gameplay keybind callbacks.
-
-    Args:
-        pc: The OakPlayerController which caused the event.
-        key: The key which was pressed.
-        event: Which type of input happened.
-    Returns:
-        True if the key event should be blocked.
-    """
-    # Early exit if in a menu
-    if Game.get_current() == Game.WL:
-        # pc.IsInMenu() doesn't work in WL, since it uses a different menu system
-        # Haven't found the correct replacement, but just checking cursor seems to work well enough,
-        # even works on controller when no cursor is actually drawn
-        if pc.bShowMouseCursor:
-            return False
+    # While this is redundant, it keeps the type checking happy
+    if self.event_filter is None:
+        handle = register_keybind(
+            self.key,
+            self.event_filter,
+            True,
+            cast(KeybindCallback_Event, self.callback),
+        )
     else:
-        if pc.IsInMenu():
-            return False
+        handle = register_keybind(
+            self.key,
+            self.event_filter,
+            True,
+            cast(KeybindCallback_NoArgs, self.callback),
+        )
 
-    should_block = False
-    for mod in mod_list:
-        if not mod.is_enabled:
-            continue
-
-        for bind in mod.keybinds:
-            if bind.callback is None:
-                continue
-            if bind.key != key:
-                continue
-
-            ret = bind.callback(event)
-            if ret == Block or isinstance(ret, Block):
-                should_block = True
-
-    return should_block
+    self._kb_handle = handle  # type: ignore
 
 
-@set_keybind_callback
-def keybind_handler(pc: UObject, key: str, event: EInputEvent) -> None | Block | type[Block]:
-    """General keybind handler."""
-    if handle_raw_keybind(pc, key, event):
-        return Block
-    if handle_gameplay_keybind(pc, key, event):
-        return Block
+KeybindType.enable = enable_keybind
 
-    return None
+
+@wraps(KeybindType.disable)
+def disable_keybind(self: KeybindType) -> None:
+    handle = getattr(self, "_kb_handle", None)
+    if handle is None:
+        return
+
+    deregister_keybind(handle)
+    self._kb_handle = None  # type: ignore
+
+
+KeybindType.disable = disable_keybind
+
+
+@wraps(RawKeybind.enable)
+def enable_raw_keybind(self: RawKeybind) -> None:
+    # Even more redundancy for type checking
+    # Can't use a match statement since an earlier `case None:` doesn't remove None from later cases
+    if self.key is None:
+        if self.event is None:
+            handle = register_keybind(
+                self.key,
+                self.event,
+                False,
+                cast(RawKeybindCallback_KeyAndEvent, self.callback),
+            )
+        else:
+            handle = register_keybind(
+                self.key,
+                self.event,
+                False,
+                cast(RawKeybindCallback_KeyOnly, self.callback),
+            )
+    else:
+        if self.event is None:
+            handle = register_keybind(
+                self.key,
+                self.event,
+                False,
+                cast(RawKeybindCallback_EventOnly, self.callback),
+            )
+        else:
+            handle = register_keybind(
+                self.key,
+                self.event,
+                False,
+                cast(RawKeybindCallback_NoArgs, self.callback),
+            )
+
+    self._kb_handle = handle  # type: ignore
+
+
+RawKeybind.enable = enable_raw_keybind
+
+
+@wraps(RawKeybind.disable)
+def disable_raw_keybind(self: RawKeybind) -> None:
+    handle = getattr(self, "_kb_handle", None)
+    if handle is None:
+        return
+
+    deregister_keybind(handle)
+    self._kb_handle = None  # type: ignore
+
+
+RawKeybind.disable = disable_raw_keybind
 
 
 base_mod.components.append(base_mod.ComponentInfo("Keybinds", __version__))

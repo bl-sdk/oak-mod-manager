@@ -196,6 +196,16 @@ def get_mods_to_import() -> Collection[str]:
     return mods_to_import
 
 
+def import_mod_manager() -> None:
+    """
+    Imports any mod manager modules which have specific initialization order requirements.
+
+    Most modules are fine to get imported as a mod/by another mod, but we need to do a few manually.
+    """
+    # Keybinds uses a native module, so will always be extracted, don't need to mess with sys.path
+    import keybinds  # noqa: F401  # pyright: ignore[reportUnusedImport]
+
+
 def import_mods() -> None:
     """Tries to import all mods."""
     for name in get_mods_to_import():
@@ -220,4 +230,5 @@ init_debugpy()
 while not logging.is_console_ready():
     pass
 
+import_mod_manager()
 import_mods()

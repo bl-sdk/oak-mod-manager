@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import functools
 from collections.abc import Callable
 from dataclasses import KW_ONLY, dataclass, field
-from typing import TYPE_CHECKING, Any, TypeAlias, cast, overload
+from typing import TYPE_CHECKING, Any, TypeAlias, overload
 
+from unrealsdk import logging
 from unrealsdk.hooks import Block
 
 if TYPE_CHECKING:
@@ -49,6 +49,7 @@ class KeybindType:
         description_title: The title of the description. Defaults to copying the display name.
         is_hidden: If true, the keybind will not be shown in the options menu.
         is_rebindable: If the key may be rebound.
+        event_filter: If not None, only runs the callback when the given event fires.
 
     Extra Attributes:
         default_key: What the key was originally when registered. Does not update on rebind.
@@ -57,7 +58,10 @@ class KeybindType:
     identifier: str
     key: str | None
 
-    callback: KeybindCallback_Event | None = None
+    # If `event_filter` is None, `callback` should be `KeybindCallback_Event | None`
+    # If `event_filter` is not None, `callback` should be `KeybindCallback_NoArgs | None`
+    # The decorator uses overloads to enforce this
+    callback: KeybindCallback_Event | KeybindCallback_NoArgs | None = None
 
     _: KW_ONLY
     display_name: str = None  # type: ignore
@@ -65,6 +69,7 @@ class KeybindType:
     description_title: str = None  # type: ignore
     is_hidden: bool = False
     is_rebindable: bool = True
+    event_filter: EInputEvent | None = EInputEvent.IE_Released
 
     default_key: str | None = field(init=False)
 
@@ -75,6 +80,17 @@ class KeybindType:
             self.description_title = self.display_name
 
         self.default_key = self.key
+
+    # These two functions should get replaced by the keybind implementation
+    # The initialization script should make sure to load it before any mods, to make sure they don't
+    # end up with references to these functions
+    def enable(self) -> None:
+        """Enables this keybind."""
+        logging.error("No keybind implementation loaded, unable to enable binds")
+
+    def disable(self) -> None:
+        """Disables this keybind."""
+        logging.error("No keybind implementation loaded, unable to disable binds")
 
 
 @overload
@@ -179,31 +195,18 @@ def keybind(
     """
 
     def decorator(func: KeybindCallback_NoArgs | KeybindCallback_Event) -> KeybindType:
-        event_func: KeybindCallback_Event
-        if event_filter is not None:
-            no_arg_func = cast(KeybindCallback_NoArgs, func)
-
-            @functools.wraps(no_arg_func)
-            def event_filtering_callback(event: EInputEvent) -> KeybindBlockSignal:
-                if event != event_filter:
-                    return None
-                return no_arg_func()
-
-            event_func = event_filtering_callback
-        else:
-            event_func = cast(KeybindCallback_Event, func)
-
         kwargs: dict[str, Any] = {
             "description": description,
             "is_hidden": is_hidden,
             "is_rebindable": is_rebindable,
+            "event_filter": event_filter,
         }
         if display_name is not None:
             kwargs["display_name"] = display_name
         if description_title is not None:
             kwargs["description_title"] = description_title
 
-        return KeybindType(identifier, key, event_func, **kwargs)
+        return KeybindType(identifier, key, func, **kwargs)
 
     if callback is None:
         return decorator
