@@ -16,13 +16,12 @@ env:
   # Important to pin the clang version, cause we also use it for linting
   CLANG_VERSION: 17
   CLANG_TIDY_JOBS: 4
-  # Since we use rather new c++ features, we need a rather new version of MinGW
-  # LLVM MinGW seems to be the newest prebuilt binaries around
-  LLVM_MINGW_VERSION: llvm-mingw-20230919-msvcrt-ubuntu-20.04-x86_64
-  LLVM_MINGW_DOWNLOAD: https://github.com/mstorsjo/llvm-mingw/releases/download/20230919/llvm-mingw-20230919-msvcrt-ubuntu-20.04-x86_64.tar.xz
+  # LLVM MinGW download
+  LLVM_MINGW_VERSION: llvm-mingw-20231128-msvcrt-ubuntu-20.04-x86_64
+  LLVM_MINGW_DOWNLOAD: https://github.com/mstorsjo/llvm-mingw/releases/download/20231128/llvm-mingw-20231128-msvcrt-ubuntu-20.04-x86_64.tar.xz
   # xwin settings
-  XWIN_VERSION: xwin-0.3.1-x86_64-unknown-linux-musl
-  XWIN_DOWNLOAD: https://github.com/Jake-Shadle/xwin/releases/download/0.3.1/xwin-0.3.1-x86_64-unknown-linux-musl.tar.gz
+  XWIN_VERSION: xwin-0.5.0-x86_64-unknown-linux-musl
+  XWIN_DOWNLOAD: https://github.com/Jake-Shadle/xwin/releases/download/0.5.0/xwin-0.5.0-x86_64-unknown-linux-musl.tar.gz
   # Python settings
   PYTHON_VERSION: "3.11.5"
 
@@ -60,7 +59,7 @@ jobs:
 
     steps:
     - name: Restore Clang Cache
-      if: contains(matrix.preset, 'clang')
+      if: startswith(matrix.preset, 'clang')
       uses: actions/cache/restore@v3
       with:
         path: C:\Program Files\LLVM
@@ -68,7 +67,7 @@ jobs:
         fail-on-cache-miss: true
 
     - name: Add MSVC to PATH
-      if: contains(matrix.preset, 'msvc')
+      if: startswith(matrix.preset, 'msvc')
       uses: TheMrMilchmann/setup-msvc-dev@v2
       with:
         arch: x64
@@ -109,14 +108,14 @@ jobs:
       run: python prepare_release.py ${{ matrix.preset }} --skip-install --no-bl3 --no-wl --unified
 
     - name: Prepare Release Zip (draft full)
-      if: inputs.new-release-tag != '' && contains(matrix.preset, 'msvc')
+      if: inputs.new-release-tag != '' && startswith(matrix.preset, 'msvc')
       run: |
         python prepare_release.py ${{ matrix.preset }} --skip-install
         mv bl3-sdk-${{ matrix.preset }}.zip bl3-sdk.zip
         mv wl-sdk-${{ matrix.preset }}.zip wl-sdk.zip
 
     - name: Upload Artifact
-      if: inputs.new-release-tag == '' || contains(matrix.preset, 'msvc')
+      if: inputs.new-release-tag == '' || startswith(matrix.preset, 'msvc')
       uses: actions/upload-artifact@v3
       with:
         name: ${{ matrix.preset }}
@@ -130,7 +129,11 @@ jobs:
       matrix:
         preset:
         - clang-cross-release
-        - mingw-release
+        - llvm-mingw-release
+        # Currently, ubuntu-latest is 22.04, whose mingw version is too old, so disabling this build
+        # for now
+        # Not sure of the exact threshold, 13.1.0 works
+        #  - mingw-release
 
     steps:
     - name: Setup CMake and Ninja
@@ -151,7 +154,7 @@ jobs:
     # Caching would also lose the +x - so we'd have to tar before caching/untar after, making it
     #  even slower
     - name: Setup Clang
-      if: contains(matrix.preset, 'clang')
+      if: startswith(matrix.preset, 'clang')
       run: |
         wget https://apt.llvm.org/llvm.sh
         chmod +x llvm.sh
@@ -173,12 +176,18 @@ jobs:
           /usr/bin/llvm-rc-${{ env.CLANG_VERSION }}     \
           200
 
-    - name: Setup MinGW
-      if: contains(matrix.preset, 'mingw')
+    - name: Setup LLVM MinGW
+      if: startswith(matrix.preset, 'llvm-mingw')
       run: |
         wget -nv ${{ env.LLVM_MINGW_DOWNLOAD }}
         tar -xf ${{ env.LLVM_MINGW_VERSION }}.tar.xz -C ~/
         echo $(readlink -f ~/${{ env.LLVM_MINGW_VERSION }}/bin) >> $GITHUB_PATH
+
+    - name: Set up MinGW
+      if: startswith(matrix.preset, 'mingw')
+      uses: egor-tensin/setup-mingw@v2
+      with:
+        platform: ${{ fromJSON('["x86", "x64"]')[contains(matrix.preset, 'x64')] }}
 
     # xwin does take long enough that caching's worth it
     - name: Restore xwin cache

@@ -47,6 +47,16 @@
       "toolchainFile": "libs/pyunrealsdk/common_cmake/x86_64-w64-mingw32.cmake"
     },
     {
+      "name": "_llvm_mingw_x64",
+      "hidden": true,
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "toolchainFile": "libs/pyunrealsdk/common_cmake/llvm-x86_64-w64-mingw32.cmake"
+    },
+    {
       "name": "_msvc",
       "hidden": true,
       "condition": {
@@ -119,6 +129,22 @@
       "inherits": [
         "_base",
         "_mingw_x64",
+        "_release"
+      ]
+    },
+    {
+      "name": "llvm-mingw-debug",
+      "inherits": [
+        "_base",
+        "_llvm_mingw_x64",
+        "_debug"
+      ]
+    },
+    {
+      "name": "llvm-mingw-release",
+      "inherits": [
+        "_base",
+        "_llvm_mingw_x64",
         "_release"
       ]
     },

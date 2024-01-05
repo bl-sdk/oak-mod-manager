@@ -31,7 +31,7 @@ namespace processing {
 pyunrealsdk::StaticPyObject input_event_enum = pyunrealsdk::unreal::enum_as_py_enum(
     validate_type<UEnum>(unrealsdk::find_object(L"Enum", L"/Script/Engine.EInputEvent")));
 
-struct KeybindData {
+struct PY_OBJECT_VISIBILITY KeybindData {
     pyunrealsdk::StaticPyObject callback;
     std::optional<EInputEvent> event;
     bool gameplay_bind{};
