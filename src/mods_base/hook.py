@@ -120,7 +120,7 @@ def _hook_bind(self: HookProtocol, obj: Any) -> HookProtocol:
 @overload
 def hook(
     hook_func: str,
-    hook_type: Literal[Type.PRE],
+    hook_type: Literal[Type.PRE] = Type.PRE,
     *,
     auto_enable: bool = False,
 ) -> Callable[[AnyPreHook], HookProtocol]:
@@ -139,7 +139,7 @@ def hook(
 
 def hook(
     hook_func: str,
-    hook_type: Type,
+    hook_type: Type = Type.PRE,
     *,
     auto_enable: bool = False,
     hook_identifier: str | None = None,

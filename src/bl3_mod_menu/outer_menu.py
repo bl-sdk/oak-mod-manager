@@ -74,6 +74,12 @@ def add_menu_item_hook(
     always_minus_one: int,
 ) -> int:
     """Hook to inject the outermost mods option."""
+
+    # Add the mods option right before quit
+    if callback_name == "OnQuitClicked":
+        global last_mods_menu_idx
+        last_mods_menu_idx = add_menu_item(self, "MODS", "OnInviteListClearClicked", False, -1)
+
     if callback_name in hide_menu_options and hide_menu_options[callback_name].value:
         # Surprisingly, just setting the return value to -1 just works, no menu item is drawn and
         # nothing seems to go wrong
@@ -81,10 +87,6 @@ def add_menu_item_hook(
     else:
         # Show the item properly
         idx = add_menu_item(self, text, callback_name, big, always_minus_one)
-
-    if callback_name in ("OnStoreClicked", "OnPhotoModeClicked"):
-        global last_mods_menu_idx
-        last_mods_menu_idx = add_menu_item(self, "MODS", "OnInviteListClearClicked", False, -1)
 
     return idx
 

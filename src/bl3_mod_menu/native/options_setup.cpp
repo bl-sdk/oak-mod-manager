@@ -447,7 +447,8 @@ PYBIND11_MODULE(options_setup, m) {
         "                       copying the name.\n"
         "    description: The slider's description.",
         "self"_a, "name"_a, "value"_a, "slider_min"_a, "slider_max"_a, "slider_step"_a = 1.0,
-        "slider_is_integer"_a = false, "description_title"_a = std::nullopt, "description"_a = L"");
+        "slider_is_integer"_a = false, "description_title"_a = std::nullopt,
+        "description"_a = std::wstring{});
 
     m.def(
         "add_spinner",
@@ -470,7 +471,7 @@ PYBIND11_MODULE(options_setup, m) {
         "                       copying the name.\n"
         "    description: The spinner's description.",
         "self"_a, "name"_a, "idx"_a, "options"_a, "wrap_enabled"_a = false,
-        "description_title"_a = std::nullopt, "description"_a = L"");
+        "description_title"_a = std::nullopt, "description"_a = std::wstring{});
 
     m.def(
         "add_bool_spinner",
@@ -493,7 +494,7 @@ PYBIND11_MODULE(options_setup, m) {
         "                       copying the name.\n"
         "    description: The spinner's description.",
         "self"_a, "name"_a, "value"_a, "true_text"_a = std::nullopt, "false_text"_a = std::nullopt,
-        "description_title"_a = std::nullopt, "description"_a = L"");
+        "description_title"_a = std::nullopt, "description"_a = std::wstring{});
 
     m.def(
         "add_dropdown",
@@ -514,7 +515,7 @@ PYBIND11_MODULE(options_setup, m) {
         "                       copying the name.\n"
         "    description: The dropdown's description.",
         "self"_a, "name"_a, "idx"_a, "options"_a, "description_title"_a = std::nullopt,
-        "description"_a = L"");
+        "description"_a = std::wstring{});
 
     m.def(
         "add_button",
@@ -531,7 +532,7 @@ PYBIND11_MODULE(options_setup, m) {
         "    description_title: The title of the button's description. Defaults to\n"
         "                       copying the name.\n"
         "    description: The button's description.",
-        "self"_a, "name"_a, "description_title"_a = std::nullopt, "description"_a = L"");
+        "self"_a, "name"_a, "description_title"_a = std::nullopt, "description"_a = std::wstring{});
 
     m.def(
         "add_binding",
@@ -550,5 +551,5 @@ PYBIND11_MODULE(options_setup, m) {
         "                       copying the name.\n"
         "    description: The binding's description.",
         "self"_a, "name"_a, "display"_a, "description_title"_a = std::nullopt,
-        "description"_a = L"");
+        "description"_a = std::wstring{});
 }

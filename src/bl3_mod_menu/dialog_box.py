@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import InitVar, dataclass, field
 from typing import Any, ClassVar, Self
 
@@ -70,7 +70,7 @@ class DialogBox:
     CLOSED: ClassVar[DialogBoxChoice] = DialogBoxChoice("Closed", close_on_select=True)
 
     header: str
-    choices: list[DialogBoxChoice]
+    choices: Sequence[DialogBoxChoice]
     body: str = ""
     may_cancel: bool = True
 

@@ -1,5 +1,6 @@
 import tomllib
 from pathlib import Path
+from typing import Literal, overload
 
 import unrealsdk
 from unrealsdk.unreal import UObject
@@ -109,10 +110,27 @@ _LOCAL_PLAYERS_PROP = _GAME_INSTANCE_PROP.PropertyClass._find_prop("LocalPlayers
 _PLAYER_CONTROLLER_PROP = _LOCAL_PLAYERS_PROP.Inner.PropertyClass._find_prop("PlayerController")
 
 
+@overload
 def get_pc() -> UObject:
+    ...
+
+
+@overload
+def get_pc(*, possibly_loading: Literal[True] = True) -> UObject | None:
+    ...
+
+
+def get_pc(*, possibly_loading: bool = False) -> UObject | None:  # noqa: ARG001
     """
     Gets the main (local) player controller object.
 
+    Note that this may return None if called during a loading screen. Since hooks and keybinds
+    should never be able to trigger at this time, for convenience the default type hinting does not
+    include this possibility. If running on another thread however, this can happen, pass the
+    `possibly_loading` kwarg to update the type hinting.
+
+    Args:
+        possibly_loading: Changes the type hinting to possibly return None. No runtime impact.
     Returns:
         The player controller.
     """

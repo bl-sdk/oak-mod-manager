@@ -1,5 +1,8 @@
 from collections.abc import Callable
-from typing import TypeAlias, cast, overload
+from dataclasses import dataclass
+from typing import TypeAlias, overload
+
+from unrealsdk import logging
 
 from .keybinds import EInputEvent, KeybindBlockSignal
 
@@ -40,7 +43,26 @@ RawKeybindDecorator_Any: TypeAlias = (
     | Callable[[RawKeybindCallback_NoArgs], None]
 )
 
-raw_keybind_callback_stack: list[list[RawKeybindCallback_KeyAndEvent]] = []
+
+@dataclass
+class RawKeybind:
+    key: str | None
+    event: EInputEvent | None
+    callback: RawKeybindCallback_Any
+
+    # These two functions should get replaced by the keybind implementation
+    # The initialization script should make sure to load it before any mods, to make sure they don't
+    # end up with references to these functions
+    def enable(self) -> None:
+        """Enables this keybind."""
+        logging.error("No keybind implementation loaded, unable to enable binds")
+
+    def disable(self) -> None:
+        """Disables this keybind."""
+        logging.error("No keybind implementation loaded, unable to disable binds")
+
+
+raw_keybind_callback_stack: list[list[RawKeybind]] = []
 
 
 def push() -> None:
@@ -50,7 +72,9 @@ def push() -> None:
 
 def pop() -> None:
     """Pops the current raw keybind frame."""
-    raw_keybind_callback_stack.pop()
+    frame = raw_keybind_callback_stack.pop()
+    for bind in frame:
+        bind.disable()
 
 
 @overload
@@ -142,43 +166,9 @@ def add(
     """
 
     def decorator(callback: RawKeybindCallback_Any) -> None:
-        nonlocal key, event
-
-        full_callback: RawKeybindCallback_KeyAndEvent
-        match key, event:
-            case None, None:
-                full_callback = cast(RawKeybindCallback_KeyAndEvent, callback)
-
-            case None, event:
-                cast_callback = cast(RawKeybindCallback_KeyOnly, callback)
-
-                def event_filter(cb_key: str, cb_event: EInputEvent) -> KeybindBlockSignal:
-                    if cb_event != event:
-                        return None
-                    return cast_callback(cb_key)
-
-                full_callback = event_filter
-
-            case key, None:
-                cast_callback = cast(RawKeybindCallback_EventOnly, callback)
-
-                def key_filter(cb_key: str, cb_event: EInputEvent) -> KeybindBlockSignal:
-                    if cb_key != key:
-                        return None
-                    return cast_callback(cb_event)
-
-                full_callback = key_filter
-            case key, event:
-                cast_callback = cast(RawKeybindCallback_NoArgs, callback)
-
-                def key_and_event_filter(cb_key: str, cb_event: EInputEvent) -> KeybindBlockSignal:
-                    if cb_key != key or cb_event != event:
-                        return None
-                    return cast_callback()
-
-                full_callback = key_and_event_filter
-
-        raw_keybind_callback_stack[-1].append(full_callback)
+        bind = RawKeybind(key, event, callback)
+        raw_keybind_callback_stack[-1].append(bind)
+        bind.enable()
 
     if callback is None:
         return decorator

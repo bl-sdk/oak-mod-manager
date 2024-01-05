@@ -171,6 +171,8 @@ class Mod:
 
         self.is_enabled = True
 
+        for keybind in self.keybinds:
+            keybind.enable()
         for hook in self.hooks:
             hook.enable()
         for command in self.commands:
@@ -195,6 +197,8 @@ class Mod:
 
         self.is_enabled = False
 
+        for keybind in self.keybinds:
+            keybind.disable()
         for hook in self.hooks:
             hook.disable()
         for command in self.commands:
