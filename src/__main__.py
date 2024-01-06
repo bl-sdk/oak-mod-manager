@@ -7,6 +7,7 @@ import zipfile
 from collections.abc import Collection, Iterator
 from pathlib import Path
 
+import unrealsdk
 from unrealsdk import logging
 
 # If true, displays the full traceback when a mod fails to import, rather than the shortened one
@@ -222,6 +223,46 @@ def import_mods() -> None:
             logging.error("".join(traceback.format_list(tb)))
 
 
+def proton_null_exception_check() -> None:
+    """
+    Tries to detect and warn if we're running under a version of Proton which has the exception bug.
+
+    For context, usually pybind detects exceptions using a catch all, which eventually calls through
+    to `std::current_exception` to get the exact exception, and then runs a bunch of translators on
+    it to convert it to a Python exception. When running under a bad Proton version, this call
+    fails, and returns an empty exception pointer, so pybind is unable to translate it.
+
+    This means Python throws a:
+    ```
+    SystemError: <built-in method __getattr__ of PyCapsule object at 0x00000000069AC780> returned NULL without setting an exception
+    ```
+    This is primarily a problem for `StopIteration`.
+    """  # noqa: E501
+
+    cls = unrealsdk.find_class("Object")
+    try:
+        # Cause an attribute error
+        _ = cls._check_for_proton_null_exception_bug
+    except AttributeError:
+        # Working properly
+        return
+    except SystemError:
+        # Have the bug
+        logging.error(
+            "===============================================================================",
+        )
+        traceback.print_exc()
+        logging.error(
+            "\n"
+            "Some particular Proton versions cause this, try switch to another one.\n"
+            "Alternatively, the nightly release has builds from other compilers, which may also"
+            " prevent it.\n"
+            "\n"
+            "Will attempt to import mods, but they'll likely break with a similar error.\n"
+            "===============================================================================",
+        )
+
+
 # Don't really want to put a `__name__` check here, since it's currently just `builtins`, and that
 # seems a bit unstable, like something that pybind might eventually change
 
@@ -229,6 +270,8 @@ init_debugpy()
 
 while not logging.is_console_ready():
     pass
+
+proton_null_exception_check()
 
 import_mod_manager()
 import_mods()
