@@ -93,12 +93,6 @@ def load_options_dict(options: Sequence[BaseOption], settings: MutableMapping[st
                         f" with the default",
                     )
             case KeybindOption():
-                logging.dev_warning(
-                    f"Found a keybind option '{option.identifier}' in the options list. You should"
-                    f" define a standard keybind instead, and only convert it into an option in"
-                    f" `iter_display_options` (which is the default behaviour).",
-                )
-
                 if value is None:
                     option.value = None
                 else:
@@ -153,13 +147,6 @@ def create_options_dict(options: Sequence[BaseOption]) -> dict[str, JSON]:
     for option in options:
         match option:
             case ValueOption():
-                if isinstance(option, KeybindOption):
-                    logging.dev_warning(
-                        f"Found a keybind option '{option.identifier}' in the options list. You"
-                        f" should define a standard keybind instead, and only convert it into an"
-                        f" option in `iter_display_options` (which is the default behaviour).",
-                    )
-
                 # The generics mean the type of value is technically unknown here
                 value = cast(JSON, option.value)  # type: ignore
                 settings[option.identifier] = value

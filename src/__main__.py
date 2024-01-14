@@ -167,7 +167,7 @@ def iter_mod_folders() -> Iterator[Path]:
         yield folder
 
 
-def get_mods_to_import() -> Collection[str]:
+def get_and_setup_mods_to_import() -> Collection[str]:
     """
     Sets up sys.path and gathers all the mods to try import.
 
@@ -203,13 +203,19 @@ def import_mod_manager() -> None:
 
     Most modules are fine to get imported as a mod/by another mod, but we need to do a few manually.
     """
-    # Keybinds uses a native module, so will always be extracted, don't need to mess with sys.path
+    # Keybinds must be early to ensure it can overwrite the enable/disable functions before anything
+    # else tries to use them.
     import keybinds  # noqa: F401  # pyright: ignore[reportUnusedImport]
 
 
-def import_mods() -> None:
-    """Tries to import all mods."""
-    for name in get_mods_to_import():
+def import_mods(mods_to_import: Collection[str]) -> None:
+    """
+    Tries to import a list of mods.
+
+    Args:
+        mods_to_import: The list of mods to import.
+    """
+    for name in mods_to_import:
         try:
             importlib.import_module(name)
         except Exception as ex:  # noqa: BLE001
@@ -273,5 +279,9 @@ while not logging.is_console_ready():
 
 proton_null_exception_check()
 
+mods_to_import = get_and_setup_mods_to_import()
+
 import_mod_manager()
-import_mods()
+import_mods(mods_to_import)
+
+del mods_to_import
