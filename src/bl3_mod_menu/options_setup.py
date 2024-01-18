@@ -95,7 +95,7 @@ def draw_options(
             option_stack[-1].drawn_options.append(option)
 
         match option:
-            case ButtonOption():
+            case ButtonOption() | NestedOption():
                 add_button(self, option.display_name, option.description_title, option.description)
 
             case BoolOption():

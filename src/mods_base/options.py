@@ -374,7 +374,7 @@ class GroupedOption(BaseOption):
 
 
 @dataclass
-class NestedOption(ButtonOption):
+class NestedOption(BaseOption):
     """
     A nested group of options, which appear in a new menu.
 
@@ -390,8 +390,6 @@ class NestedOption(ButtonOption):
         description: A short description about the option.
         description_title: The title of the description. Defaults to copying the display name.
         is_hidden: If true, the option will not be shown in the options menu.
-        on_press: If not None, the callback to run when the button is pressed (and the nested menu
-                  opened). Passed a reference to the option object.
     Extra Attributes:
         mod: The mod this option stores it's settings in, or None if not (yet) associated with one.
     """

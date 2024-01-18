@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 
 from mods_base import (
@@ -18,7 +18,7 @@ from mods_base import (
 from unrealsdk import logging
 
 from console_mod_menu.draw import draw
-from console_mod_menu.option_formatting import get_option_value_str
+from console_mod_menu.option_formatting import draw_option_header, get_option_value_str
 
 from . import (
     AbstractScreen,
@@ -43,15 +43,15 @@ class ModScreen(AbstractScreen):
 
     def draw_options_list(
         self,
-        options: Sequence[BaseOption],
-        stack: list[GroupedOption | NestedOption],
+        options: Iterable[BaseOption],
+        stack: list[GroupedOption],
     ) -> None:
         """
         Recursively draws a set of options.
 
         Args:
-            options: A list of the options to draw.
-            stack: The stack of `GroupedOption` or `NestedOption`s which led to the current list.
+            options: An iterable of the options to draw.
+            stack: The stack of `GroupedOption`s which led to the current list.
         """
         indent = len(stack)
 
@@ -59,15 +59,15 @@ class ModScreen(AbstractScreen):
             if option.is_hidden:
                 continue
 
-            if not isinstance(option, GroupedOption | NestedOption):
+            if not isinstance(option, GroupedOption):
                 self.drawn_options.append(option)
 
             drawn_idx = len(self.drawn_options)
 
             match option:
-                case GroupedOption() | NestedOption() if option in stack:
+                case GroupedOption() if option in stack:
                     logging.dev_warning(f"Found recursive options group, not drawing: {option}")
-                case GroupedOption() | NestedOption():
+                case GroupedOption():
                     draw(f"{option.display_name}:", indent=indent)
 
                     stack.append(option)
@@ -82,7 +82,7 @@ class ModScreen(AbstractScreen):
                         indent=indent,
                     )
 
-                case ButtonOption():
+                case ButtonOption() | NestedOption():
                     draw(f"[{drawn_idx}] {option.display_name}", indent=indent)
 
                 case _:
@@ -92,7 +92,7 @@ class ModScreen(AbstractScreen):
         draw_stack_header()
 
         self.drawn_options = []
-        self.draw_options_list(tuple(self.mod.iter_display_options()), [])
+        self.draw_options_list(self.mod.iter_display_options(), [])
 
         draw_standard_commands()
 
@@ -113,6 +113,8 @@ class ModScreen(AbstractScreen):
                 push_screen(ButtonOptionScreen(self.mod, option))
             case DropdownOption() | SpinnerOption():
                 push_screen(ChoiceOptionScreen(self.mod, option))
+            case NestedOption():
+                push_screen(NestedOptionScreen(self.mod, option))
             case SliderOption():
                 push_screen(SliderOptionScreen(self.mod, option))
             case KeybindOption():
@@ -120,3 +122,19 @@ class ModScreen(AbstractScreen):
             case _:
                 logging.dev_warning(f"Encountered unknown option type {type(option)}")
         return True
+
+
+@dataclass
+class NestedOptionScreen(ModScreen):
+    option: NestedOption
+
+    def __post_init__(self) -> None:
+        self.name = self.option.display_name
+
+    def draw(self) -> None:  # noqa: D102
+        draw_option_header(self.option)
+
+        self.drawn_options = []
+        self.draw_options_list(self.option.children, [])
+
+        draw_standard_commands()
