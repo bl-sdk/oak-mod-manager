@@ -17,14 +17,9 @@ from mods_base import (
 )
 
 from console_mod_menu.draw import draw
-from console_mod_menu.option_formatting import get_option_value_str
+from console_mod_menu.option_formatting import draw_option_header
 
-from . import (
-    AbstractScreen,
-    draw_stack_header,
-    draw_standard_commands,
-    handle_standard_command_input,
-)
+from . import AbstractScreen, draw_standard_commands, handle_standard_command_input
 
 T = TypeVar("T", bound=BaseOption)
 J = TypeVar("J", bound=JSON)
@@ -40,25 +35,7 @@ class OptionScreen(AbstractScreen, Generic[T, J]):
         self.name = self.option.display_name
 
     def draw(self) -> None:  # noqa: D102
-        draw_stack_header()
-
-        title = self.option.display_name
-        value_str = get_option_value_str(self.option)
-        if value_str is not None:
-            title += f" ({value_str})"
-        draw(title)
-
-        if self.option.description_title != self.option.display_name:
-            draw(self.option.description_title)
-
-        if len(self.option.description) > 0:
-            draw("=" * 32)
-            # Respect newlines - passing everything at once would let them get wrapped arbitrarily
-            for line in self.option.description.splitlines():
-                draw(line)
-
-        draw("")
-
+        draw_option_header(self.option)
         self.draw_option()
 
     @abstractmethod

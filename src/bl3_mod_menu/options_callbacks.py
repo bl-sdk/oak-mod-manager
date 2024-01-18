@@ -65,8 +65,6 @@ def unimplemented_option_clicked(
     match option:
         case NestedOption():
             open_nested_options_menu(option)
-            if option.on_press is not None:
-                option.on_press(option)
         case ButtonOption():
             if option.on_press is not None:
                 option.on_press(option)

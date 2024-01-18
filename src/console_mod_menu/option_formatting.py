@@ -2,6 +2,9 @@ from typing import TypeVar, overload
 
 from mods_base import JSON, BaseOption, BoolOption, KeybindOption, ValueOption
 
+from .draw import draw
+from .screens import draw_stack_header
+
 J = TypeVar("J", bound=JSON)
 
 
@@ -39,3 +42,30 @@ def get_option_value_str(option: BaseOption) -> str | None:
             return str(option.value)  # type: ignore
         case _:
             return None
+
+
+def draw_option_header(option: BaseOption) -> None:
+    """
+    Draws the header for a particular option.
+
+    Args:
+        option: The option to draw the header for.
+    """
+    draw_stack_header()
+
+    title = option.display_name
+    value_str = get_option_value_str(option)
+    if value_str is not None:
+        title += f" ({value_str})"
+    draw(title)
+
+    if option.description_title != option.display_name:
+        draw(option.description_title)
+
+    if len(option.description) > 0:
+        draw("=" * 32)
+        # Respect newlines - passing everything at once would let them get wrapped arbitrarily
+        for line in option.description.splitlines():
+            draw(line)
+
+    draw("")
