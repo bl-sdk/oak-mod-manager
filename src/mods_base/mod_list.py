@@ -11,11 +11,18 @@ from . import MODS_DIR, __version__
 from .command import AbstractCommand
 from .hook import HookProtocol
 from .keybinds import KeybindType
-from .mod import Library, Mod, ModType
+from .mod import Game, Library, Mod, ModType
 from .options import BaseOption, ButtonOption
 from .settings import SETTINGS_DIR
 
-MOD_DB_URL = "https://bl-sdk.github.io/oak-mod-db/"
+MOD_DB_URL: str
+match Game.get_tree():
+    case Game.Willow2:
+        MOD_DB_URL = "https://bl-sdk.github.io/"  # pyright: ignore[reportConstantRedefinition]
+    case Game.Oak:
+        MOD_DB_URL = (  # pyright: ignore[reportConstantRedefinition]
+            "https://bl-sdk.github.io/oak-mod-db/"
+        )
 
 
 @dataclass

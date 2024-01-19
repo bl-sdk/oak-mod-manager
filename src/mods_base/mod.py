@@ -26,24 +26,38 @@ from .settings import default_load_mod_settings, default_save_mod_settings
 
 
 class Game(Flag):
-    BL3 = auto()
-    WL = auto()
-
-    # While we don't expect to run under them, define the willow games too
-    # This may prevent an attribute error letting the mod load, and allowing us to display the
-    # incompatibility warning
     BL2 = auto()
     TPS = auto()
     AoDK = auto()
+    BL3 = auto()
+    WL = auto()
+
+    Willow2 = BL2 | TPS | AoDK
+    Oak = BL3 | WL
 
     @staticmethod
     @cache
-    def get_current() -> Game:
+    def get_current() -> Literal[Game.BL2, Game.TPS, Game.AoDK, Game.BL3, Game.WL]:
         """Gets the current game."""
-        lower_exe_names: dict[str, Game] = {
-            "borderlands3.exe": Game.BL3,
-            "wonderlands.exe": Game.WL,
-        }
+
+        # As a bit of safety, we can use the architecture to limit which games are allowed
+        is_64bits = sys.maxsize > 2**32
+
+        lower_exe_names: dict[str, Literal[Game.BL2, Game.TPS, Game.AoDK, Game.BL3, Game.WL]]
+        default_game: Literal[Game.BL2, Game.TPS, Game.AoDK, Game.BL3, Game.WL]
+        if is_64bits:
+            lower_exe_names = {
+                "borderlands3.exe": Game.BL3,
+                "wonderlands.exe": Game.WL,
+            }
+            default_game = Game.BL3
+        else:
+            lower_exe_names = {
+                "borderlands2.exe": Game.BL2,
+                "borderlandspresequel.exe": Game.TPS,
+                "tinytina.exe": Game.AoDK,
+            }
+            default_game = Game.BL2
 
         exe = Path(sys.executable).name
         exe_lower = exe.lower()
@@ -51,11 +65,29 @@ class Game(Flag):
         if exe_lower not in lower_exe_names:
             # We've occasionally seen the executable corrupt in the old willow sdk
             # Instead of throwing, we'll still try return something sane, to keep stuff working
-            # Assuming you're not playing Wonderlands sounds pretty sane :)
-            logging.error(f"Unknown executable name '{exe}'! Assuming BL3.")
-            return Game.BL3
+            logging.error(f"Unknown executable name '{exe}'! Assuming {default_game.name}.")
+            return default_game
 
         return lower_exe_names[exe_lower]
+
+    @staticmethod
+    @cache
+    def get_tree() -> Literal[Game.Willow2, Game.Oak]:
+        """
+        Gets the "tree" the game we're currently running belongs to.
+
+        Gearbox code names games using tree names. For the games based on same engine, like BL2/TPS,
+        they of course reuse the same code name a lot (since they don't touch the base engine). We
+        use these to categorise engine versions, where mods are likely to be cross compatible.
+
+        Returns:
+            The current game's tree.
+        """
+        match Game.get_current():
+            case Game.BL2 | Game.TPS | Game.AoDK:
+                return Game.Willow2
+            case Game.BL3 | Game.WL:
+                return Game.Oak
 
 
 class ModType(Enum):
@@ -101,7 +133,7 @@ class Mod:
     description: str = ""
     version: str = "Unknown Version"
     mod_type: ModType = ModType.Standard
-    supported_games: Game = Game.BL3 | Game.WL
+    supported_games: Game = field(default=Game.get_tree())
     settings_file: Path | None = None
 
     # Set the default to None so we can detect when these aren't provided
