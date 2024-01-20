@@ -272,6 +272,14 @@ class Mod:
                 [KeybindOption.from_keybind(bind) for bind in self.keybinds],
             )
 
+    def get_status(self) -> str:
+        """Gets the current status of this mod. Should be a single line."""
+        if Game.get_current() not in self.supported_games:
+            return "<font color='#ffff00'>Incompatible</font>"
+        if self.is_enabled:
+            return "<font color='#00ff00'>Enabled</font>"
+        return "<font color='#ff0000'>Disabled</font>"
+
 
 @dataclass
 class Library(Mod):
@@ -292,3 +300,9 @@ class Library(Mod):
             self.enable()
         # And then lock
         self.enabling_locked = True
+
+    def get_status(self) -> str:
+        """Gets the current status of this mod."""
+        if Game.get_current() not in self.supported_games:
+            return "<font color='#ffff00'>Incompatible</font>"
+        return "<font color='#00ff00'>Loaded</font>"
