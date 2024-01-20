@@ -97,28 +97,42 @@ bool handle_key_event(AOakPlayerController* player_controller,
     }};
     auto with_matching_key = both_matches | std::views::join;
 
-    auto with_matching_event = with_matching_key | std::views::filter([input_event](auto ittr) {
-                                   auto data = ittr.second;
-                                   return !(data->event.has_value() && data->event != input_event);
-                               });
+    auto with_matching_event =
+        with_matching_key | std::views::filter([input_event](const auto& ittr) {
+            auto data = ittr.second;
+            return !(data->event.has_value() && data->event != input_event);
+        });
 
     if (with_matching_event.empty()) {
         return false;
     }
 
-    auto raw_binds = with_matching_event
-                     | std::views::filter([](auto ittr) { return !ittr.second->gameplay_bind; });
-    auto gameplay_binds = with_matching_event | std::views::filter([](auto ittr) {
-                              return ittr.second->gameplay_bind;
-                          });
+    // At this point, the only case where we won't run the callback is if we're in a menu and only
+    // have gameplay binds.
+    // We need to copy into a vector later, in case the callbacks remove themseleves
+    // Assuming the range is probably quite small at this point, so iterating through it an extra
+    // time now should be faster than doing some allocations.
+    const bool has_gameplay_bind = std::ranges::any_of(
+        with_matching_event, [](const auto& val) { return val.second->gameplay_bind; });
 
     // Checking if we're in a menu is potentially slow (it may call an unreal function), so don't
     // need to do it if we don't have any gameplay binds
-    auto dont_run_gameplay_binds = gameplay_binds.empty() || is_in_menu(player_controller);
+    auto dont_run_gameplay_binds = !has_gameplay_bind || is_in_menu(player_controller);
 
-    if (dont_run_gameplay_binds && raw_binds.empty()) {
-        return false;
+    if (dont_run_gameplay_binds) {
+        const bool has_raw_bind = std::ranges::any_of(
+            with_matching_event, [](const auto& val) { return !val.second->gameplay_bind; });
+        if (!has_raw_bind) {
+            return false;
+        }
     }
+
+    // Now we're definitely going to run the callback, copy into vectors
+    std::vector<decltype(all_keybinds)::value_type> raw_binds{};
+    std::vector<decltype(all_keybinds)::value_type> gameplay_binds{};
+    std::ranges::partition_copy(with_matching_event, std::back_inserter(gameplay_binds),
+                                std::back_inserter(raw_binds),
+                                [](auto val) { return val.second->gameplay_bind; });
 
     const py::gil_scoped_acquire gil{};
 
