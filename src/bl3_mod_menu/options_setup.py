@@ -1,5 +1,5 @@
 import functools
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -9,6 +9,7 @@ from mods_base import (
     BoolOption,
     ButtonOption,
     DropdownOption,
+    Game,
     GroupedOption,
     KeybindOption,
     Mod,
@@ -187,6 +188,53 @@ def get_option_header() -> str:
     )
 
 
+def get_mod_options(mod: Mod) -> tuple[BaseOption, ...]:
+    """
+    Gets the full list of mod options to display, including our custom header.
+
+    Args:
+        mod: The mod to get the options list of.
+    Returns:
+        A tuple of the options to display.
+    """
+
+    def inner() -> Iterator[BaseOption]:
+        # Display the author and version in the title, if they're not the empty string
+        description_title = ""
+        if mod.author:
+            description_title += f"By {mod.author}"
+        if mod.author and mod.version:
+            description_title += "  -  "
+        if mod.version:
+            description_title += mod.version
+        description_title = description_title or "Description"
+
+        description = mod.description
+        if Game.get_current() not in mod.supported_games:
+            supported = [g.name for g in Game if g in mod.supported_games]
+            description = (
+                "<font color='#ffff00'>Incompatible Game!</font>\r"
+                "This mod supports: " + ", ".join(supported) + "\n\n" + description
+            )
+
+        yield ButtonOption(
+            "Description",
+            description=description,
+            description_title=description_title,
+        )
+
+        if not mod.enabling_locked:
+            yield BoolOption(
+                "Enabled",
+                mod.is_enabled,
+                on_change=lambda _, now_enabled: mod.enable() if now_enabled else mod.disable(),
+            )
+
+        yield from mod.iter_display_options()
+
+    return tuple(inner())
+
+
 def open_options_menu(main_menu: UObject, mod: Mod) -> None:
     """
     Opens the options menu for a particular mod.
@@ -199,7 +247,7 @@ def open_options_menu(main_menu: UObject, mod: Mod) -> None:
     open_custom_options(
         main_menu,
         get_option_header(),
-        functools.partial(draw_options, options=tuple(mod.iter_display_options()), group_stack=[]),
+        functools.partial(draw_options, options=get_mod_options(mod), group_stack=[]),
     )
 
 
@@ -220,7 +268,7 @@ def refresh_current_options_menu(options_menu: UObject, preserve_scroll: bool = 
         functools.partial(
             draw_options,
             options=(
-                tuple(option_info.cause.iter_display_options())
+                get_mod_options(option_info.cause)
                 if isinstance(option_info.cause, Mod)
                 else option_info.cause.children
             ),

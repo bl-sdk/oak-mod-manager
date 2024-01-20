@@ -127,6 +127,28 @@ class ModScreen(OptionListScreen):
     def draw(self) -> None:  # noqa: D102
         draw_stack_header()
 
+        header = ""
+        if self.mod.author:
+            header += f"By {self.mod.author}"
+        if self.mod.author and self.mod.version:
+            header += "  -  "
+        if self.mod.version:
+            header += self.mod.version
+        draw(header)
+
+        draw(self.mod.get_status())
+        draw("")
+
+        if self.mod.description:
+            draw(self.mod.description)
+            draw("")
+
+        if not self.mod.enabling_locked:
+            if self.mod.is_enabled:
+                draw("[D] Disable")
+            else:
+                draw("[E] Enable")
+
         self.drawn_options = []
         self.draw_options_list(self.mod.iter_display_options(), [])
 
@@ -135,6 +157,14 @@ class ModScreen(OptionListScreen):
     def handle_input(self, line: str) -> bool:  # noqa: D102
         if handle_standard_command_input(line):
             return True
+
+        if not self.mod.enabling_locked:
+            if self.mod.is_enabled and line.lower() == "d":
+                self.mod.disable()
+                return True
+            if not self.mod.is_enabled and line.lower() == "e":
+                self.mod.enable()
+                return True
 
         return self.handle_option_input(line)
 

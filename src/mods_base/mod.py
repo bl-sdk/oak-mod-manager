@@ -14,14 +14,7 @@ from unrealsdk import logging
 from .command import AbstractCommand
 from .hook import HookProtocol
 from .keybinds import KeybindType
-from .options import (
-    BaseOption,
-    BoolOption,
-    ButtonOption,
-    GroupedOption,
-    KeybindOption,
-    NestedOption,
-)
+from .options import BaseOption, GroupedOption, KeybindOption, NestedOption
 from .settings import default_load_mod_settings, default_save_mod_settings
 
 
@@ -121,7 +114,9 @@ class Mod:
         hooks: The mod's hooks. If not given, searches for them in instance variables.
         commands: The mod's commands. If not given, searches for them in instance variables.
 
-    Attributes - Runtime:
+    Attributes - Enabling:
+        enabling_locked: If true, the mod cannot be enabled or disabled, it's locked in it's current
+                         state. Set automatically, not available in constructor.
         is_enabled: True if the mod is currently considered enabled. Not available in constructor.
         auto_enable: True if to enable the mod on launch if it was also enabled last time.
         on_enable: A no-arg callback to run on mod enable. Useful when constructing via dataclass.
@@ -144,6 +139,7 @@ class Mod:
     hooks: Sequence[HookProtocol] = field(default=None)  # type: ignore
     commands: Sequence[AbstractCommand] = field(default=None)  # type: ignore
 
+    enabling_locked: bool = field(init=False)
     is_enabled: bool = field(default=False, init=False)
     auto_enable: bool = True
     on_enable: Callable[[], None] | None = None
@@ -194,11 +190,13 @@ class Mod:
         for option in self.options:
             option.mod = self
 
+        self.enabling_locked = Game.get_current() not in self.supported_games
+
     def enable(self) -> None:
         """Called to enable the mod."""
-        if self.is_enabled:
+        if self.enabling_locked:
             return
-        if Game.get_current() not in self.supported_games:
+        if self.is_enabled:
             return
 
         self.is_enabled = True
@@ -224,6 +222,8 @@ class Mod:
             dont_update_setting: If true, prevents updating the enabled flag in the settings file.
                                  Should be set for automated disables, and clear for manual ones.
         """
+        if self.enabling_locked:
+            return
         if not self.is_enabled:
             return
 
@@ -263,39 +263,10 @@ class Mod:
         Yields:
             Options, in the order they should be displayed.
         """
-        compatible_game = Game.get_current() in self.supported_games
-
-        if not compatible_game:
-            yield ButtonOption(
-                "Incompatible Game!",
-                description=f"This mod is incompatible with {Game.get_current().name}!",
-            )
-
-        # Displat the author and version in the title, if they're not the empty string
-        description_title = ""
-        if self.author:
-            description_title += f"By {self.author}"
-        if self.author and self.version:
-            description_title += "  -  "
-        if self.version:
-            description_title += self.version
-
-        yield ButtonOption(
-            "Description",
-            description=self.description,
-            description_title=description_title or "Description",
-        )
-        if compatible_game:
-            yield BoolOption(
-                "Enabled",
-                self.is_enabled,
-                on_change=lambda _, now_enabled: self.enable() if now_enabled else self.disable(),
-            )
-
-        if any(not opt.is_hidden for opt in self.options) > 0:
+        if any(not opt.is_hidden for opt in self.options):
             yield GroupedOption("Options", self.options)
 
-        if any(not kb.is_hidden for kb in self.keybinds) > 0:
+        if any(not kb.is_hidden for kb in self.keybinds):
             yield GroupedOption(
                 "Keybinds",
                 [KeybindOption.from_keybind(bind) for bind in self.keybinds],
@@ -316,21 +287,8 @@ class Library(Mod):
     def __post_init__(self) -> None:
         super().__post_init__()
 
-        if Game.get_current() in self.supported_games:
+        # Enable if not already locked due to an incompatible game
+        if not self.enabling_locked:
             self.enable()
-
-    def disable(self, dont_update_setting: bool = False) -> None:
-        """No-op to prevent the library from being disabled."""
-
-    def iter_display_options(self) -> Iterator[BaseOption]:
-        """Custom display options, which remove the enabled switch."""
-        seen_enabled = False
-        for option in super().iter_display_options():
-            if (
-                not seen_enabled
-                and option.identifier == "Enabled"
-                and isinstance(option, BoolOption)
-            ):
-                seen_enabled = True
-                continue
-            yield option
+        # And then lock
+        self.enabling_locked = True
