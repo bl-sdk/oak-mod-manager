@@ -1,4 +1,5 @@
 import tomllib
+from functools import wraps
 from pathlib import Path
 from typing import Literal, overload
 
@@ -102,12 +103,7 @@ __all__: tuple[str, ...] = (
     "ValueOption",
 )
 
-ENGINE = unrealsdk.find_object("OakGameEngine", "/Engine/Transient.OakGameEngine_0")
-
-
-_GAME_INSTANCE_PROP = ENGINE.Class._find_prop("GameInstance")
-_LOCAL_PLAYERS_PROP = _GAME_INSTANCE_PROP.PropertyClass._find_prop("LocalPlayers")
-_PLAYER_CONTROLLER_PROP = _LOCAL_PLAYERS_PROP.Inner.PropertyClass._find_prop("PlayerController")
+ENGINE: UObject
 
 
 @overload
@@ -134,8 +130,43 @@ def get_pc(*, possibly_loading: bool = False) -> UObject | None:  # noqa: ARG001
     Returns:
         The player controller.
     """
-    return (
-        ENGINE._get_field(_GAME_INSTANCE_PROP)
-        ._get_field(_LOCAL_PLAYERS_PROP)[0]
-        ._get_field(_PLAYER_CONTROLLER_PROP)
-    )
+    raise NotImplementedError
+
+
+match Game.get_tree():
+    case Game.Willow2:
+        ENGINE = unrealsdk.find_object(  # pyright: ignore[reportConstantRedefinition]
+            "WillowGameEngine",
+            "Transient.WillowGameEngine_0",
+        )
+
+        _GAME_PLAYERS_PROP = ENGINE.Class._find_prop("GamePlayers")
+        _ACTOR_PROP = _GAME_PLAYERS_PROP.Inner.PropertyClass._find_prop("Actor")
+
+        @wraps(get_pc)
+        def get_pc_willow(*, possibly_loading: bool = False) -> UObject | None:  # noqa: ARG001
+            return ENGINE._get_field(_GAME_PLAYERS_PROP)[0]._get_field(_ACTOR_PROP)
+
+        get_pc = get_pc_willow  # type: ignore
+
+    case Game.Oak:
+        ENGINE = unrealsdk.find_object(  # pyright: ignore[reportConstantRedefinition]
+            "OakGameEngine",
+            "/Engine/Transient.OakGameEngine_0",
+        )
+
+        _GAME_INSTANCE_PROP = ENGINE.Class._find_prop("GameInstance")
+        _LOCAL_PLAYERS_PROP = _GAME_INSTANCE_PROP.PropertyClass._find_prop("LocalPlayers")
+        _PLAYER_CONTROLLER_PROP = _LOCAL_PLAYERS_PROP.Inner.PropertyClass._find_prop(
+            "PlayerController",
+        )
+
+        @wraps(get_pc)
+        def get_pc_oak(*, possibly_loading: bool = False) -> UObject | None:  # noqa: ARG001
+            return (
+                ENGINE._get_field(_GAME_INSTANCE_PROP)
+                ._get_field(_LOCAL_PLAYERS_PROP)[0]
+                ._get_field(_PLAYER_CONTROLLER_PROP)
+            )
+
+        get_pc = get_pc_oak  # type: ignore

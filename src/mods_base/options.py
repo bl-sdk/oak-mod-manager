@@ -40,7 +40,7 @@ class BaseOption(ABC):
     description_title: str = None  # type: ignore
     is_hidden: bool = False
 
-    mod: "Mod | None" = field(default=None, init=False)
+    mod: "Mod | None" = field(default=None, init=False, repr=False)
 
     @abstractmethod
     def __init__(self) -> None:

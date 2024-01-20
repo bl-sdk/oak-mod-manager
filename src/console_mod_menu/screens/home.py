@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Literal
 
-from mods_base import Mod, get_ordered_mod_list
+from mods_base import Mod, get_ordered_mod_list, html_to_plain_text
 
 from console_mod_menu.draw import draw
 
@@ -26,7 +26,16 @@ class HomeScreen(AbstractScreen):
 
         self.drawn_mod_list = get_ordered_mod_list()
         for idx, mod in enumerate(self.drawn_mod_list):
-            draw(f"[{idx + 1}] {mod.name}" + (" (Disabled)" if not mod.is_enabled else ""))
+            status = html_to_plain_text(mod.get_status()).strip()
+            suffix = f" ({status})"
+
+            # Filter out the standard enabled statuses, for more variation in the list - it's harder
+            # to tell what's enabled or not when every single entry has a suffix
+            # If there's a custom status, we'll still show that
+            if mod.is_enabled and status in ("Enabled", "Loaded"):
+                suffix = ""
+
+            draw(f"[{idx + 1}] {mod.name}{suffix}")
 
         draw_standard_commands()
 

@@ -109,6 +109,7 @@ def draw_mods_list(main_menu: UObject) -> None:
         if not mod.is_enabled and not RE_FONT_TAG.match(mod.name):
             formatted_name = f"<font color='{DISABLED_GRAY}'>{mod.name}</font>"
 
+        formatted_name += f" <font size='20'>{mod.get_status()}</font>"
         add_menu_item(main_menu, formatted_name, "OnInviteListClearClicked", False, -1)
 
     # If we have too many mods, they'll end up scrolling behind the news box

@@ -14,36 +14,43 @@ from unrealsdk import logging
 from .command import AbstractCommand
 from .hook import HookProtocol
 from .keybinds import KeybindType
-from .options import (
-    BaseOption,
-    BoolOption,
-    ButtonOption,
-    GroupedOption,
-    KeybindOption,
-    NestedOption,
-)
+from .options import BaseOption, GroupedOption, KeybindOption, NestedOption
 from .settings import default_load_mod_settings, default_save_mod_settings
 
 
 class Game(Flag):
-    BL3 = auto()
-    WL = auto()
-
-    # While we don't expect to run under them, define the willow games too
-    # This may prevent an attribute error letting the mod load, and allowing us to display the
-    # incompatibility warning
     BL2 = auto()
     TPS = auto()
     AoDK = auto()
+    BL3 = auto()
+    WL = auto()
+
+    Willow2 = BL2 | TPS | AoDK
+    Oak = BL3 | WL
 
     @staticmethod
     @cache
-    def get_current() -> Game:
+    def get_current() -> Literal[Game.BL2, Game.TPS, Game.AoDK, Game.BL3, Game.WL]:
         """Gets the current game."""
-        lower_exe_names: dict[str, Game] = {
-            "borderlands3.exe": Game.BL3,
-            "wonderlands.exe": Game.WL,
-        }
+
+        # As a bit of safety, we can use the architecture to limit which games are allowed
+        is_64bits = sys.maxsize > 2**32
+
+        lower_exe_names: dict[str, Literal[Game.BL2, Game.TPS, Game.AoDK, Game.BL3, Game.WL]]
+        default_game: Literal[Game.BL2, Game.TPS, Game.AoDK, Game.BL3, Game.WL]
+        if is_64bits:
+            lower_exe_names = {
+                "borderlands3.exe": Game.BL3,
+                "wonderlands.exe": Game.WL,
+            }
+            default_game = Game.BL3
+        else:
+            lower_exe_names = {
+                "borderlands2.exe": Game.BL2,
+                "borderlandspresequel.exe": Game.TPS,
+                "tinytina.exe": Game.AoDK,
+            }
+            default_game = Game.BL2
 
         exe = Path(sys.executable).name
         exe_lower = exe.lower()
@@ -51,11 +58,29 @@ class Game(Flag):
         if exe_lower not in lower_exe_names:
             # We've occasionally seen the executable corrupt in the old willow sdk
             # Instead of throwing, we'll still try return something sane, to keep stuff working
-            # Assuming you're not playing Wonderlands sounds pretty sane :)
-            logging.error(f"Unknown executable name '{exe}'! Assuming BL3.")
-            return Game.BL3
+            logging.error(f"Unknown executable name '{exe}'! Assuming {default_game.name}.")
+            return default_game
 
         return lower_exe_names[exe_lower]
+
+    @staticmethod
+    @cache
+    def get_tree() -> Literal[Game.Willow2, Game.Oak]:
+        """
+        Gets the "tree" the game we're currently running belongs to.
+
+        Gearbox code names games using tree names. For the games based on same engine, like BL2/TPS,
+        they of course reuse the same code name a lot (since they don't touch the base engine). We
+        use these to categorise engine versions, where mods are likely to be cross compatible.
+
+        Returns:
+            The current game's tree.
+        """
+        match Game.get_current():
+            case Game.BL2 | Game.TPS | Game.AoDK:
+                return Game.Willow2
+            case Game.BL3 | Game.WL:
+                return Game.Oak
 
 
 class ModType(Enum):
@@ -89,7 +114,9 @@ class Mod:
         hooks: The mod's hooks. If not given, searches for them in instance variables.
         commands: The mod's commands. If not given, searches for them in instance variables.
 
-    Attributes - Runtime:
+    Attributes - Enabling:
+        enabling_locked: If true, the mod cannot be enabled or disabled, it's locked in it's current
+                         state. Set automatically, not available in constructor.
         is_enabled: True if the mod is currently considered enabled. Not available in constructor.
         auto_enable: True if to enable the mod on launch if it was also enabled last time.
         on_enable: A no-arg callback to run on mod enable. Useful when constructing via dataclass.
@@ -101,7 +128,7 @@ class Mod:
     description: str = ""
     version: str = "Unknown Version"
     mod_type: ModType = ModType.Standard
-    supported_games: Game = Game.BL3 | Game.WL
+    supported_games: Game = field(default=Game.get_tree())
     settings_file: Path | None = None
 
     # Set the default to None so we can detect when these aren't provided
@@ -112,6 +139,7 @@ class Mod:
     hooks: Sequence[HookProtocol] = field(default=None)  # type: ignore
     commands: Sequence[AbstractCommand] = field(default=None)  # type: ignore
 
+    enabling_locked: bool = field(init=False)
     is_enabled: bool = field(default=False, init=False)
     auto_enable: bool = True
     on_enable: Callable[[], None] | None = None
@@ -162,11 +190,13 @@ class Mod:
         for option in self.options:
             option.mod = self
 
+        self.enabling_locked = Game.get_current() not in self.supported_games
+
     def enable(self) -> None:
         """Called to enable the mod."""
-        if self.is_enabled:
+        if self.enabling_locked:
             return
-        if Game.get_current() not in self.supported_games:
+        if self.is_enabled:
             return
 
         self.is_enabled = True
@@ -192,6 +222,8 @@ class Mod:
             dont_update_setting: If true, prevents updating the enabled flag in the settings file.
                                  Should be set for automated disables, and clear for manual ones.
         """
+        if self.enabling_locked:
+            return
         if not self.is_enabled:
             return
 
@@ -231,43 +263,22 @@ class Mod:
         Yields:
             Options, in the order they should be displayed.
         """
-        compatible_game = Game.get_current() in self.supported_games
-
-        if not compatible_game:
-            yield ButtonOption(
-                "Incompatible Game!",
-                description=f"This mod is incompatible with {Game.get_current().name}!",
-            )
-
-        # Displat the author and version in the title, if they're not the empty string
-        description_title = ""
-        if self.author:
-            description_title += f"By {self.author}"
-        if self.author and self.version:
-            description_title += "  -  "
-        if self.version:
-            description_title += self.version
-
-        yield ButtonOption(
-            "Description",
-            description=self.description,
-            description_title=description_title or "Description",
-        )
-        if compatible_game:
-            yield BoolOption(
-                "Enabled",
-                self.is_enabled,
-                on_change=lambda _, now_enabled: self.enable() if now_enabled else self.disable(),
-            )
-
-        if any(not opt.is_hidden for opt in self.options) > 0:
+        if any(not opt.is_hidden for opt in self.options):
             yield GroupedOption("Options", self.options)
 
-        if any(not kb.is_hidden for kb in self.keybinds) > 0:
+        if any(not kb.is_hidden for kb in self.keybinds):
             yield GroupedOption(
                 "Keybinds",
                 [KeybindOption.from_keybind(bind) for bind in self.keybinds],
             )
+
+    def get_status(self) -> str:
+        """Gets the current status of this mod. Should be a single line."""
+        if Game.get_current() not in self.supported_games:
+            return "<font color='#ffff00'>Incompatible</font>"
+        if self.is_enabled:
+            return "<font color='#00ff00'>Enabled</font>"
+        return "<font color='#ff0000'>Disabled</font>"
 
 
 @dataclass
@@ -284,21 +295,14 @@ class Library(Mod):
     def __post_init__(self) -> None:
         super().__post_init__()
 
-        if Game.get_current() in self.supported_games:
+        # Enable if not already locked due to an incompatible game
+        if not self.enabling_locked:
             self.enable()
+        # And then lock
+        self.enabling_locked = True
 
-    def disable(self, dont_update_setting: bool = False) -> None:
-        """No-op to prevent the library from being disabled."""
-
-    def iter_display_options(self) -> Iterator[BaseOption]:
-        """Custom display options, which remove the enabled switch."""
-        seen_enabled = False
-        for option in super().iter_display_options():
-            if (
-                not seen_enabled
-                and option.identifier == "Enabled"
-                and isinstance(option, BoolOption)
-            ):
-                seen_enabled = True
-                continue
-            yield option
+    def get_status(self) -> str:
+        """Gets the current status of this mod."""
+        if Game.get_current() not in self.supported_games:
+            return "<font color='#ffff00'>Incompatible</font>"
+        return "<font color='#00ff00'>Loaded</font>"
