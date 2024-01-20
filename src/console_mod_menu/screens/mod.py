@@ -32,14 +32,10 @@ from .option import BoolOptionScreen, ButtonOptionScreen, ChoiceOptionScreen, Sl
 
 
 @dataclass
-class ModScreen(AbstractScreen):
-    name: str = field(init=False)
+class OptionListScreen(AbstractScreen):
     mod: Mod
 
     drawn_options: list[BaseOption] = field(default_factory=list, init=False)
-
-    def __post_init__(self) -> None:
-        self.name = self.mod.name
 
     def draw_options_list(
         self,
@@ -88,18 +84,15 @@ class ModScreen(AbstractScreen):
                 case _:
                     logging.dev_warning(f"Encountered unknown option type {type(option)}")
 
-    def draw(self) -> None:  # noqa: D102
-        draw_stack_header()
+    def handle_option_input(self, line: str) -> bool:
+        """
+        Handles an input made to the options list.
 
-        self.drawn_options = []
-        self.draw_options_list(self.mod.iter_display_options(), [])
-
-        draw_standard_commands()
-
-    def handle_input(self, line: str) -> bool:  # noqa: D102
-        if handle_standard_command_input(line):
-            return True
-
+        Args:
+            line: The line the user submitted, with whitespace stripped.
+        Returns:
+            True if able to parse the line, false otherwise.
+        """
         option: BaseOption
         try:
             option = self.drawn_options[int(line) - 1]
@@ -125,7 +118,30 @@ class ModScreen(AbstractScreen):
 
 
 @dataclass
-class NestedOptionScreen(ModScreen):
+class ModScreen(OptionListScreen):
+    name: str = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.name = self.mod.name
+
+    def draw(self) -> None:  # noqa: D102
+        draw_stack_header()
+
+        self.drawn_options = []
+        self.draw_options_list(self.mod.iter_display_options(), [])
+
+        draw_standard_commands()
+
+    def handle_input(self, line: str) -> bool:  # noqa: D102
+        if handle_standard_command_input(line):
+            return True
+
+        return self.handle_option_input(line)
+
+
+@dataclass
+class NestedOptionScreen(OptionListScreen):
+    name: str = field(init=False)
     option: NestedOption
 
     def __post_init__(self) -> None:
@@ -138,3 +154,9 @@ class NestedOptionScreen(ModScreen):
         self.draw_options_list(self.option.children, [])
 
         draw_standard_commands()
+
+    def handle_input(self, line: str) -> bool:  # noqa: D102
+        if handle_standard_command_input(line):
+            return True
+
+        return self.handle_option_input(line)
