@@ -23,3 +23,15 @@ def draw(msg: str, indent: int = 0) -> None:
 
     for line in wrapper.fill(html_to_plain_text(msg)).splitlines():
         print(prefix, line)
+
+
+def draw_description(description: str, indent: int = 0) -> None:
+    """
+    Draws a message coming from a mod/option description - honoring existing newlines.
+
+    Args:
+        description: The description to write.
+        indent: How much to indent the message.
+    """
+    for line in html_to_plain_text(description).splitlines():
+        draw(line, indent)
