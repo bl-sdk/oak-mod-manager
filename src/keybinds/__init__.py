@@ -14,8 +14,6 @@ from mods_base.raw_keybinds import (
 
 from .keybinds import deregister_keybind, register_keybind
 
-# from mods_base.raw_keybinds import raw_keybind_callback_stack
-
 __all__: tuple[str, ...] = (
     "__author__",
     "__version__",
@@ -86,21 +84,20 @@ def enable_raw_keybind(self: RawKeybind) -> None:
                 False,
                 cast(RawKeybindCallback_KeyOnly, self.callback),
             )
+    elif self.event is None:
+        handle = register_keybind(
+            self.key,
+            self.event,
+            False,
+            cast(RawKeybindCallback_EventOnly, self.callback),
+        )
     else:
-        if self.event is None:
-            handle = register_keybind(
-                self.key,
-                self.event,
-                False,
-                cast(RawKeybindCallback_EventOnly, self.callback),
-            )
-        else:
-            handle = register_keybind(
-                self.key,
-                self.event,
-                False,
-                cast(RawKeybindCallback_NoArgs, self.callback),
-            )
+        handle = register_keybind(
+            self.key,
+            self.event,
+            False,
+            cast(RawKeybindCallback_NoArgs, self.callback),
+        )
 
     self._kb_handle = handle  # type: ignore
 

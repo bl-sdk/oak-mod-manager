@@ -139,6 +139,8 @@ KNOWN_KEYS: set[str] = {
 # Unfortuantly, it doesn't seem to be exposed, so we manually replicate it instead
 # Based on Python/suggestions.c:calculate_suggestions
 
+# ruff: noqa: ERA001
+
 MOVE_COST = 2
 CASE_COST = 1
 MAX_STRING_SIZE = 40

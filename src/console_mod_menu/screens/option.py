@@ -21,15 +21,15 @@ from console_mod_menu.option_formatting import draw_option_header
 
 from . import AbstractScreen, draw_standard_commands, handle_standard_command_input
 
-T = TypeVar("T", bound=BaseOption)
-J = TypeVar("J", bound=JSON)
+_T = TypeVar("_T", bound=BaseOption)
+_J = TypeVar("_J", bound=JSON)
 
 
 @dataclass
-class OptionScreen(AbstractScreen, Generic[T, J]):
+class OptionScreen(AbstractScreen, Generic[_T, _J]):
     name: str = field(init=False)
     mod: Mod
-    option: T
+    option: _T
 
     def __post_init__(self) -> None:
         self.name = self.option.display_name
@@ -43,7 +43,7 @@ class OptionScreen(AbstractScreen, Generic[T, J]):
         """Draws anything needed for the specific option."""
         raise NotImplementedError
 
-    def update_value(self, new_value: J) -> None:
+    def update_value(self, new_value: _J) -> None:
         """
         Updates an option's value, running the callback if needed.
 
@@ -54,7 +54,7 @@ class OptionScreen(AbstractScreen, Generic[T, J]):
             assert isinstance(
                 self.option,
                 # Not allowed to use generics at runtime
-                ValueOption[J],  # pyright: ignore[reportGeneralTypeIssues]
+                ValueOption[_J],  # pyright: ignore[reportGeneralTypeIssues]
             )
         assert isinstance(self.option, ValueOption)
 

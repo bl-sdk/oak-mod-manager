@@ -75,11 +75,11 @@ mod_list: list[Mod] = [
         options=[
             ButtonOption(
                 "Open Mod Database",
-                on_press=lambda _: os.startfile(MOD_DB_URL),  # type: ignore
+                on_press=lambda _: os.startfile(MOD_DB_URL),  # type: ignore  # noqa: S606
             ),
             ButtonOption(
                 "Open Installed Mods Folder",
-                on_press=lambda _: os.startfile(MODS_DIR),  # type: ignore
+                on_press=lambda _: os.startfile(MODS_DIR),  # type: ignore  # noqa: S606
             ),
         ],
         components=[

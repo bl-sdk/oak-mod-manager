@@ -1,15 +1,18 @@
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
 from dataclasses import InitVar, dataclass, field
-from typing import Any, ClassVar, Self
+from typing import TYPE_CHECKING, Any, ClassVar, Self
 
 from mods_base import ENGINE, hook
 from unrealsdk import logging, make_struct
 from unrealsdk.hooks import Block, Type
-from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 from .native.dialog_box import show_dialog_box
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Sequence
+
+    from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 # Track a stack incase someone opens a dialog while another is still open
 _dialog_stack: list[DialogBox] = []
