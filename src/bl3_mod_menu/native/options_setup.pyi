@@ -1,8 +1,6 @@
-from typing import TypeAlias
-
 from unrealsdk.unreal import UObject
 
-_GFxOptionBase: TypeAlias = UObject
+type _GFxOptionBase = UObject
 
 __all__: tuple[str, ...] = (
     "add_binding",

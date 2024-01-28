@@ -1,10 +1,8 @@
-from typing import TypeAlias
-
 from unrealsdk.unreal import UObject
 
-_GbxGFxListItemComboBox: TypeAlias = UObject
-_GbxGFxListItemNumber: TypeAlias = UObject
-_GbxGFxListItemSpinner: TypeAlias = UObject
+type _GbxGFxListItemComboBox = UObject
+type _GbxGFxListItemNumber = UObject
+type _GbxGFxListItemSpinner = UObject
 
 __all__: tuple[str, ...] = (
     "get_combo_box_selected_idx",

@@ -2,11 +2,9 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING
 
 from mods_base import (
-    JSON,
-    BaseOption,
     BoolOption,
     ButtonOption,
     DropdownOption,
@@ -21,12 +19,12 @@ from console_mod_menu.option_formatting import draw_option_header
 
 from . import AbstractScreen, draw_standard_commands, handle_standard_command_input
 
-T = TypeVar("T", bound=BaseOption)
-J = TypeVar("J", bound=JSON)
+if TYPE_CHECKING:
+    from mods_base import JSON, BaseOption
 
 
 @dataclass
-class OptionScreen(AbstractScreen, Generic[T, J]):
+class OptionScreen[T: BaseOption, J: JSON](AbstractScreen):
     name: str = field(init=False)
     mod: Mod
     option: T

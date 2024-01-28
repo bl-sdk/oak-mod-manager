@@ -1,9 +1,5 @@
-[tool.black]
-target-version = ["py311"]
-line-length = 100
-
 [tool.pyright]
-pythonVersion = "3.11"
+pythonVersion = "3.12"
 typeCheckingMode = "strict"
 
 include = ["src"]
@@ -11,7 +7,7 @@ stubPath = "libs/pyunrealsdk/stubs"
 reportMissingModuleSource = false
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py312"
 line-length = 100
 select = [
     "F",
@@ -25,13 +21,17 @@ select = [
     "YTT",
     "ANN",
     "ASYNC",
+    "S",
     "BLE",
     "B",
     "A",
     "COM",
     "C4",
+    "DTZ",
+    "T10",
     "FA",
     "ISC",
+    "ICN",
     "G",
     "PIE",
     "PYI",
@@ -41,11 +41,19 @@ select = [
     "SLOT",
     "SIM",
     "TID",
+    "TCH",
+    "INT",
     "ARG",
     "PTH",
+    "TD",
+    "FIX",
+    "ERA",
     "PGH",
+    "PL",
     "FLY",
     "PERF",
+    "FURB",
+    "LOG",
     "RUF",
 ]
 ignore = [
@@ -69,11 +77,23 @@ ignore = [
     "ANN101",
     "ANN102",
     "ANN401",
+    "S101",
+    "S603",
+    "S607",
     "PYI011",
     "PYI021",
     "PYI029",
     "PYI044",
     "PGH003",
+    "PLR0904",
+    "PLR0911",
+    "PLR0912",
+    "PLR0913",
+    "PLR0915",
+    "PLR6301",
+    "PLW0603",
+    "PLW2901",
+    "FURB140",
 ]
 
 [tool.ruff.per-file-ignores]

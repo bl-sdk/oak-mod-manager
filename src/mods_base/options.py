@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import KW_ONLY, dataclass, field
-from typing import TYPE_CHECKING, Generic, Literal, Self, TypeAlias, TypeVar
+from typing import TYPE_CHECKING, Literal, Self
 
 from unrealsdk import logging
 
@@ -13,8 +13,7 @@ if TYPE_CHECKING:
 # Little ugly to repeat this from settings, but we can't import it from there cause it creates a
 # strong circular dependency - we need to import it to get JSON before we can define most options,
 # but it needs to import those options from us
-JSON: TypeAlias = Mapping[str, "JSON"] | Sequence["JSON"] | str | int | float | bool | None
-J = TypeVar("J", bound=JSON)
+type JSON = Mapping[str, "JSON"] | Sequence["JSON"] | str | int | float | bool | None
 
 
 @dataclass
@@ -54,7 +53,7 @@ class BaseOption(ABC):
 
 
 @dataclass
-class ValueOption(BaseOption, Generic[J]):
+class ValueOption[J: JSON](BaseOption):
     """
     Abstract base class for all options storing a value.
 
@@ -109,7 +108,7 @@ class ValueOption(BaseOption, Generic[J]):
 
 
 @dataclass
-class HiddenOption(ValueOption[J]):
+class HiddenOption[J: JSON](ValueOption[J]):
     """
     A generic option which is always hidden. Use this to persist arbitrary (JSON-encodeable) data.
 

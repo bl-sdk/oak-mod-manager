@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import inspect
 import sys
-from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass, field
 from enum import Enum, Flag, auto
 from functools import cache
 from pathlib import Path
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from unrealsdk import logging
 
@@ -16,6 +15,9 @@ from .hook import HookProtocol
 from .keybinds import KeybindType
 from .options import BaseOption, GroupedOption, KeybindOption, NestedOption
 from .settings import default_load_mod_settings, default_save_mod_settings
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterator, Sequence
 
 
 class Game(Flag):
@@ -285,9 +287,7 @@ class Mod:
 class Library(Mod):
     """Helper subclass for libraries, which are always enabled."""
 
-    mod_type: Literal[  # pyright: ignore[reportIncompatibleVariableOverride]
-        ModType.Library
-    ] = ModType.Library
+    mod_type: Literal[ModType.Library] = ModType.Library  # pyright: ignore[reportIncompatibleVariableOverride]
 
     # Don't auto enable, since we're always enabled
     auto_enable: Literal[False] = False  # pyright: ignore[reportIncompatibleVariableOverride]

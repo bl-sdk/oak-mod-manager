@@ -1,6 +1,7 @@
 from typing import Any
 
 from mods_base import (
+    JSON,
     BaseOption,
     BoolOption,
     ButtonOption,
@@ -12,7 +13,6 @@ from mods_base import (
     ValueOption,
     hook,
 )
-from mods_base.options import J
 from unrealsdk.hooks import Block, Type
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
@@ -29,7 +29,7 @@ from .options_setup import (
 )
 
 
-def update_option_value(option: ValueOption[J], value: J) -> None:
+def update_option_value[J: JSON](option: ValueOption[J], value: J) -> None:
     """
     Updates an option's value, running the callback if needed.
 

@@ -17,7 +17,7 @@ def draw(msg: str, indent: int = 0) -> None:
     """
     prefix = "Mod Menu | " + ("  " * indent)
 
-    if msg == "":
+    if not msg:
         print("Mod Menu |")
         return
 

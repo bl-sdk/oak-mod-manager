@@ -23,7 +23,7 @@ env:
   XWIN_VERSION: xwin-0.5.0-x86_64-unknown-linux-musl
   XWIN_DOWNLOAD: https://github.com/Jake-Shadle/xwin/releases/download/0.5.0/xwin-0.5.0-x86_64-unknown-linux-musl.tar.gz
   # Python settings
-  PYTHON_VERSION: "3.11.5"
+  PYTHON_VERSION: "3.12.1"
 
 jobs:
   cache-clang:
@@ -352,19 +352,6 @@ jobs:
     - name: Check spelling
       uses: crate-ci/typos@master
 
-  black:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
-    - name: Check formatting
-      uses: psf/black@stable
-      with:
-        options: "--check --verbose"
-        src: "./src"
-
   pyright:
     runs-on: ubuntu-latest
 
@@ -387,10 +374,16 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Run Ruff
+    - name: Run Ruff Linting
       uses: chartboost/ruff-action@v1
       with:
-        src: "./src"
+        src: ./src
+
+    - name: Run Ruff Formatting
+      uses: chartboost/ruff-action@v1
+      with:
+        src: ./src
+        args: format --check
 
 # ==============================================================================
 
@@ -407,7 +400,6 @@ jobs:
       - clang-tidy
       - clang-format
       - spelling
-      - black
       - pyright
       - ruff
 
@@ -444,7 +436,6 @@ jobs:
       - clang-tidy
       - clang-format
       - spelling
-      - black
       - pyright
       - ruff
 

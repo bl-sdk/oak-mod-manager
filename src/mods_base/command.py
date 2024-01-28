@@ -5,7 +5,7 @@ import shlex
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, TypeAlias, overload
+from typing import Any, overload
 
 from unrealsdk.commands import NEXT_LINE, add_command, has_command, remove_command
 
@@ -53,8 +53,8 @@ class AbstractCommand(ABC):
         return has_command(self.cmd)
 
 
-ARGPARSE_CALLBACK: TypeAlias = Callable[[argparse.Namespace], None]
-ARGPARSE_SPLITTER: TypeAlias = Callable[[str], list[str]]
+type ARGPARSE_CALLBACK = Callable[[argparse.Namespace], None]
+type ARGPARSE_SPLITTER = Callable[[str], list[str]]
 
 
 @dataclass

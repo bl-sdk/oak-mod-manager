@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TypeAlias, overload
+from typing import overload
 
 from unrealsdk import logging
 
@@ -25,18 +25,18 @@ keybinds are processed *before* gameplay keybinds, so a raw keybind specifying t
 will prevent any matching gameplay keybinds from being run.
 """
 
-RawKeybindCallback_KeyAndEvent: TypeAlias = Callable[[str, EInputEvent], KeybindBlockSignal]
-RawKeybindCallback_KeyOnly: TypeAlias = Callable[[str], KeybindBlockSignal]
-RawKeybindCallback_EventOnly: TypeAlias = Callable[[EInputEvent], KeybindBlockSignal]
-RawKeybindCallback_NoArgs: TypeAlias = Callable[[], KeybindBlockSignal]
+type RawKeybindCallback_KeyAndEvent = Callable[[str, EInputEvent], KeybindBlockSignal]
+type RawKeybindCallback_KeyOnly = Callable[[str], KeybindBlockSignal]
+type RawKeybindCallback_EventOnly = Callable[[EInputEvent], KeybindBlockSignal]
+type RawKeybindCallback_NoArgs = Callable[[], KeybindBlockSignal]
 
-RawKeybindCallback_Any: TypeAlias = (
+type RawKeybindCallback_Any = (
     RawKeybindCallback_KeyAndEvent
     | RawKeybindCallback_KeyOnly
     | RawKeybindCallback_EventOnly
     | RawKeybindCallback_NoArgs
 )
-RawKeybindDecorator_Any: TypeAlias = (
+type RawKeybindDecorator_Any = (
     Callable[[RawKeybindCallback_KeyAndEvent], None]
     | Callable[[RawKeybindCallback_KeyOnly], None]
     | Callable[[RawKeybindCallback_EventOnly], None]

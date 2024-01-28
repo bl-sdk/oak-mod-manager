@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from collections.abc import Callable
 from dataclasses import KW_ONLY, dataclass, field
-from typing import TYPE_CHECKING, Any, TypeAlias, overload
+from typing import TYPE_CHECKING, Any, overload
 
 from unrealsdk import logging
-from unrealsdk.hooks import Block
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from enum import auto
 
+    from unrealsdk.hooks import Block
     from unrealsdk.unreal._uenum import UnrealEnum  # pyright: ignore[reportMissingModuleSource]
 
     class EInputEvent(UnrealEnum):
@@ -25,9 +25,9 @@ else:
 
     EInputEvent = find_enum("EInputEvent")
 
-KeybindBlockSignal: TypeAlias = None | Block | type[Block]
-KeybindCallback_Event: TypeAlias = Callable[[EInputEvent], KeybindBlockSignal]
-KeybindCallback_NoArgs: TypeAlias = Callable[[], KeybindBlockSignal]
+type KeybindBlockSignal = None | Block | type[Block]
+type KeybindCallback_Event = Callable[[EInputEvent], KeybindBlockSignal]
+type KeybindCallback_NoArgs = Callable[[], KeybindBlockSignal]
 
 
 @dataclass

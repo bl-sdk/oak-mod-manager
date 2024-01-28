@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping, MutableMapping, Sequence
-from typing import TYPE_CHECKING, TypeAlias, TypedDict, cast
+from typing import TYPE_CHECKING, TypedDict, cast
 
 from unrealsdk import logging
 
@@ -24,7 +24,7 @@ from .options import (
 if TYPE_CHECKING:
     from .mod import Mod
 
-JSON: TypeAlias = Mapping[str, "JSON"] | Sequence["JSON"] | str | int | float | bool | None
+type JSON = Mapping[str, JSON] | Sequence[JSON] | str | int | float | bool | None
 
 SETTINGS_DIR = MODS_DIR / "settings"
 SETTINGS_DIR.mkdir(parents=True, exist_ok=True)
