@@ -352,19 +352,6 @@ jobs:
     - name: Check spelling
       uses: crate-ci/typos@master
 
-  black:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
-    - name: Check formatting
-      uses: psf/black@stable
-      with:
-        options: "--check --verbose"
-        src: "./src"
-
   pyright:
     runs-on: ubuntu-latest
 
@@ -387,10 +374,16 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Run Ruff
+    - name: Run Ruff Linting
       uses: chartboost/ruff-action@v1
       with:
-        src: "./src"
+        src: ./src
+
+    - name: Run Ruff Formatting
+      uses: chartboost/ruff-action@v1
+      with:
+        src: ./src
+        args: format --check
 
 # ==============================================================================
 
@@ -407,7 +400,6 @@ jobs:
       - clang-tidy
       - clang-format
       - spelling
-      - black
       - pyright
       - ruff
 
@@ -444,7 +436,6 @@ jobs:
       - clang-tidy
       - clang-format
       - spelling
-      - black
       - pyright
       - ruff
 

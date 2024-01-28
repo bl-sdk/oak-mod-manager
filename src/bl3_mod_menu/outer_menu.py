@@ -91,6 +91,12 @@ def add_menu_item_hook(
     return idx
 
 
+# If we have too many mods, they'll end up scrolling behind the news box
+# To avoid this, add some dummy entries
+# To make it less obvious, since they still have a highlight, only do so when there are too many
+NUM_MODS_BEFORE_NEWS_PADDING: int = 8
+
+
 def draw_mods_list(main_menu: UObject) -> None:
     """
     Draws the mods list.
@@ -112,10 +118,7 @@ def draw_mods_list(main_menu: UObject) -> None:
         formatted_name += f" <font size='20'>{mod.get_status()}</font>"
         add_menu_item(main_menu, formatted_name, "OnInviteListClearClicked", False, -1)
 
-    # If we have too many mods, they'll end up scrolling behind the news box
-    # To avoid this, add some dummy entries
-    # To make it less obvious, since they still have a highlight, only do so when there are too many
-    if len(last_displayed_mod_list) > 8:
+    if len(last_displayed_mod_list) > NUM_MODS_BEFORE_NEWS_PADDING:
         for _ in range(4):
             add_menu_item(main_menu, "", "", True, -1)
 

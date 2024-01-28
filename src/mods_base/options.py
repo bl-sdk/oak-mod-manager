@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 # strong circular dependency - we need to import it to get JSON before we can define most options,
 # but it needs to import those options from us
 JSON: TypeAlias = Mapping[str, "JSON"] | Sequence["JSON"] | str | int | float | bool | None
-J = TypeVar("J", bound=JSON)
+_J = TypeVar("_J", bound=JSON)
 
 
 @dataclass
@@ -54,7 +54,7 @@ class BaseOption(ABC):
 
 
 @dataclass
-class ValueOption(BaseOption, Generic[J]):
+class ValueOption(BaseOption, Generic[_J]):
     """
     Abstract base class for all options storing a value.
 
@@ -73,10 +73,10 @@ class ValueOption(BaseOption, Generic[J]):
         default_value: What the value was originally when registered. Does not update on change.
     """
 
-    value: J
-    default_value: J = field(init=False)
+    value: _J
+    default_value: _J = field(init=False)
     _: KW_ONLY
-    on_change: Callable[[Self, J], None] | None = None
+    on_change: Callable[[Self, _J], None] | None = None
 
     @abstractmethod
     def __init__(self) -> None:
@@ -86,7 +86,7 @@ class ValueOption(BaseOption, Generic[J]):
         super().__post_init__()
         self.default_value = self.value
 
-    def __call__(self, on_change: Callable[[Self, J], None]) -> Self:
+    def __call__(self, on_change: Callable[[Self, _J], None]) -> Self:
         """
         Sets the on change callback.
 
@@ -109,7 +109,7 @@ class ValueOption(BaseOption, Generic[J]):
 
 
 @dataclass
-class HiddenOption(ValueOption[J]):
+class HiddenOption(ValueOption[_J]):
     """
     A generic option which is always hidden. Use this to persist arbitrary (JSON-encodeable) data.
 
