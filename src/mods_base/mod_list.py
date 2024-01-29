@@ -1,7 +1,6 @@
 import os
 from dataclasses import dataclass, field
 from functools import cmp_to_key
-from html.parser import HTMLParser
 from pathlib import Path
 
 import pyunrealsdk
@@ -10,6 +9,7 @@ import unrealsdk
 from . import MODS_DIR, __version__
 from .command import AbstractCommand
 from .hook import HookProtocol
+from .html_to_plain_text import html_to_plain_text
 from .keybinds import KeybindType
 from .mod import Game, Library, Mod, ModType
 from .options import BaseOption, ButtonOption
@@ -56,9 +56,11 @@ class BaseMod(Library):
         # Once already sorted, re-sorting should be relatively quick
         self.components.sort(key=lambda c: c.name.lower())
 
-        description = "Components:\n"
+        description = "Components:"
+        description += "<ul>"
         for comp in self.components:
-            description += f"- {comp.name}: {comp.version}\n"
+            description += f"<li>{comp.name}: {comp.version}</li>"
+        description += "</ul>"
 
         return description
 
@@ -116,29 +118,6 @@ def deregister_mod(mod: Mod) -> None:
         mod.disable(dont_update_setting=True)
 
     mod_list.remove(mod)
-
-
-def html_to_plain_text(html: str) -> str:
-    """
-    Extracts plain text from HTML-containing text. This is *NOT* input sanitisation.
-
-    Removes tags, and decodes entities - `<b>&amp;</b>` becomes `&`.
-
-    Intended for use when accessing a mod name/description/option/etc., which may contain HTML tags,
-    but in a situation where such tags would be inappropriate.
-
-    Args:
-        html: The HTML-containing text.
-    Returns:
-        The extracted plain text.
-    """
-    extracted_data: list[str] = []
-
-    parser = HTMLParser()
-    parser.handle_data = lambda data: extracted_data.append(data)
-    parser.feed(html)
-
-    return "".join(extracted_data)
 
 
 def get_ordered_mod_list() -> list[Mod]:

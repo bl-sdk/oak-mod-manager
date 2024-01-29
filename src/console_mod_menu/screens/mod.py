@@ -17,7 +17,7 @@ from mods_base import (
 )
 from unrealsdk import logging
 
-from console_mod_menu.draw import draw
+from console_mod_menu.draw import draw, draw_description
 from console_mod_menu.option_formatting import draw_option_header, get_option_value_str
 
 from . import (
@@ -140,7 +140,7 @@ class ModScreen(OptionListScreen):
         draw("")
 
         if self.mod.description:
-            draw(self.mod.description)
+            draw_description(self.mod.description)
             draw("")
 
         if not self.mod.enabling_locked:

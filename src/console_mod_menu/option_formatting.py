@@ -2,7 +2,7 @@ from typing import TypeVar, overload
 
 from mods_base import JSON, BaseOption, BoolOption, KeybindOption, ValueOption
 
-from .draw import draw
+from .draw import draw, draw_description
 from .screens import draw_stack_header
 
 _J = TypeVar("_J", bound=JSON)
@@ -64,8 +64,6 @@ def draw_option_header(option: BaseOption) -> None:
 
     if len(option.description) > 0:
         draw("=" * 32)
-        # Respect newlines - passing everything at once would let them get wrapped arbitrarily
-        for line in option.description.splitlines():
-            draw(line)
+        draw_description(option.description)
 
     draw("")

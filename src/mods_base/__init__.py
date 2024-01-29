@@ -36,14 +36,14 @@ from .command import (
     command,
     remove_next_console_line_capture,
 )
-from .hook import hook
+from .hook import HookProtocol, hook
+from .html_to_plain_text import html_to_plain_text
 from .keybinds import EInputEvent, KeybindType, keybind
 from .mod import Game, Library, Mod, ModType
 from .mod_factory import build_mod
 from .mod_list import (
     deregister_mod,
     get_ordered_mod_list,
-    html_to_plain_text,
     register_mod,
 )
 from .options import (
@@ -83,6 +83,7 @@ __all__: tuple[str, ...] = (
     "GroupedOption",
     "HiddenOption",
     "hook",
+    "HookProtocol",
     "html_to_plain_text",
     "JSON",
     "keybind",
@@ -91,9 +92,9 @@ __all__: tuple[str, ...] = (
     "Library",
     "Mod",
     "MODS_DIR",
-    "open_in_mod_dir",
     "ModType",
     "NestedOption",
+    "open_in_mod_dir",
     "raw_keybinds",
     "register_mod",
     "remove_next_console_line_capture",
