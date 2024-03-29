@@ -27,6 +27,8 @@ __author__: str = "bl-sdk"
 
 @wraps(KeybindType.enable)
 def enable_keybind(self: KeybindType) -> None:
+    self.is_enabled = True
+
     if self.key is None or self.callback is None:
         return
 
@@ -54,6 +56,8 @@ KeybindType.enable = enable_keybind
 
 @wraps(KeybindType.disable)
 def disable_keybind(self: KeybindType) -> None:
+    self.is_enabled = False
+
     handle = getattr(self, "_kb_handle", None)
     if handle is None:
         return
@@ -63,6 +67,20 @@ def disable_keybind(self: KeybindType) -> None:
 
 
 KeybindType.disable = disable_keybind
+
+
+@wraps(KeybindType._rebind)  # pyright: ignore[reportPrivateUsage]
+def rebind_keybind(self: KeybindType, new_key: str | None) -> None:
+    handle = getattr(self, "_kb_handle", None)
+    if handle is not None:
+        deregister_keybind(handle)
+
+    if self.is_enabled:
+        self.key = new_key
+        enable_keybind(self)
+
+
+KeybindType._rebind = rebind_keybind  # pyright: ignore[reportPrivateUsage]
 
 
 @wraps(RawKeybind.enable)

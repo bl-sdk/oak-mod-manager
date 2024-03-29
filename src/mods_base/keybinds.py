@@ -52,11 +52,15 @@ class KeybindType:
         event_filter: If not None, only runs the callback when the given event fires.
 
     Extra Attributes:
+        is_enabled: True if this keybind has been enabled.
         default_key: What the key was originally when registered. Does not update on rebind.
     """
 
     identifier: str
     key: str | None
+
+    # Putting this up here for a more convenient repr
+    is_enabled: bool = field(init=False, default=False)
 
     # If `event_filter` is None, `callback` should be `KeybindCallback_Event | None`
     # If `event_filter` is not None, `callback` should be `KeybindCallback_NoArgs | None`
@@ -81,16 +85,38 @@ class KeybindType:
 
         self.default_key = self.key
 
-    # These two functions should get replaced by the keybind implementation
+    def __setattr__(self, name: str, value: Any) -> None:
+        # Simpler to use `__setattr__` than a property to detect key changes
+        if name == "key" and not hasattr(self, "_rebind_recursion_guard"):
+            self._rebind_recursion_guard = True
+            self._rebind(value)
+            del self._rebind_recursion_guard
+
+        super().__setattr__(name, value)
+
+    # These three functions should get replaced by the keybind implementation
     # The initialization script should make sure to load it before any mods, to make sure they don't
     # end up with references to these functions
+    # If writing a new implementation, make sure to still set `is_enabled` correctly
     def enable(self) -> None:
         """Enables this keybind."""
         logging.error("No keybind implementation loaded, unable to enable binds")
+        self.is_enabled = True
 
     def disable(self) -> None:
         """Disables this keybind."""
         logging.error("No keybind implementation loaded, unable to disable binds")
+        self.is_enabled = False
+
+    def _rebind(self, new_key: str | None) -> None:
+        """
+        Called whenever this keybind is rebound, before the `key` attribute is updated.
+
+        May be used by the keybind implementation to rebind keys if needed.
+
+        Args:
+            new_key: The new key this keybind is being rebound to.
+        """
 
 
 @overload
@@ -105,8 +131,7 @@ def keybind(
     is_hidden: bool = False,
     is_rebindable: bool = True,
     event_filter: EInputEvent = EInputEvent.IE_Pressed,
-) -> KeybindType:
-    ...
+) -> KeybindType: ...
 
 
 @overload
@@ -121,8 +146,7 @@ def keybind(
     is_hidden: bool = False,
     is_rebindable: bool = True,
     event_filter: EInputEvent = EInputEvent.IE_Pressed,
-) -> Callable[[KeybindCallback_NoArgs], KeybindType]:
-    ...
+) -> Callable[[KeybindCallback_NoArgs], KeybindType]: ...
 
 
 @overload
@@ -137,8 +161,7 @@ def keybind(
     is_hidden: bool = False,
     is_rebindable: bool = True,
     event_filter: None = None,
-) -> KeybindType:
-    ...
+) -> KeybindType: ...
 
 
 @overload
@@ -153,8 +176,7 @@ def keybind(
     is_hidden: bool = False,
     is_rebindable: bool = True,
     event_filter: None = None,
-) -> Callable[[KeybindCallback_Event], KeybindType]:
-    ...
+) -> Callable[[KeybindCallback_Event], KeybindType]: ...
 
 
 def keybind(
