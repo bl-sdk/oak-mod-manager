@@ -85,13 +85,11 @@ def command(
     cmd: str | None = None,
     splitter: ARGPARSE_SPLITTER = shlex.split,
     **kwargs: Any,
-) -> Callable[[ARGPARSE_CALLBACK], ArgParseCommand]:
-    ...
+) -> Callable[[ARGPARSE_CALLBACK], ArgParseCommand]: ...
 
 
 @overload
-def command(callback: ARGPARSE_CALLBACK, /) -> ArgParseCommand:
-    ...
+def command(callback: ARGPARSE_CALLBACK, /) -> ArgParseCommand: ...
 
 
 def command(

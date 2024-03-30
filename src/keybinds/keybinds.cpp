@@ -109,7 +109,7 @@ bool handle_key_event(AOakPlayerController* player_controller,
 
     // At this point, the only case where we won't run the callback is if we're in a menu and only
     // have gameplay binds.
-    // We need to copy into a vector later, in case the callbacks remove themseleves
+    // We need to copy into a vector later, in case the callbacks remove themselves
     // Assuming the range is probably quite small at this point, so iterating through it an extra
     // time now should be faster than doing some allocations.
     const bool has_gameplay_bind = std::ranges::any_of(

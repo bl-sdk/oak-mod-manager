@@ -136,7 +136,7 @@ KNOWN_KEYS: set[str] = {
 
 # Python has code to suggest other names on an attribute or name error - we want to do the same when
 # someone gives an invalid key name.
-# Unfortuantly, it doesn't seem to be exposed, so we manually replicate it instead
+# Unfortunately, it doesn't seem to be exposed, so we manually replicate it instead
 # Based on Python/suggestions.c:calculate_suggestions
 
 # ruff: noqa: ERA001

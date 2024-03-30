@@ -82,8 +82,7 @@ def add(
     key: str,
     event: EInputEvent,
     callback: RawKeybindCallback_NoArgs,
-) -> None:
-    ...
+) -> None: ...
 
 
 @overload
@@ -91,8 +90,7 @@ def add(
     key: str,
     event: None,
     callback: RawKeybindCallback_EventOnly,
-) -> None:
-    ...
+) -> None: ...
 
 
 @overload
@@ -100,8 +98,7 @@ def add(
     key: None,
     event: EInputEvent,
     callback: RawKeybindCallback_KeyOnly,
-) -> None:
-    ...
+) -> None: ...
 
 
 @overload
@@ -109,8 +106,7 @@ def add(
     key: None,
     event: None,
     callback: RawKeybindCallback_KeyAndEvent,
-) -> None:
-    ...
+) -> None: ...
 
 
 @overload
@@ -118,8 +114,7 @@ def add(
     key: str,
     event: EInputEvent = EInputEvent.IE_Pressed,
     callback: None = None,
-) -> Callable[[RawKeybindCallback_NoArgs], None]:
-    ...
+) -> Callable[[RawKeybindCallback_NoArgs], None]: ...
 
 
 @overload
@@ -127,8 +122,7 @@ def add(
     key: str,
     event: None = None,
     callback: None = None,
-) -> Callable[[RawKeybindCallback_EventOnly], None]:
-    ...
+) -> Callable[[RawKeybindCallback_EventOnly], None]: ...
 
 
 @overload
@@ -136,8 +130,7 @@ def add(
     key: None,
     event: EInputEvent = EInputEvent.IE_Pressed,
     callback: None = None,
-) -> Callable[[RawKeybindCallback_KeyOnly], None]:
-    ...
+) -> Callable[[RawKeybindCallback_KeyOnly], None]: ...
 
 
 @overload
@@ -145,8 +138,7 @@ def add(
     key: None,
     event: None = None,
     callback: None = None,
-) -> Callable[[RawKeybindCallback_KeyAndEvent], None]:
-    ...
+) -> Callable[[RawKeybindCallback_KeyAndEvent], None]: ...
 
 
 def add(

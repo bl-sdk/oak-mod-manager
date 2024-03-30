@@ -9,13 +9,11 @@ _J = TypeVar("_J", bound=JSON)
 
 
 @overload
-def get_option_value_str(option: ValueOption[_J]) -> str:
-    ...
+def get_option_value_str(option: ValueOption[_J]) -> str: ...
 
 
 @overload
-def get_option_value_str(option: BaseOption) -> str | None:
-    ...
+def get_option_value_str(option: BaseOption) -> str | None: ...
 
 
 def get_option_value_str(option: BaseOption) -> str | None:
