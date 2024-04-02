@@ -23,16 +23,16 @@ EXTRA_FOLDERS_ENV_VAR: str = "OAK_MOD_MANAGER_EXTRA_FOLDERS"
 def init_debugpy() -> None:
     """Tries to import and setup debugpy. Does nothing if unable to."""
     try:
-        import debugpy  # pyright: ignore[reportMissingImports]
+        import debugpy  # pyright: ignore[reportMissingImports]  # noqa: T100
 
-        debugpy.listen(  # pyright: ignore[reportUnknownMemberType]
+        debugpy.listen(  # pyright: ignore[reportUnknownMemberType]  # noqa: T100
             ("localhost", 5678),
             in_process_debug_adapter=True,
         )
 
         if WAIT_FOR_CLIENT:
-            debugpy.wait_for_client()  # pyright: ignore[reportUnknownMemberType]
-            debugpy.breakpoint()  # pyright: ignore[reportUnknownMemberType]
+            debugpy.wait_for_client()  # pyright: ignore[reportUnknownMemberType]  # noqa: T100
+            debugpy.breakpoint()  # pyright: ignore[reportUnknownMemberType]  # noqa: T100
 
         if "PYUNREALSDK_DEBUGPY" not in os.environ:
             logging.dev_warning(

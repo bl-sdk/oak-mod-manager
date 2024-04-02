@@ -1,5 +1,21 @@
 # Changelog
 
+## Upcoming
+
+### Keybinds v2.1
+- Fixed that rebinding a key wouldn't update the hooks until the mod was next enabled.
+
+  [05891ad4](https://github.com/bl-sdk/oak-mod-manager/commit/05891ad4)
+
+### Mods Base v1.2
+- Added `KeybindType.is_enabled`.
+
+  [05891ad4](https://github.com/bl-sdk/oak-mod-manager/commit/05891ad4)
+
+- Added a hook for keybind implementations to detect rebinds.
+
+  [05891ad4](https://github.com/bl-sdk/oak-mod-manager/commit/05891ad4)
+
 ## v1.1
 
 Also see the unrealsdk v1.1.0 changelog [here](https://github.com/bl-sdk/unrealsdk/blob/master/changelog.md#v110)

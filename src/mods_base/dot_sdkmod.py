@@ -10,13 +10,11 @@ from typing import IO, Literal, overload
 def open_in_mod_dir(
     path: Path,
     binary: Literal[False] = False,
-) -> AbstractContextManager[IO[str]]:
-    ...
+) -> AbstractContextManager[IO[str]]: ...
 
 
 @overload
-def open_in_mod_dir(path: Path, binary: Literal[True]) -> AbstractContextManager[IO[bytes]]:
-    ...
+def open_in_mod_dir(path: Path, binary: Literal[True]) -> AbstractContextManager[IO[bytes]]: ...
 
 
 @contextmanager

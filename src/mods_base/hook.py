@@ -71,8 +71,7 @@ class HookProtocol(Protocol):
         args: WrappedStruct,
         ret: Any,
         func: BoundFunction,
-    ) -> HookBlockSignal | tuple[HookBlockSignal, Any]:
-        ...
+    ) -> HookBlockSignal | tuple[HookBlockSignal, Any]: ...
 
     @overload
     def __call__(
@@ -82,8 +81,7 @@ class HookProtocol(Protocol):
         args: WrappedStruct,
         ret: Any,
         func: BoundFunction,
-    ) -> HookBlockSignal | tuple[HookBlockSignal, Any]:
-        ...
+    ) -> HookBlockSignal | tuple[HookBlockSignal, Any]: ...
 
 
 def _hook_enable(self: HookProtocol) -> None:
@@ -123,8 +121,7 @@ def hook(
     hook_type: Literal[Type.PRE] = Type.PRE,
     *,
     auto_enable: bool = False,
-) -> Callable[[AnyPreHook], HookProtocol]:
-    ...
+) -> Callable[[AnyPreHook], HookProtocol]: ...
 
 
 @overload
@@ -133,8 +130,7 @@ def hook(
     hook_type: Literal[Type.POST, Type.POST_UNCONDITIONAL],
     *,
     auto_enable: bool = False,
-) -> Callable[[AnyPostHook], HookProtocol]:
-    ...
+) -> Callable[[AnyPostHook], HookProtocol]: ...
 
 
 def hook(

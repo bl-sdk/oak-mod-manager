@@ -108,13 +108,11 @@ ENGINE: UObject
 
 
 @overload
-def get_pc() -> UObject:
-    ...
+def get_pc() -> UObject: ...
 
 
 @overload
-def get_pc(*, possibly_loading: Literal[True] = True) -> UObject | None:
-    ...
+def get_pc(*, possibly_loading: Literal[True] = True) -> UObject | None: ...
 
 
 def get_pc(*, possibly_loading: bool = False) -> UObject | None:  # noqa: ARG001

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import Generic, TypeVar
 
 from mods_base import (
     JSON,
@@ -50,17 +50,12 @@ class OptionScreen(AbstractScreen, Generic[_T, _J]):
         Args:
             new_value: The option's new value.
         """
-        if TYPE_CHECKING:
-            assert isinstance(
-                self.option,
-                # Not allowed to use generics at runtime
-                ValueOption[_J],  # pyright: ignore[reportGeneralTypeIssues]
-            )
         assert isinstance(self.option, ValueOption)
+        option: ValueOption[_J] = self.option  # pyright: ignore[reportUnknownMemberType]
 
-        if self.option.on_change is not None:
-            self.option.on_change(self.option, new_value)
-        self.option.value = new_value
+        if option.on_change is not None:
+            option.on_change(option, new_value)
+        option.value = new_value
 
         self.mod.save_settings()
 
