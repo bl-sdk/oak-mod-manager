@@ -1,6 +1,6 @@
 [project]
 name = "mods_base"
-version = "1.1"
+version = "1.2"
 authors = [{ name = "bl-sdk" }]
 description = "The SDK itself."
 
