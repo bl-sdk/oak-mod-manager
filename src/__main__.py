@@ -1,3 +1,16 @@
+# This file is part of the BL3/WL Oak Mod Manager.
+# <https://github.com/bl-sdk/oak-mod-manager>
+#
+# The Oak Mod Manager is free software: you can redistribute it and/or modify it under the terms of
+# the GNU Lesser General Public License Version 3 as published by the Free Software Foundation.
+#
+# The Oak Mod Manager is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with the Oak Mod Manager.
+# If not, see <https://www.gnu.org/licenses/>.
+
 import importlib
 import json
 import os
