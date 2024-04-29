@@ -114,7 +114,12 @@ def _zip_init_script(zip_file: ZipFile, init_script: Path) -> None:
     )
 
 
-def _zip_mod_folders(zip_file: ZipFile, mod_folders: Sequence[Path], debug: bool) -> None:
+def _zip_mod_folders(
+    zip_file: ZipFile,
+    mod_folders: Sequence[Path],
+    debug: bool,
+    license_file: Path,
+) -> None:
     for mod in mod_folders:
         # If the mod contains any .pyds
         if next(mod.glob("**/*.pyd"), None) is not None:
@@ -124,6 +129,9 @@ def _zip_mod_folders(zip_file: ZipFile, mod_folders: Sequence[Path], debug: bool
                     file,
                     ZIP_MODS_FOLDER / mod.name / file.relative_to(mod),
                 )
+
+            # Add the license
+            zip_file.write(license_file, ZIP_MODS_FOLDER / mod.name / license_file.name)
         else:
             # Otherwise, we can add it as a .sdkmod
             buffer = BytesIO()
@@ -134,6 +142,9 @@ def _zip_mod_folders(zip_file: ZipFile, mod_folders: Sequence[Path], debug: bool
                         mod.name / file.relative_to(mod),
                     )
 
+                # Add the license
+                sdkmod_zip.write(license_file, Path(mod.name) / license_file.name)
+
             buffer.seek(0)
             zip_file.writestr(
                 str(ZIP_MODS_FOLDER / (mod.name + ".sdkmod")),
@@ -141,7 +152,7 @@ def _zip_mod_folders(zip_file: ZipFile, mod_folders: Sequence[Path], debug: bool
             )
 
 
-def _zip_stubs(zip_file: ZipFile, stubs_dir: Path) -> None:
+def _zip_stubs(zip_file: ZipFile, stubs_dir: Path, license_file: Path) -> None:
     for file in stubs_dir.glob("**/*"):
         if not file.is_file():
             continue
@@ -152,6 +163,8 @@ def _zip_stubs(zip_file: ZipFile, stubs_dir: Path) -> None:
             file,
             ZIP_STUBS_FOLDER / file.relative_to(stubs_dir),
         )
+
+    zip_file.write(license_file, ZIP_STUBS_FOLDER / license_file.name)
 
 
 def _zip_settings(zip_file: ZipFile, settings_dir: Path) -> None:
@@ -206,6 +219,7 @@ def zip_release(
     stubs_dir: Path,
     settings_dir: Path,
     install_dir: Path,
+    license_file: Path,
 ) -> None:
     """
     Creates a release zip.
@@ -218,12 +232,13 @@ def zip_release(
         stubs_dir: The stubs dir to include.
         settings_dir: The settings dir to include. All json files are ignored.
         install_dir: The CMake install dir to copy the dlls from.
+        license_file: The location of the license file to copy to each of the created mod files.
     """
 
     with ZipFile(output, "w", ZIP_DEFLATED, compresslevel=9) as zip_file:
         _zip_init_script(zip_file, init_script)
-        _zip_mod_folders(zip_file, mod_folders, debug)
-        _zip_stubs(zip_file, stubs_dir)
+        _zip_mod_folders(zip_file, mod_folders, debug, license_file)
+        _zip_stubs(zip_file, stubs_dir, license_file)
         _zip_settings(zip_file, settings_dir)
         _zip_dlls(zip_file, install_dir)
 
@@ -238,6 +253,8 @@ if __name__ == "__main__":
     UI_UTILS = Path("src") / "ui_utils"
 
     INIT_SCRIPT = Path("src") / "__main__.py"
+
+    LICENSE = Path("LICENSE")
 
     BUILD_DIR_BASE = Path("out") / "build"
     INSTALL_DIR_BASE = Path("out") / "install"
@@ -319,6 +336,7 @@ if __name__ == "__main__":
             STUBS_DIR,
             SETTINGS_DIR,
             install_dir,
+            LICENSE,
         )
 
     # Restore the old pyproject contents
