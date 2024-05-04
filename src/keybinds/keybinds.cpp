@@ -74,14 +74,14 @@ bool is_in_menu(AOakPlayerController* player_controller) {
 /**
  * @brief Handles a key event.
  *
- * @param player_controller The player controller who pressed the key.
  * @param key_name The key's name.
  * @param input_event What type of event it was.
+ * @param check_is_in_menu A function which checks if this input was done in a menu.
  * @return True if to block key processing, false to allow it through.
  */
-bool handle_key_event(AOakPlayerController* player_controller,
-                      FName key_name,
-                      EInputEvent input_event) {
+bool handle_key_event(FName key_name,
+                      EInputEvent input_event,
+                      const std::function<bool(void)>& menu_checker) {
     // The original keybind implementation was mostly python. It caused massive lockups if you
     // scrolled, even without freescroll it was relatively easy to trigger half second freezes.
 
@@ -117,7 +117,7 @@ bool handle_key_event(AOakPlayerController* player_controller,
 
     // Checking if we're in a menu is potentially slow (it may call an unreal function), so don't
     // need to do it if we don't have any gameplay binds
-    auto dont_run_gameplay_binds = !has_gameplay_bind || is_in_menu(player_controller);
+    auto dont_run_gameplay_binds = !has_gameplay_bind || menu_checker();
 
     if (dont_run_gameplay_binds) {
         const bool has_raw_bind = std::ranges::any_of(
@@ -181,6 +181,19 @@ auto key_struct_type =
     validate_type<UScriptStruct>(unrealsdk::find_object(L"ScriptStruct", L"/Script/InputCore.Key"));
 auto key_name_prop = key_struct_type->find_prop_and_validate<UNameProperty>(L"KeyName"_fn);
 
+/*
+We use two hooks to detect keys.
+
+The primary hook is `OakPlayerController::InputKey` - which works in almost cases.
+However, for whatever reason, it doesn't get called when using controller while in a menu.
+It's called for controller in game, and kb/m in menus, just not controller in menus.
+For this case, we hook on `GbxMenuInput::HandleRawInput` as well.
+
+Using both hooks has a slight extra issue though: `InputKey` calls `HandleRawInput` (for kb/m in
+menus). This bool is used to prevent trigging the callbacks twice.
+*/
+bool skip_duplicate_raw_input_call = false;
+
 using FKey = void;
 using oakpc_inputkey_func = uintptr_t (*)(AOakPlayerController* self,
                                           FKey* key,
@@ -204,7 +217,8 @@ uintptr_t oakpc_inputkey_hook(AOakPlayerController* self,
     try {
         auto key_name = WrappedStruct{key_struct_type, key}.get<UNameProperty>(key_name_prop);
 
-        if (processing::handle_key_event(self, key_name, input_event)) {
+        if (processing::handle_key_event(key_name, input_event,
+                                         [self]() { return processing::is_in_menu(self); })) {
             return 0;
         }
 
@@ -212,7 +226,44 @@ uintptr_t oakpc_inputkey_hook(AOakPlayerController* self,
         pyunrealsdk::logging::log_python_exception(ex);
     }
 
-    return oakpc_inputkey_ptr(self, key, input_event, press_duration, gamepad_id);
+    skip_duplicate_raw_input_call = true;
+    auto ret = oakpc_inputkey_ptr(self, key, input_event, press_duration, gamepad_id);
+    skip_duplicate_raw_input_call = false;
+
+    return ret;
+}
+
+using handle_raw_input_func = uintptr_t (*)(void* self,
+                                            FKey* key,
+                                            EInputEvent input_event,
+                                            uint32_t gamepad_id);
+handle_raw_input_func handle_raw_input_ptr;
+
+const constinit Pattern<17> HANDLE_RAW_INPUT_PATTERN{
+    "44 89 44 24 ??"     // mov [rsp+18], r8d
+    "56"                 // push rsi
+    "41 54"              // push r12
+    "41 55"              // push r13
+    "48 81 EC F0000000"  // sub rsp, 000000F0
+};
+
+uintptr_t handle_raw_input_hook(void* self,
+                                FKey* key,
+                                EInputEvent input_event,
+                                uint32_t gamepad_id) {
+    if (!skip_duplicate_raw_input_call) {
+        try {
+            auto key_name = WrappedStruct{key_struct_type, key}.get<UNameProperty>(key_name_prop);
+
+            if (processing::handle_key_event(key_name, input_event, []() { return true; })) {
+                return 0;
+            }
+        } catch (const std::exception& ex) {
+            pyunrealsdk::logging::log_python_exception(ex);
+        }
+    }
+
+    return handle_raw_input_ptr(self, key, input_event, gamepad_id);
 }
 
 }  // namespace hook
@@ -221,6 +272,8 @@ uintptr_t oakpc_inputkey_hook(AOakPlayerController* self,
 PYBIND11_MODULE(keybinds, m) {
     detour(hook::OAKPC_INPUTKEY_PATTERN.sigscan(), hook::oakpc_inputkey_hook,
            &hook::oakpc_inputkey_ptr, "OakPlayerController::InputKey");
+    detour(hook::HANDLE_RAW_INPUT_PATTERN.sigscan(), hook::handle_raw_input_hook,
+           &hook::handle_raw_input_ptr, "GbxMenuInput::HandleRawInput");
 
     m.def(
         "register_keybind",

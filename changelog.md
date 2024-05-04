@@ -7,6 +7,11 @@
 
   [05891ad4](https://github.com/bl-sdk/oak-mod-manager/commit/05891ad4)
 
+- Fixed that controller inputs weren't picked up while in menus - effectively meaning you couldn't
+  bind anything to a controller without editing files.
+
+  [b0b6881c](https://github.com/bl-sdk/oak-mod-manager/commit/b0b6881c)
+
 ### Mods Base v1.2
 - Added `KeybindType.is_enabled`.
 
