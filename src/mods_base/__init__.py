@@ -1,4 +1,3 @@
-import tomllib
 from functools import wraps
 from pathlib import Path
 from typing import Literal, overload
@@ -9,18 +8,12 @@ from unrealsdk.unreal import UObject
 from .dot_sdkmod import open_in_mod_dir
 
 # Need to define a few things first to avoid circular imports
-with open_in_mod_dir(Path(__file__).parent / "pyproject.toml", binary=True) as _pyproject:
-    # We're being a bit unsafe here, but we know what we expect to see, and given we expect to be
-    # in a .sdkmod it's quite unlikely that a regular user will unknowingly edit it
-    _pyproject_data = tomllib.load(_pyproject)
-    _version_str = _pyproject_data["project"]["version"]
-    _major, _, _minor = _version_str.partition(".")
+__version_info__: tuple[int, int] = (1, 2)
+__version__: str = f"{__version_info__[0]}.{__version_info__[1]}"
+__author__: str = "bl-sdk"
 
-    __version_info__: tuple[int, int] = (int(_major), int(_minor))
-    __version__: str = _pyproject_data["tool"]["sdkmod"].get("version", _version_str)
-    del _major, _, _minor, _version_str, _pyproject_data, _pyproject
-
-    # This doesn't need to be in the inner block, but exiting would cause E402 for following imports
+# This avoids E402 for all the following imports
+if True:
     MODS_DIR: Path = (
         _mod_dir
         if (_mod_dir := Path(__file__).parent.parent).is_dir()
