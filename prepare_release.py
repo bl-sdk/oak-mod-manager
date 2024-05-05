@@ -11,6 +11,28 @@ from os import path
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
+THIS_FOLDER = Path(__file__).parent
+
+BASE_MOD = THIS_FOLDER / "src" / "mods_base"
+BL3_MENU = THIS_FOLDER / "src" / "bl3_mod_menu"
+KEYBINDS = THIS_FOLDER / "src" / "keybinds"
+WL_MENU = THIS_FOLDER / "src" / "console_mod_menu"
+UI_UTILS = THIS_FOLDER / "src" / "ui_utils"
+
+INIT_SCRIPT = THIS_FOLDER / "src" / "__main__.py"
+SETTINGS_GITIGNORE = THIS_FOLDER / "src" / "settings" / ".gitignore"
+
+LICENSE = THIS_FOLDER / "LICENSE"
+
+BUILD_DIR_BASE = THIS_FOLDER / "out" / "build"
+INSTALL_DIR_BASE = THIS_FOLDER / "out" / "install"
+
+STUBS_DIR = THIS_FOLDER / "libs" / "pyunrealsdk" / "stubs"
+STUBS_LICENSE = THIS_FOLDER / "libs" / "pyunrealsdk" / "LICENSE"
+
+PYPROJECT_FILE = THIS_FOLDER / "manager_pyproject.toml"
+
+
 LIST_PRESETS_RE = re.compile('  "(.+)"')
 
 
@@ -99,27 +121,27 @@ ZIP_EXECUTABLE_FOLDER = Path("OakGame") / "Binaries" / "Win64"
 ZIP_PLUGINS_FOLDER = ZIP_EXECUTABLE_FOLDER / "Plugins"
 
 
-def _zip_init_script(zip_file: ZipFile, init_script: Path) -> None:
-    output_init_script = ZIP_MODS_FOLDER / init_script.name
-    zip_file.write(init_script, output_init_script)
+def _zip_init_script(zip_file: ZipFile) -> None:
+    output_init_script = ZIP_MODS_FOLDER / INIT_SCRIPT.name
+    zip_file.write(INIT_SCRIPT, output_init_script)
+    init_script_env = (
+        # Path.relative_to doesn't work when where's no common base, need to use os.path
+        # While the file goes in the plugins folder, this path is relative to *the executable*
+        f"PYUNREALSDK_INIT_SCRIPT={path.relpath(output_init_script, ZIP_EXECUTABLE_FOLDER)}"
+    )
+
+    # We also define the display version via an env var, do that here too
+    version_number = tomllib.loads(PYPROJECT_FILE.read_text())["project"]["version"]
+    git_version = get_git_repo_version()
+    display_version_env = f"MOD_MANAGER_DISPLAY_VERSION={version_number} ({git_version})"
+
     zip_file.writestr(
         str(ZIP_PLUGINS_FOLDER / "unrealsdk.env"),
-        textwrap.dedent(
-            # Path.relative_to doesn't work when where's no common base, need to use os.path
-            # While the file goes in the plugins folder, this path is relative to *the executable*
-            f"""
-            PYUNREALSDK_INIT_SCRIPT={path.relpath(output_init_script, ZIP_EXECUTABLE_FOLDER)}
-            """,
-        )[1:-1],
+        f"{init_script_env}\n{display_version_env}\n",
     )
 
 
-def _zip_mod_folders(
-    zip_file: ZipFile,
-    mod_folders: Sequence[Path],
-    debug: bool,
-    license_file: Path,
-) -> None:
+def _zip_mod_folders(zip_file: ZipFile, mod_folders: Sequence[Path], debug: bool) -> None:
     for mod in mod_folders:
         # If the mod contains any .pyds
         if next(mod.glob("**/*.pyd"), None) is not None:
@@ -131,7 +153,7 @@ def _zip_mod_folders(
                 )
 
             # Add the license
-            zip_file.write(license_file, ZIP_MODS_FOLDER / mod.name / license_file.name)
+            zip_file.write(LICENSE, ZIP_MODS_FOLDER / mod.name / LICENSE.name)
         else:
             # Otherwise, we can add it as a .sdkmod
             buffer = BytesIO()
@@ -143,7 +165,7 @@ def _zip_mod_folders(
                     )
 
                 # Add the license
-                sdkmod_zip.write(license_file, Path(mod.name) / license_file.name)
+                sdkmod_zip.write(LICENSE, Path(mod.name) / LICENSE.name)
 
             buffer.seek(0)
             zip_file.writestr(
@@ -152,8 +174,8 @@ def _zip_mod_folders(
             )
 
 
-def _zip_stubs(zip_file: ZipFile, stubs_dir: Path, license_file: Path) -> None:
-    for file in stubs_dir.glob("**/*"):
+def _zip_stubs(zip_file: ZipFile) -> None:
+    for file in STUBS_DIR.glob("**/*"):
         if not file.is_file():
             continue
         if file.suffix != ".pyi":
@@ -161,23 +183,17 @@ def _zip_stubs(zip_file: ZipFile, stubs_dir: Path, license_file: Path) -> None:
 
         zip_file.write(
             file,
-            ZIP_STUBS_FOLDER / file.relative_to(stubs_dir),
+            ZIP_STUBS_FOLDER / file.relative_to(STUBS_DIR),
         )
 
-    zip_file.write(license_file, ZIP_STUBS_FOLDER / license_file.name)
+    zip_file.write(STUBS_LICENSE, ZIP_STUBS_FOLDER / STUBS_LICENSE.name)
 
 
-def _zip_settings(zip_file: ZipFile, settings_dir: Path) -> None:
-    for file in settings_dir.glob("**/*"):
-        if not file.is_file():
-            continue
-        if file.suffix == ".json":
-            continue
-
-        zip_file.write(
-            file,
-            ZIP_SETTINGS_FOLDER / file.relative_to(settings_dir),
-        )
+def _zip_settings(zip_file: ZipFile) -> None:
+    zip_file.write(
+        SETTINGS_GITIGNORE,
+        ZIP_SETTINGS_FOLDER / SETTINGS_GITIGNORE.name,
+    )
 
 
 INSTALL_EXECUTABLE_FOLDER_NAME = ".exe_folder"
@@ -213,13 +229,9 @@ def _zip_dlls(zip_file: ZipFile, install_dir: Path) -> None:
 
 def zip_release(
     output: Path,
-    init_script: Path,
     mod_folders: Sequence[Path],
     debug: bool,
-    stubs_dir: Path,
-    settings_dir: Path,
     install_dir: Path,
-    license_file: Path,
 ) -> None:
     """
     Creates a release zip.
@@ -236,33 +248,15 @@ def zip_release(
     """
 
     with ZipFile(output, "w", ZIP_DEFLATED, compresslevel=9) as zip_file:
-        _zip_init_script(zip_file, init_script)
-        _zip_mod_folders(zip_file, mod_folders, debug, license_file)
-        _zip_stubs(zip_file, stubs_dir, license_file)
-        _zip_settings(zip_file, settings_dir)
+        _zip_init_script(zip_file)
+        _zip_mod_folders(zip_file, mod_folders, debug)
+        _zip_stubs(zip_file)
+        _zip_settings(zip_file)
         _zip_dlls(zip_file, install_dir)
 
 
 if __name__ == "__main__":
     from argparse import ArgumentParser, BooleanOptionalAction
-
-    BASE_MOD = Path("src") / "mods_base"
-    BL3_MENU = Path("src") / "bl3_mod_menu"
-    KEYBINDS = Path("src") / "keybinds"
-    WL_MENU = Path("src") / "console_mod_menu"
-    UI_UTILS = Path("src") / "ui_utils"
-
-    INIT_SCRIPT = Path("src") / "__main__.py"
-
-    LICENSE = Path("LICENSE")
-
-    BUILD_DIR_BASE = Path("out") / "build"
-    INSTALL_DIR_BASE = Path("out") / "install"
-
-    STUBS_DIR = Path("libs") / "pyunrealsdk" / "stubs"
-    SETTINGS_DIR = Path("src") / "settings"
-
-    PYPROJECT_FILE = BASE_MOD / "pyproject.toml"
 
     parser = ArgumentParser(description="Prepares a release zip.")
     parser.add_argument(
@@ -303,17 +297,6 @@ if __name__ == "__main__":
 
     assert install_dir.exists() and install_dir.is_dir(), "install dir doesn't exist"
 
-    # Add the git hash to the displayed version in the pyproject
-    old_pyproject = PYPROJECT_FILE.read_text()
-    version_number = tomllib.loads(old_pyproject)["project"]["version"]
-    git_version = get_git_repo_version()
-    PYPROJECT_FILE.write_text(
-        old_pyproject.replace(
-            "# RELEASE_SCRIPT_REPLACE_ME_WITH_DISPLAY_VERSION",
-            f'version = "{version_number} ({git_version})"',
-        ),
-    )
-
     # Zip up all the requested files
     COMMON_FOLDERS = (BASE_MOD, KEYBINDS, UI_UTILS)
 
@@ -328,16 +311,4 @@ if __name__ == "__main__":
         name = f"{prefix}-sdk-{args.preset}.zip"
         print(f"Zipping {name} ...")
 
-        zip_release(
-            Path(name),
-            INIT_SCRIPT,
-            mods,
-            "debug" in args.preset,
-            STUBS_DIR,
-            SETTINGS_DIR,
-            install_dir,
-            LICENSE,
-        )
-
-    # Restore the old pyproject contents
-    PYPROJECT_FILE.write_text(old_pyproject)
+        zip_release(Path(name), mods, "debug" in args.preset, install_dir)

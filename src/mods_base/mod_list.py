@@ -24,12 +24,14 @@ match Game.get_tree():
             "https://bl-sdk.github.io/oak-mod-db/"
         )
 
+_MANAGER_VERSION = os.environ.get("MOD_MANAGER_DISPLAY_VERSION", "Unknown Version")
+
 
 @dataclass
 class BaseMod(Library):
     name: str = "Python SDK"
     author: str = "bl-sdk"
-    version: str = ""
+    version: str = _MANAGER_VERSION
     settings_file: Path | None = SETTINGS_DIR / "python-sdk.json"
 
     keybinds: list[KeybindType] = field(default_factory=list)  # type: ignore
