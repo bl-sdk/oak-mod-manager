@@ -11,13 +11,14 @@
 # You should have received a copy of the GNU General Public License along with the Oak Mod Manager.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import contextlib
 import importlib
 import json
 import os
 import sys
 import traceback
 import zipfile
-from collections.abc import Collection, Iterator
+from collections.abc import Collection
 from pathlib import Path
 
 import unrealsdk
@@ -72,9 +73,24 @@ def init_debugpy() -> None:
         pass
 
 
-def validate_mod_folder(folder: Path) -> bool:
+def get_all_mod_folders() -> Collection[Path]:
     """
-    Validates a mod folder, to check if it's something we should import.
+    Gets all mod folders to try import from, including extra folders defined via env var.
+
+    Returns:
+        A collection of mod folder paths.
+    """
+
+    extra_folders = []
+    with contextlib.suppress(json.JSONDecodeError, TypeError):
+        extra_folders = [Path(x) for x in json.loads(os.environ.get(EXTRA_FOLDERS_ENV_VAR, ""))]
+
+    return [Path(__file__).parent, *extra_folders]
+
+
+def validate_folder_in_mods_folder(folder: Path) -> bool:
+    """
+    Checks if a folder inside the mods folder is actually a mod we should try import.
 
     Args:
         folder: The folder to analyse.
@@ -108,9 +124,11 @@ def validate_mod_folder(folder: Path) -> bool:
     return True
 
 
-def validate_mod_file(file: Path) -> bool:
+def validate_file_in_mods_folder(file: Path) -> bool:
     """
-    Validates a mod file, to check if it's something we should import.
+    Checks if a folder inside the mods folder is actually a mod we should try import.
+
+    Sets up sys.path as required.
 
     Args:
         file: The file to analyse.
@@ -153,59 +171,35 @@ def validate_mod_file(file: Path) -> bool:
         )
         return False
 
+    sys.path.append(str(file))
+
     return True
 
 
-def iter_mod_folders() -> Iterator[Path]:
+def find_mods_to_import(mod_folders: Collection[Path]) -> Collection[str]:
     """
-    Iterates through all the mod folders to try search, adding them to sys.path along the way.
+    Given a collection of mod folders, find the individual mod modules within it to try import.
 
-    Yields:
-        Mod folder paths.
-    """
-    yield Path(__file__).parent
-
-    extra_folders: list[Path]
-    try:
-        extra_folders = [Path(x) for x in json.loads(os.environ.get(EXTRA_FOLDERS_ENV_VAR, ""))]
-    except (json.JSONDecodeError, TypeError):
-        return
-
-    for folder in extra_folders:
-        if not folder.exists() or not folder.is_dir():
-            logging.dev_warning(f"Extra mod folder does not exist: {folder}")
-            continue
-        sys.path.append(str(folder.resolve()))
-
-        yield folder
-
-
-def get_and_setup_mods_to_import() -> Collection[str]:
-    """
-    Sets up sys.path and gathers all the mods to try import.
+    Sets up sys.path for `.sdkmod` mods.
 
     Returns:
         A collection of the module names to import.
     """
     mods_to_import: list[str] = []
 
-    # We want all .sdkmods to appear at the end of sys.path, after all of the folders, so store them
-    # separately for now
-    dot_sdkmod_sys_path_entries: list[str] = []
+    for folder in mod_folders:
+        if not folder.exists():
+            continue
 
-    for folder in iter_mod_folders():
         for entry in folder.iterdir():
             if entry.name.startswith("."):
                 continue
 
-            if entry.is_dir() and validate_mod_folder(entry):
+            if entry.is_dir() and validate_folder_in_mods_folder(entry):
                 mods_to_import.append(entry.name)
 
-            elif entry.is_file() and validate_mod_file(entry):
-                dot_sdkmod_sys_path_entries.append(str(entry))
+            elif entry.is_file() and validate_file_in_mods_folder(entry):
                 mods_to_import.append(entry.stem)
-
-    sys.path += dot_sdkmod_sys_path_entries
 
     return mods_to_import
 
@@ -285,16 +279,26 @@ def proton_null_exception_check() -> None:
 # Don't really want to put a `__name__` check here, since it's currently just `builtins`, and that
 # seems a bit unstable, like something that pybind might eventually change
 
+mod_folders = get_all_mod_folders()
+for folder in mod_folders:
+    sys.path.append(str(folder.resolve()))
+
 init_debugpy()
 
 while not logging.is_console_ready():
     pass
 
+# Now that the console's ready, show errors for any non-existent mod folders
+for folder in mod_folders:
+    if not folder.exists() or not folder.is_dir():
+        logging.dev_warning(f"Extra mod folder does not exist: {folder}")
+
+# And check for the proton null exception bug, if present we also want to print
 proton_null_exception_check()
 
-mods_to_import = get_and_setup_mods_to_import()
+mods_to_import = find_mods_to_import(mod_folders)
 
 import_mod_manager()
 import_mods(mods_to_import)
 
-del mods_to_import
+del mod_folders, mods_to_import
