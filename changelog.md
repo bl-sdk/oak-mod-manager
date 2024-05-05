@@ -1,6 +1,23 @@
 # Changelog
 
-## Upcoming
+## v1.2
+
+### General
+
+- Changed the shipped pluginloader again, to `dsound.dll`. This addresses that when running under
+  proton, overriding xinput would break all controller input.
+
+  [bab823ff](https://github.com/bl-sdk/oak-mod-manager/commit/bab823ff)
+
+- Added an explicit mod manager version, separating it from Mods Base. This means future mod manager
+  updates are not required to also update Mods Base.
+
+  [3e0b4d8a](https://github.com/bl-sdk/oak-mod-manager/commit/3e0b4d8a)
+
+- Fixed that debugpy had to be placed in the base mod folder, and would break if placed in an extra
+  one.
+
+  [4971b8c0](https://github.com/bl-sdk/oak-mod-manager/commit/4971b8c0)
 
 ### Keybinds v2.1
 - Fixed that rebinding a key wouldn't update the hooks until the mod was next enabled.
