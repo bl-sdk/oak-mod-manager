@@ -2,6 +2,8 @@
 
 ## v1.2
 
+Also see the pyunrealsdk v1.1.1 changelog [here](https://github.com/bl-sdk/pyunrealsdk/blob/master/changelog.md#v110).
+
 ### General
 
 - Changed the shipped pluginloader again, to `dsound.dll`. This addresses that when running under
