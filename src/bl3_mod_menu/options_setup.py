@@ -211,7 +211,7 @@ def get_mod_options(mod: Mod) -> tuple[BaseOption, ...]:
 
         description = mod.description
         if Game.get_current() not in mod.supported_games:
-            supported = [g.name for g in Game if g in mod.supported_games]
+            supported = [g.name for g in Game if g in mod.supported_games and g.name is not None]
             description = (
                 "<font color='#ffff00'>Incompatible Game!</font>\r"
                 "This mod supports: " + ", ".join(supported) + "\n\n" + description
