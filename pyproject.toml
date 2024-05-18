@@ -1,5 +1,5 @@
 [tool.pyright]
-pythonVersion = "3.11"
+pythonVersion = "3.12"
 typeCheckingMode = "strict"
 
 include = ["src"]
@@ -7,8 +7,10 @@ stubPath = "libs/pyunrealsdk/stubs"
 reportMissingModuleSource = false
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py312"
 line-length = 100
+
+[tool.ruff.lint]
 select = [
     "F",
     "W",
@@ -32,6 +34,7 @@ select = [
     "FA",
     "ISC",
     "ICN",
+    "LOG",
     "G",
     "PIE",
     "PYI",
@@ -53,7 +56,6 @@ select = [
     "FLY",
     "PERF",
     "FURB",
-    "LOG",
     "RUF",
 ]
 ignore = [
@@ -96,5 +98,5 @@ ignore = [
     "FURB140",
 ]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "*.pyi" = ["D418", "A002", "A003"]

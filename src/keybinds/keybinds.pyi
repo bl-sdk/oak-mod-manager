@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import NewType, TypeAlias, overload
+from typing import NewType, overload
 
 from mods_base import EInputEvent
 from unrealsdk.hooks import Block
@@ -12,7 +12,7 @@ __all__: tuple[str, ...] = (
 )
 
 _KeybindHandle = NewType("_KeybindHandle", object)
-_BlockSignal: TypeAlias = None | Block | type[Block]
+type _BlockSignal = None | Block | type[Block]
 
 @overload
 def register_keybind(

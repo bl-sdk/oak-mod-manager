@@ -1,10 +1,9 @@
 from collections.abc import Callable
-from typing import TypeAlias
 
 from unrealsdk.unreal import UObject
 
-_GFxMainAndPauseBaseMenu: TypeAlias = UObject
-_GFxOptionBase: TypeAlias = UObject
+type _GFxMainAndPauseBaseMenu = UObject
+type _GFxOptionBase = UObject
 
 __all__: tuple[str, ...] = ("open_custom_options",)
 

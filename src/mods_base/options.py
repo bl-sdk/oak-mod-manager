@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import KW_ONLY, dataclass, field
-from typing import TYPE_CHECKING, Generic, Literal, Self, TypeAlias, TypeVar
+from typing import TYPE_CHECKING, Generic, Literal, Self, TypeVar
 
 from unrealsdk import logging
 
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 # Little ugly to repeat this from settings, but we can't import it from there cause it creates a
 # strong circular dependency - we need to import it to get JSON before we can define most options,
 # but it needs to import those options from us
-JSON: TypeAlias = Mapping[str, "JSON"] | Sequence["JSON"] | str | int | float | bool | None
+type JSON = Mapping[str, JSON] | Sequence[JSON] | str | int | float | bool | None
 _J = TypeVar("_J", bound=JSON)
 
 

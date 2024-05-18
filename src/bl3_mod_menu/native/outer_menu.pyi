@@ -1,5 +1,4 @@
 from collections.abc import Callable
-from typing import TypeAlias
 
 from unrealsdk.unreal import UObject
 
@@ -11,8 +10,8 @@ __all__: tuple[str, ...] = (
     "get_menu_state",
 )
 
-_AddMenuItemCallback: TypeAlias = Callable[[UObject, str, str, bool, int], int]
-_GFxMainAndPauseBaseMenu: TypeAlias = UObject
+type _AddMenuItemCallback = Callable[[UObject, str, str, bool, int], int]
+type _GFxMainAndPauseBaseMenu = UObject
 
 def add_menu_item(
     self: _GFxMainAndPauseBaseMenu,
