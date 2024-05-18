@@ -2,14 +2,14 @@ import functools
 import inspect
 from collections.abc import Callable
 from types import EllipsisType
-from typing import Any, Literal, Protocol, Self, TypeAlias, cast, overload, runtime_checkable
+from typing import Any, Literal, Protocol, Self, cast, overload, runtime_checkable
 
 from unrealsdk.hooks import Block, Type, add_hook, has_hook, remove_hook
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
-HookBlockSignal: TypeAlias = None | EllipsisType | Block | type[Block]
+type HookBlockSignal = None | EllipsisType | Block | type[Block]
 
-AnyPreHook: TypeAlias = (
+type AnyPreHook = (
     Callable[
         [UObject, WrappedStruct, Any, BoundFunction],
         HookBlockSignal | tuple[HookBlockSignal, Any],
@@ -19,7 +19,7 @@ AnyPreHook: TypeAlias = (
         HookBlockSignal | tuple[HookBlockSignal, Any],
     ]
 )
-AnyPostHook: TypeAlias = (
+type AnyPostHook = (
     Callable[[UObject, WrappedStruct, Any, BoundFunction], None]
     | Callable[[Any, UObject, WrappedStruct, Any, BoundFunction], None]
 )

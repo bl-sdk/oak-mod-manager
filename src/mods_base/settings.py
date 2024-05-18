@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping, MutableMapping, Sequence
-from typing import TYPE_CHECKING, TypeAlias, TypedDict, cast
+from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING, TypedDict, cast
 
 from unrealsdk import logging
 
@@ -24,7 +24,7 @@ from .options import (
 if TYPE_CHECKING:
     from .mod import Mod
 
-JSON: TypeAlias = Mapping[str, "JSON"] | Sequence["JSON"] | str | int | float | bool | None
+type JSON = Mapping[str, JSON] | Sequence[JSON] | str | int | float | bool | None
 
 SETTINGS_DIR = MODS_DIR / "settings"
 SETTINGS_DIR.mkdir(parents=True, exist_ok=True)
@@ -36,7 +36,7 @@ class BasicModSettings(TypedDict, total=False):
     keybinds: dict[str, str | None]
 
 
-def load_options_dict(options: Sequence[BaseOption], settings: MutableMapping[str, JSON]) -> None:
+def load_options_dict(options: Sequence[BaseOption], settings: Mapping[str, JSON]) -> None:
     """
     Recursively loads options from their settings dict.
 
@@ -85,7 +85,7 @@ def load_options_dict(options: Sequence[BaseOption], settings: MutableMapping[st
                         f" with the default",
                     )
             case GroupedOption() | NestedOption():
-                if isinstance(value, MutableMapping):
+                if isinstance(value, Mapping):
                     load_options_dict(option.children, value)
                 else:
                     logging.error(
