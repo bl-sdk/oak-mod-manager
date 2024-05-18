@@ -9,10 +9,6 @@
       "architecture": {
         "value": "x64",
         "strategy": "external"
-      },
-      "cacheVariables": {
-        "UNREALSDK_ARCH": "x64",
-        "UNREALSDK_UE_VERSION": "UE4"
       }
     },
     {

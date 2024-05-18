@@ -20,7 +20,13 @@ When developing, it's recommended to point pyunrealsdk directly at this repo. To
 
 3. Edit `unrealsdk.env`, setting `PYUNREALSDK_INIT_SCRIPT=<path to repo>\src\__main__.py`.
 
-4. (Optional) Copy any mods you were using and their settings into the `src` folder, and setup gitignores for them.
+4. (Optional) Edit `unrealsdk.env`, adding/updating
+   `OAK_MOD_MANAGER_EXTRA_FOLDERS=["C:\\path\\to\\new\\mod\\folder"]`, pointing at your old
+   `sdk_mods` folder. This is a json list of paths to folders to load, though note it must stay on
+   one line.
+
+5. (Optional) Copy/symlink your original settings folder into `src\settings` - settings are only
+   loaded from the base mods folder.
 
 Once you've done this, you can modify the python files in place.
 
@@ -35,18 +41,22 @@ To build the native modules:
    git clone --recursive https://github.com/bl-sdk/oak-mod-manager.git
    ```
 
-2. Setup the python dev files. The simplest way is as follows:
+2. Make sure you have Python with requests on your PATH. This doesn't need to be the same version
+   as what the SDK uses, it's just used by the script which downloads the correct one.
    ```sh
-   apt install msitools # Or equivalent for other package managers, not required on Windows
-
-   cd libs/pyunrealsdk/common_cmake/explicit_python
    pip install requests
-   python download.py 3.11.5 amd64
+   python -c 'import requests'
    ```
-   Make sure to copy the same python version as your install is already using.
 
-   See the [readme](https://github.com/bl-sdk/common_cmake/blob/master/explicit_python/Readme.md)
-   for more advanced details.
+   If not running on Windows, make sure `msiextract` is also on your PATH. This is typically part
+   of an `msitools` package.
+   ```sh
+   apt install msitools # Or equivalent
+   msiextract --version 
+   ```
+
+   See the explicit python [readme](https://github.com/bl-sdk/common_cmake/blob/master/explicit_python/Readme.md)
+   for a few extra details.
 
 3. Choose a preset, and run CMake. Most IDEs will be able to do this for you,
    ```
