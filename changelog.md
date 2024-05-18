@@ -1,5 +1,25 @@
 # Changelog
 
+## Upcoming
+
+### BL3 Mod Menu v1.2
+
+- Updated type hinting to use 3.12 syntax.
+
+  [dfb72a92](https://github.com/bl-sdk/oak-mod-manager/commit/dfb72a92)
+
+### Keybinds v2.2
+
+- Updated type hinting to use 3.12 syntax.
+
+  [dfb72a92](https://github.com/bl-sdk/oak-mod-manager/commit/dfb72a92)
+
+### Mods Base v1.3
+
+- Updated type hinting to use 3.12 syntax.
+
+  [dfb72a92](https://github.com/bl-sdk/oak-mod-manager/commit/dfb72a92)
+
 ## v1.2
 
 Also see the pyunrealsdk v1.1.1 changelog [here](https://github.com/bl-sdk/pyunrealsdk/blob/master/changelog.md#v110).
