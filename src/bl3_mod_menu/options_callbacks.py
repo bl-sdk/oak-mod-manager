@@ -43,7 +43,7 @@ def update_option_value[J: JSON](option: ValueOption[J], value: J) -> None:
 
 
 @hook("/Script/OakGame.GFxOptionBase:OnUnimplementedOptionClicked", Type.PRE, auto_enable=True)
-def unimplemented_option_clicked(
+def unimplemented_option_clicked(  # noqa: C901 - imo the match is rated too highly
     obj: UObject,
     args: WrappedStruct,
     _3: Any,

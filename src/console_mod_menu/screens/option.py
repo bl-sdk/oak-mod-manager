@@ -47,7 +47,7 @@ class OptionScreen[T: BaseOption, J: JSON](AbstractScreen):
             new_value: The option's new value.
         """
         assert isinstance(self.option, ValueOption)
-        option: ValueOption[J] = self.option
+        option: ValueOption[J] = self.option  # type: ignore
 
         if option.on_change is not None:
             option.on_change(option, new_value)

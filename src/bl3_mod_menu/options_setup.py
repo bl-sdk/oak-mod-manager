@@ -72,7 +72,7 @@ def get_displayed_option_at_idx(idx: int) -> BaseOption:
     return option_stack[-1].drawn_options[idx]
 
 
-def draw_options(
+def draw_options(  # noqa: C901 - imo the match is rated too highly
     self: UObject,
     options: Sequence[BaseOption],
     group_stack: list[GroupedOption],
