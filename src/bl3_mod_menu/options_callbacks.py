@@ -1,4 +1,4 @@
-from typing import Any, TypeVar
+from typing import Any
 
 from mods_base import (
     JSON,
@@ -28,10 +28,8 @@ from .options_setup import (
     open_nested_options_menu,
 )
 
-_J = TypeVar("_J", bound=JSON)
 
-
-def update_option_value(option: ValueOption[_J], value: _J) -> None:
+def update_option_value[J: JSON](option: ValueOption[J], value: J) -> None:
     """
     Updates an option's value, running the callback if needed.
 
@@ -45,7 +43,7 @@ def update_option_value(option: ValueOption[_J], value: _J) -> None:
 
 
 @hook("/Script/OakGame.GFxOptionBase:OnUnimplementedOptionClicked", Type.PRE, auto_enable=True)
-def unimplemented_option_clicked(
+def unimplemented_option_clicked(  # noqa: C901 - imo the match is rated too highly
     obj: UObject,
     args: WrappedStruct,
     _3: Any,
