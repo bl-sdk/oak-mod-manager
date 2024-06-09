@@ -1,7 +1,8 @@
 from enum import StrEnum
 
 import unrealsdk
-from mods_base import BoolOption, DropdownOption, EInputEvent, KeybindOption, get_pc, raw_keybinds
+from keybinds import raw_keybinds
+from mods_base import BoolOption, DropdownOption, EInputEvent, KeybindOption, get_pc
 from unrealsdk.unreal import UObject
 
 from .dialog_box import DialogBox
