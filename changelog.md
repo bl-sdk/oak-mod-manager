@@ -1,12 +1,52 @@
 # Changelog
 
-## Upcoming
+## v1.3 (Upcoming)
+
+### General
+- Added a warning for when Proton fails to propagate environment variables, which mods or the mod
+  manager may have been expecting.
+  
+  An example consequence of this is that the base mod may end up as version "Unknown Version".
+
+  [f420d77b](https://github.com/bl-sdk/oak-mod-manager/commit/f420d77b)
+
+### General - Developer
+- When developing third party native modules, you can now include this repo as a submodule to
+  automatically keep the Python version in sync. There was a bit of build system restructuring to
+  allow our `CMakeLists.txt` to define this.
+
+  [6f9a8717](https://github.com/bl-sdk/oak-mod-manager/commit/6f9a8717)
+
+- Changed the `OAK_MOD_MANAGER_EXTRA_FOLDERS` env var to read from `MOD_MANAGER_EXTRA_FOLDERS`
+  instead, for consistency.
+  
+  [f420d77b](https://github.com/bl-sdk/oak-mod-manager/commit/f420d77b)
+
+- Python warnings are now hooked up to the logging system.
+  
+  [f420d77b](https://github.com/bl-sdk/oak-mod-manager/commit/f420d77b)
 
 ### BL3 Mod Menu v1.2
 
 - Updated type hinting to use 3.12 syntax.
 
-  [dfb72a92](https://github.com/bl-sdk/oak-mod-manager/commit/dfb72a92)
+  [dfb72a92](https://github.com/bl-sdk/oak-mod-manager/commit/dfb72a92),
+  [95cc37eb](https://github.com/bl-sdk/oak-mod-manager/commit/95cc37eb)
+
+### Console Mod Menu v1.2
+
+- Updated type hinting to use 3.12 syntax.
+
+  [95cc37eb](https://github.com/bl-sdk/oak-mod-manager/commit/95cc37eb)
+
+- Changed strict keybind and ui utils dependencies to be soft dependencies. This is of no
+  consequence to this project, but it makes the mod menu more game-agnostic for other ones.
+  
+  These dependencies were only used for the "Rebind using key press" screen, this functionality will
+  now gracefully degrade based on what's available. 
+
+  [9ab26173](https://github.com/bl-sdk/oak-mod-manager/commit/9ab26173),
+  [216a739d](https://github.com/bl-sdk/oak-mod-manager/commit/216a739d)
 
 ### Keybinds v2.2
 
@@ -14,11 +54,20 @@
 
   [dfb72a92](https://github.com/bl-sdk/oak-mod-manager/commit/dfb72a92)
 
+- Moved `raw_keybinds` out of mods base, into keybinds.
+
+  [216a739d](https://github.com/bl-sdk/oak-mod-manager/commit/216a739d)
+
 ### Mods Base v1.3
 
 - Updated type hinting to use 3.12 syntax.
 
   [dfb72a92](https://github.com/bl-sdk/oak-mod-manager/commit/dfb72a92)
+  [95cc37eb](https://github.com/bl-sdk/oak-mod-manager/commit/95cc37eb)
+
+- Moved `raw_keybinds` out of mods base, into keybinds.
+
+  [216a739d](https://github.com/bl-sdk/oak-mod-manager/commit/216a739d)
 
 ## v1.2
 
