@@ -4,13 +4,6 @@ from typing import cast
 from mods_base import KeybindType
 from mods_base.keybinds import KeybindCallback_Event, KeybindCallback_NoArgs
 from mods_base.mod_list import base_mod
-from mods_base.raw_keybinds import (
-    RawKeybind,
-    RawKeybindCallback_EventOnly,
-    RawKeybindCallback_KeyAndEvent,
-    RawKeybindCallback_KeyOnly,
-    RawKeybindCallback_NoArgs,
-)
 
 from .keybinds import deregister_keybind, register_keybind
 
@@ -81,59 +74,6 @@ def rebind_keybind(self: KeybindType, new_key: str | None) -> None:
 
 
 KeybindType._rebind = rebind_keybind  # pyright: ignore[reportPrivateUsage]
-
-
-@wraps(RawKeybind.enable)
-def enable_raw_keybind(self: RawKeybind) -> None:
-    # Even more redundancy for type checking
-    # Can't use a match statement since an earlier `case None:` doesn't remove None from later cases
-    if self.key is None:
-        if self.event is None:
-            handle = register_keybind(
-                self.key,
-                self.event,
-                False,
-                cast(RawKeybindCallback_KeyAndEvent, self.callback),
-            )
-        else:
-            handle = register_keybind(
-                self.key,
-                self.event,
-                False,
-                cast(RawKeybindCallback_KeyOnly, self.callback),
-            )
-    elif self.event is None:
-        handle = register_keybind(
-            self.key,
-            self.event,
-            False,
-            cast(RawKeybindCallback_EventOnly, self.callback),
-        )
-    else:
-        handle = register_keybind(
-            self.key,
-            self.event,
-            False,
-            cast(RawKeybindCallback_NoArgs, self.callback),
-        )
-
-    self._kb_handle = handle  # type: ignore
-
-
-RawKeybind.enable = enable_raw_keybind
-
-
-@wraps(RawKeybind.disable)
-def disable_raw_keybind(self: RawKeybind) -> None:
-    handle = getattr(self, "_kb_handle", None)
-    if handle is None:
-        return
-
-    deregister_keybind(handle)
-    self._kb_handle = None  # type: ignore
-
-
-RawKeybind.disable = disable_raw_keybind
 
 
 base_mod.components.append(base_mod.ComponentInfo("Keybinds", __version__))

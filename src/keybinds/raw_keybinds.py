@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import overload
+from typing import TYPE_CHECKING, cast, overload
 
-from unrealsdk import logging
+from mods_base.keybinds import EInputEvent, KeybindBlockSignal
 
-from .keybinds import EInputEvent, KeybindBlockSignal
+from .keybinds import deregister_keybind, register_keybind
+
+if TYPE_CHECKING:
+    from .keybinds import _KeybindHandle  # pyright: ignore[reportPrivateUsage]
 
 __all__: tuple[str, ...] = (
     "add",
@@ -50,16 +55,51 @@ class RawKeybind:
     event: EInputEvent | None
     callback: RawKeybindCallback_Any
 
-    # These two functions should get replaced by the keybind implementation
-    # The initialization script should make sure to load it before any mods, to make sure they don't
-    # end up with references to these functions
+    _handle: _KeybindHandle | None = None
+
     def enable(self) -> None:
         """Enables this keybind."""
-        logging.error("No keybind implementation loaded, unable to enable binds")
+        if self._handle is not None:
+            self.disable()
+
+        # Redundancy for type checking
+        if self.key is None:
+            if self.event is None:
+                self._handle = register_keybind(
+                    self.key,
+                    self.event,
+                    False,
+                    cast(RawKeybindCallback_KeyAndEvent, self.callback),
+                )
+            else:
+                self._handle = register_keybind(
+                    self.key,
+                    self.event,
+                    False,
+                    cast(RawKeybindCallback_KeyOnly, self.callback),
+                )
+        elif self.event is None:
+            self._handle = register_keybind(
+                self.key,
+                self.event,
+                False,
+                cast(RawKeybindCallback_EventOnly, self.callback),
+            )
+        else:
+            self._handle = register_keybind(
+                self.key,
+                self.event,
+                False,
+                cast(RawKeybindCallback_NoArgs, self.callback),
+            )
 
     def disable(self) -> None:
         """Disables this keybind."""
-        logging.error("No keybind implementation loaded, unable to disable binds")
+        if self._handle is None:
+            return
+
+        deregister_keybind(self._handle)
+        self._handle = None
 
 
 raw_keybind_callback_stack: list[list[RawKeybind]] = []
@@ -67,14 +107,24 @@ raw_keybind_callback_stack: list[list[RawKeybind]] = []
 
 def push() -> None:
     """Pushes a new raw keybind frame."""
+    if raw_keybind_callback_stack:
+        old_frame = raw_keybind_callback_stack[-1]
+        for bind in old_frame:
+            bind.disable()
+
     raw_keybind_callback_stack.append([])
 
 
 def pop() -> None:
     """Pops the current raw keybind frame."""
-    frame = raw_keybind_callback_stack.pop()
-    for bind in frame:
+    old_frame = raw_keybind_callback_stack.pop()
+    for bind in old_frame:
         bind.disable()
+
+    if raw_keybind_callback_stack:
+        new_frame = raw_keybind_callback_stack[-1]
+        for bind in new_frame:
+            bind.enable()
 
 
 @overload
