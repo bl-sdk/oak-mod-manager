@@ -35,7 +35,6 @@ const constinit Pattern<40> ADD_MENU_ITEM_PATTERN{
     "48 8D 6C 24 ??"        // lea rbp, [rsp-1F]
     "48 81 EC E0000000"     // sub rsp, 000000E0
     "48 83 B9 ???????? 00"  // cmp qword ptr [rcx+00000980], 00
-
 };
 
 int32_t add_menu_item_hook(UObject* self,
@@ -84,7 +83,8 @@ const constinit Pattern<16> BEGIN_CONFIGURE_MENU_ITEMS_PATTERN{
 };
 
 begin_configure_menu_items_func begin_configure_menu_items_ptr =
-    reinterpret_cast<begin_configure_menu_items_func>(BEGIN_CONFIGURE_MENU_ITEMS_PATTERN.sigscan());
+    reinterpret_cast<begin_configure_menu_items_func>(BEGIN_CONFIGURE_MENU_ITEMS_PATTERN.sigscan(
+        "UGFxMainAndPauseBaseMenu::BeginConfigureMenuItems"));
 
 #pragma endregion
 
@@ -103,7 +103,8 @@ const constinit Pattern<27> SET_MENU_STATE_PATTERN{
 };
 const constexpr auto MENU_STATE_OFFSET_OFFSET = 18;
 
-set_menu_state_func set_menu_state_ptr = SET_MENU_STATE_PATTERN.sigscan<set_menu_state_func>();
+set_menu_state_func set_menu_state_ptr =
+    SET_MENU_STATE_PATTERN.sigscan<set_menu_state_func>("UGFxMainAndPauseBaseMenu::SetMenuStatec");
 int32_t menu_state_offset = *reinterpret_cast<int32_t*>(
     reinterpret_cast<uintptr_t>(set_menu_state_ptr) + MENU_STATE_OFFSET_OFFSET);
 
@@ -111,7 +112,7 @@ int32_t menu_state_offset = *reinterpret_cast<int32_t*>(
 
 // NOLINTNEXTLINE(readability-identifier-length)
 PYBIND11_MODULE(outer_menu, m) {
-    detour(ADD_MENU_ITEM_PATTERN.sigscan(), add_menu_item_hook, &add_menu_item_ptr,
+    detour(ADD_MENU_ITEM_PATTERN, add_menu_item_hook, &add_menu_item_ptr,
            "UGFxMainAndPauseBaseMenu::AddMenuItem");
 
     m.def(

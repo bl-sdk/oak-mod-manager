@@ -22,7 +22,8 @@ const constinit Pattern<25> COMBO_BOX_GET_SELECTED_INDEX{
 using UGbxGFxListItemComboBox = UObject;
 using combo_box_get_selected_index_func = int32_t (*)(UGbxGFxListItemComboBox* self);
 combo_box_get_selected_index_func combo_box_get_selected_index_ptr =
-    COMBO_BOX_GET_SELECTED_INDEX.sigscan<combo_box_get_selected_index_func>();
+    COMBO_BOX_GET_SELECTED_INDEX.sigscan<combo_box_get_selected_index_func>(
+        "UGbxGFxListItemComboBox::GetSelectedIndex");
 
 const constinit Pattern<35> NUMBER_GET_CURRENT_VALUE{
     "48 85 D2"        // test rdx, rdx
@@ -35,13 +36,14 @@ const constinit Pattern<35> NUMBER_GET_CURRENT_VALUE{
     "48 83 79 ?? 00"  // cmp qword ptr [rcx+68], 00
     "74 ??"           // je Borderlands3.exe+11A23B8
     "48 8B CA"        // mov rcx, rdx
-    "E8 ????????",    // call Borderlands3.exe+27F9F70
-    31};
+    "E8 {????????}"   // call Borderlands3.exe+27F9F70
+};
 
 using UGbxGFxListItemNumber = UObject;
 using number_get_current_value_func = float32_t (*)(UGbxGFxListItemNumber* self);
 number_get_current_value_func number_get_current_value_ptr =
-    read_offset<number_get_current_value_func>(NUMBER_GET_CURRENT_VALUE.sigscan());
+    read_offset<number_get_current_value_func>(
+        NUMBER_GET_CURRENT_VALUE.sigscan("UGbxGFxListItemNumber::GetCurrentValue"));
 
 const constinit Pattern<41> SPINNER_GET_CURRENT_SELECTION_INDEX{
     "40 53"                 // push rbx
@@ -52,16 +54,17 @@ const constinit Pattern<41> SPINNER_GET_CURRENT_SELECTION_INDEX{
     "48 83 B9 ???????? 00"  // cmp qword ptr [rcx+000000C0], 00
     "74 ??"                 // je Borderlands3.exe+119FAC1
     "48 8B CA"              // mov rcx, rdx
-    "E8 ????????"           // call Borderlands3.exe+2EB1C70
+    "E8 {????????}"         // call Borderlands3.exe+2EB1C70
     "48 8B 8B ????????"     // mov rcx, [rbx+000000C0]
-    "85 C0",                // test eax, eax
-    28};
+    "85 C0"                 // test eax, eax
+};
 
 using UGbxGFxListItemSpinner = UObject;
 using spinner_get_current_selection_index_func = int32_t (*)(UGbxGFxListItemSpinner* self);
 spinner_get_current_selection_index_func spinner_get_current_selection_index_ptr =
     read_offset<spinner_get_current_selection_index_func>(
-        SPINNER_GET_CURRENT_SELECTION_INDEX.sigscan());
+        SPINNER_GET_CURRENT_SELECTION_INDEX.sigscan(
+            "UGbxGFxListItemSpinner::GetCurrentSelectionIndex"));
 
 // NOLINTNEXTLINE(readability-identifier-length)
 PYBIND11_MODULE(options_getters, m) {

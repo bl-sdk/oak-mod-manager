@@ -16,7 +16,7 @@ THIS_FOLDER = Path(__file__).parent
 BASE_MOD = THIS_FOLDER / "src" / "mods_base"
 BL3_MENU = THIS_FOLDER / "src" / "bl3_mod_menu"
 KEYBINDS = THIS_FOLDER / "src" / "keybinds"
-WL_MENU = THIS_FOLDER / "src" / "console_mod_menu"
+CONSOLE_MENU = THIS_FOLDER / "src" / "console_mod_menu"
 UI_UTILS = THIS_FOLDER / "src" / "ui_utils"
 
 INIT_SCRIPT = THIS_FOLDER / "src" / "__main__.py"
@@ -301,9 +301,9 @@ if __name__ == "__main__":
     COMMON_FOLDERS = (BASE_MOD, KEYBINDS, UI_UTILS)
 
     for prefix, arg, mods in (
-        ("bl3", args.bl3, (*COMMON_FOLDERS, BL3_MENU)),
-        ("wl", args.wl, (*COMMON_FOLDERS, WL_MENU)),
-        ("unified", args.unified, (*COMMON_FOLDERS, BL3_MENU, WL_MENU)),
+        ("bl3", args.bl3, (*COMMON_FOLDERS, BL3_MENU, CONSOLE_MENU)),
+        ("wl", args.wl, (*COMMON_FOLDERS, CONSOLE_MENU)),
+        ("unified", args.unified, (*COMMON_FOLDERS, BL3_MENU, CONSOLE_MENU)),
     ):
         if not arg:
             continue

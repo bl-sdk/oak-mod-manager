@@ -64,17 +64,17 @@ namespace title {
 // functions, which have the exact same signature, but they're incompatible for our purposes
 // Instead, we'll extract it from UGFxOptionBase::CreateContentPanelItem
 const constinit Pattern<36> SETUP_TITLE_ITEM{
-    "E8 ????????"            // call Borderlands3.exe+11B6990  <--- UGFxOptionBase::SetupTitleItem
-    "48 8B 7C 24 ??"         // mov rdi, [rsp+58]
-    "E9 ????????"            // jmp Borderlands3.exe+1191623
-    "41 B8 01000000"         // mov r8d, 00000001
-    "48 8D 15 ????????"      // lea rdx, [Borderlands3.exe+46CCCE8]
-    "48 8D 8C 24 ????????",  // lea rcx, [rsp+00000098]
-    1};
+    "E8 {????????}"         // call Borderlands3.exe+11B6990  <--- UGFxOptionBase::SetupTitleItem
+    "48 8B 7C 24 ??"        // mov rdi, [rsp+58]
+    "E9 ????????"           // jmp Borderlands3.exe+1191623
+    "41 B8 01000000"        // mov r8d, 00000001
+    "48 8D 15 ????????"     // lea rdx, [Borderlands3.exe+46CCCE8]
+    "48 8D 8C 24 ????????"  // lea rcx, [rsp+00000098]
+};
 
 using setup_title_item_func = UObject* (*)(UGFxOptionBase* self, FText* title);
 setup_title_item_func setup_title_item_ptr =
-    read_offset<setup_title_item_func>(SETUP_TITLE_ITEM.sigscan());
+    read_offset<setup_title_item_func>(SETUP_TITLE_ITEM.sigscan("UGFxOptionBase::SetupTitleItem"));
 
 void add_title(UGFxOptionBase* self, const std::wstring& name) {
     FText converted_name{name};
@@ -85,7 +85,7 @@ void add_title(UGFxOptionBase* self, const std::wstring& name) {
 
 namespace slider {
 
-const constinit Pattern<14> SETUP_SLIDER_ITEM{
+const constinit Pattern<14> SETUP_SLIDER_ITEM_OLD{
     "48 8B C4"           // mov rax, rsp
     "55"                 // push rbp
     "56"                 // push rsi
@@ -93,11 +93,33 @@ const constinit Pattern<14> SETUP_SLIDER_ITEM{
     "48 81 EC C0000000"  // sub rsp, 000000C0
 };
 
+const constinit Pattern<29> SETUP_SLIDER_ITEM_NEW{
+    "48 89 5C 24 ??"  // mov [rsp+08], rbx
+    "48 89 74 24 ??"  // mov [rsp+10], rsi
+    "57"              // push rdi
+    "48 83 EC ??"     // sub rsp, 70
+    "0F29 74 24 ??"   // movaps [rsp+60], xmm6
+    "0F28 F2"         // movaps xmm6, xmm2
+    "49 8B F1"        // mov rsi, r9
+    "48 8B DA"        // mov rbx, rdx
+};
+
 using setup_slider_item_func = UObject* (*)(UGFxOptionBase* self,
                                             UOptionDescriptionItem* description,
                                             float32_t default_value,
                                             const FName* callback);
-setup_slider_item_func setup_slider_item_ptr = SETUP_SLIDER_ITEM.sigscan<setup_slider_item_func>();
+setup_slider_item_func setup_slider_item_ptr;
+
+/**
+ * @brief Performs all required setup needed to be able to add a slider item.
+ */
+void setup(void) {
+    setup_slider_item_ptr = SETUP_SLIDER_ITEM_NEW.sigscan_nullable<setup_slider_item_func>();
+    if (setup_slider_item_ptr == nullptr) {
+        setup_slider_item_ptr = SETUP_SLIDER_ITEM_OLD.sigscan<setup_slider_item_func>(
+            "UGFxOptionBase::SetupSliderItem");
+    }
+}
 
 void add_slider(UGFxOptionBase* self,
                 const std::wstring& name,
@@ -165,7 +187,7 @@ using setup_spinner_item_func = UObject* (*)(UGFxOptionBase* self,
                                              int32_t default_idx,
                                              const FName* callback);
 setup_spinner_item_func setup_spinner_item_ptr =
-    SETUP_SPINNER_ITEM.sigscan<setup_spinner_item_func>();
+    SETUP_SPINNER_ITEM.sigscan<setup_spinner_item_func>("UGFxOptionBase::SetupSpinnerItem");
 
 const constinit Pattern<25> SETUP_SPINNER_ITEM_AS_BOOL{
     "48 8B C4"           // mov rax, rsp
@@ -183,7 +205,8 @@ using setup_spinner_item_as_bool_func = UObject* (*)(UGFxOptionBase* self,
                                                      int32_t default_idx,
                                                      const FName* callback);
 setup_spinner_item_as_bool_func setup_spinner_item_as_bool_ptr =
-    SETUP_SPINNER_ITEM_AS_BOOL.sigscan<setup_spinner_item_as_bool_func>();
+    SETUP_SPINNER_ITEM_AS_BOOL.sigscan<setup_spinner_item_as_bool_func>(
+        "UGFxOptionBase::SetupSpinnerItemAsBoolean");
 
 void add_spinner(UGFxOptionBase* self,
                  const std::wstring& name,
@@ -290,7 +313,7 @@ using setup_dropdown_item_func = UObject* (*)(UGFxOptionBase* self,
                                               int32_t default_idx,
                                               const FName* callback);
 setup_dropdown_item_func setup_dropdown_item_ptr =
-    SETUP_DROPDOWN_ITEM.sigscan<setup_dropdown_item_func>();
+    SETUP_DROPDOWN_ITEM.sigscan<setup_dropdown_item_func>("UGFxOptionBase::SetupDropDownListItem");
 
 void add_dropdown(UGFxOptionBase* self,
                   const std::wstring& name,
@@ -326,7 +349,8 @@ const constinit Pattern<19> SETUP_BUTTON_ITEM{
 using setup_button_item_func = UObject* (*)(UGFxOptionBase* self,
                                             UOptionDescriptionItem* description,
                                             const FName* callback);
-setup_button_item_func setup_button_item_ptr = SETUP_BUTTON_ITEM.sigscan<setup_button_item_func>();
+setup_button_item_func setup_button_item_ptr =
+    SETUP_BUTTON_ITEM.sigscan<setup_button_item_func>("UGFxOptionBase::SetupButtonItem");
 
 void add_button(UGFxOptionBase* self,
                 const std::wstring& name,
@@ -342,7 +366,7 @@ namespace controls {
 
 const constinit Pattern<14> SETUP_CONTROLS_ITEM{
     "48 8B C4"     // mov rax, rsp
-    "57"           // push rdi
+    "5?"           // push rdi     |  push rsi
     "41 54"        // push r12
     "41 56"        // push r14
     "41 57"        // push r15
@@ -361,7 +385,7 @@ using setup_controls_item_func = UGbxGFxListItemControls* (*)(UGFxOptionBase* se
                                                               EBindingType binding_type,
                                                               TBaseDelegate* callback);
 setup_controls_item_func setup_controls_item_ptr =
-    SETUP_CONTROLS_ITEM.sigscan<setup_controls_item_func>();
+    SETUP_CONTROLS_ITEM.sigscan<setup_controls_item_func>("UGFxOptionBase::SetupControlsItem");
 
 // Rather than properly reverse engineering delegates, this is the function the other setup
 // functions call to convert an fname into a delegate, we'll just call it on a byte buffer
@@ -385,7 +409,8 @@ const constinit Pattern<54> BIND_UFUNCTION{
 };
 
 using bind_ufunction_func = void (*)(void* self, UGFxOptionBase* obj, const FName* func_name);
-bind_ufunction_func bind_ufunction_ptr = BIND_UFUNCTION.sigscan<bind_ufunction_func>();
+bind_ufunction_func bind_ufunction_ptr =
+    BIND_UFUNCTION.sigscan<bind_ufunction_func>("TBaseDelegate<>::BindUFunction<UGFxOptionBase>");
 
 // I think this might actually be as low as 16, but better safe than sorry
 const constexpr auto TBASEDELEGATE_SIZE = 0x40;
@@ -412,6 +437,8 @@ void add_binding(UGFxOptionBase* self,
 
 // NOLINTNEXTLINE(readability-identifier-length)
 PYBIND11_MODULE(options_setup, m) {
+    slider::setup();
+
     m.def(
         "add_title",
         [](const py::object& self, const std::wstring& name) {

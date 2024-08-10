@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.3 (Upcoming)
+## v1.3
 
 ### General
 - Added a warning for when Proton fails to propagate environment variables, which mods or the mod
@@ -8,7 +8,11 @@
   
   An example consequence of this is that the base mod may end up as version "Unknown Version".
 
-  [f420d77b](https://github.com/bl-sdk/oak-mod-manager/commit/f420d77b)
+  [9744640f](https://github.com/bl-sdk/oak-mod-manager/commit/9744640f)
+
+- Added warnings when loading duplicate and/or renamed mod files.
+
+  [d6d4476b](https://github.com/bl-sdk/oak-mod-manager/commit/d6d4476b)
 
 ### General - Developer
 - When developing third party native modules, you can now include this repo as a submodule to
@@ -20,24 +24,37 @@
 - Changed the `OAK_MOD_MANAGER_EXTRA_FOLDERS` env var to read from `MOD_MANAGER_EXTRA_FOLDERS`
   instead, for consistency.
   
-  [f420d77b](https://github.com/bl-sdk/oak-mod-manager/commit/f420d77b)
+  [9744640f](https://github.com/bl-sdk/oak-mod-manager/commit/9744640f)
 
 - Python warnings are now hooked up to the logging system.
   
-  [f420d77b](https://github.com/bl-sdk/oak-mod-manager/commit/f420d77b)
+  [9744640f](https://github.com/bl-sdk/oak-mod-manager/commit/9744640f)
 
-### BL3 Mod Menu v1.2
+- `Option.on_change` now fires automatically when the value is changed.
+
+  [a09f92c1](https://github.com/bl-sdk/oak-mod-manager/commit/a09f92c1)
 
 - Updated type hinting to use 3.12 syntax.
 
   [dfb72a92](https://github.com/bl-sdk/oak-mod-manager/commit/dfb72a92),
   [95cc37eb](https://github.com/bl-sdk/oak-mod-manager/commit/95cc37eb)
 
+### BL3 Mod Menu v1.2
+
+- Fixed the crashes that occurred in the latest game update when opening a mod with slider options or
+  keybinds.
+  
+  [650fdfb5](https://github.com/bl-sdk/oak-mod-manager/commit/650fdfb5)
+
 ### Console Mod Menu v1.2
 
-- Updated type hinting to use 3.12 syntax.
+- You can now press back while on the home screen to exit the menu, same as pressing quit.
+  [df12460d](https://github.com/bl-sdk/oak-mod-manager/commit/df12460d)
 
-  [95cc37eb](https://github.com/bl-sdk/oak-mod-manager/commit/95cc37eb)
+- Improved the suggestions when rebinding a key by name. Multiple suggestions may now be shown, and
+  symbols now try to suggest their name (e.g. typing `.` will suggest `Decimal` and `Period`).
+  
+  [a488305b](https://github.com/bl-sdk/oak-mod-manager/commit/a488305b)
 
 - Changed strict keybind and ui utils dependencies to be soft dependencies. This is of no
   consequence to this project, but it makes the mod menu more game-agnostic for other ones.
@@ -46,28 +63,20 @@
   now gracefully degrade based on what's available. 
 
   [9ab26173](https://github.com/bl-sdk/oak-mod-manager/commit/9ab26173),
-  [216a739d](https://github.com/bl-sdk/oak-mod-manager/commit/216a739d)
+  [c7dfc4a6](https://github.com/bl-sdk/oak-mod-manager/commit/c7dfc4a6),
+  [81aeb178](https://github.com/bl-sdk/oak-mod-manager/commit/81aeb178)
 
 ### Keybinds v2.2
 
-- Updated type hinting to use 3.12 syntax.
-
-  [dfb72a92](https://github.com/bl-sdk/oak-mod-manager/commit/dfb72a92)
-
 - Moved `raw_keybinds` out of mods base, into keybinds.
 
-  [216a739d](https://github.com/bl-sdk/oak-mod-manager/commit/216a739d)
+  [c7dfc4a6](https://github.com/bl-sdk/oak-mod-manager/commit/c7dfc4a6)
 
 ### Mods Base v1.3
 
-- Updated type hinting to use 3.12 syntax.
-
-  [dfb72a92](https://github.com/bl-sdk/oak-mod-manager/commit/dfb72a92)
-  [95cc37eb](https://github.com/bl-sdk/oak-mod-manager/commit/95cc37eb)
-
 - Moved `raw_keybinds` out of mods base, into keybinds.
 
-  [216a739d](https://github.com/bl-sdk/oak-mod-manager/commit/216a739d)
+  [c7dfc4a6](https://github.com/bl-sdk/oak-mod-manager/commit/c7dfc4a6)
 
 ## v1.2
 

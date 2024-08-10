@@ -270,10 +270,10 @@ uintptr_t handle_raw_input_hook(void* self,
 
 // NOLINTNEXTLINE(readability-identifier-length)
 PYBIND11_MODULE(keybinds, m) {
-    detour(hook::OAKPC_INPUTKEY_PATTERN.sigscan(), hook::oakpc_inputkey_hook,
-           &hook::oakpc_inputkey_ptr, "OakPlayerController::InputKey");
-    detour(hook::HANDLE_RAW_INPUT_PATTERN.sigscan(), hook::handle_raw_input_hook,
-           &hook::handle_raw_input_ptr, "GbxMenuInput::HandleRawInput");
+    detour(hook::OAKPC_INPUTKEY_PATTERN, hook::oakpc_inputkey_hook, &hook::oakpc_inputkey_ptr,
+           "OakPlayerController::InputKey");
+    detour(hook::HANDLE_RAW_INPUT_PATTERN, hook::handle_raw_input_hook, &hook::handle_raw_input_ptr,
+           "GbxMenuInput::HandleRawInput");
 
     m.def(
         "register_keybind",

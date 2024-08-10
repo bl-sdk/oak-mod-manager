@@ -33,7 +33,8 @@ const constinit Pattern<21> DISPLAY_NAT_HELP_DIALOG{
 using UOakGameInstance = UObject;
 using display_nat_help_dialog_func = void (*)(UOakGameInstance* self);
 display_nat_help_dialog_func display_nat_help_dialog_ptr =
-    DISPLAY_NAT_HELP_DIALOG.sigscan<display_nat_help_dialog_func>();
+    DISPLAY_NAT_HELP_DIALOG.sigscan<display_nat_help_dialog_func>(
+        "UOakGameInstance::DisplayNATHelpDialog");
 
 const constinit Pattern<23> SHOW_DIALOG{
     "48 89 5C 24 ??"     // mov [rsp+18], rbx
@@ -90,7 +91,7 @@ UGbxGFxDialogBox* show_dialog_hook(UGbxPlayerController* player_controller,
 
 // NOLINTNEXTLINE(readability-identifier-length)
 PYBIND11_MODULE(dialog_box, m) {
-    detour(SHOW_DIALOG.sigscan(), show_dialog_hook, &show_dialog_ptr,
+    detour(SHOW_DIALOG, show_dialog_hook, &show_dialog_ptr,
            "UGbxGFxCoreDialogBoxHelpers::ShowDialog");
 
     m.def(
