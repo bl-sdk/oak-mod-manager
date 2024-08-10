@@ -61,10 +61,7 @@
         "rhs": "Windows"
       },
       "generator": "Ninja",
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "cl.exe",
-        "CMAKE_CXX_COMPILER": "cl.exe"
-      }
+      "toolchainFile": "libs/pyunrealsdk/common_cmake/msvc.cmake"
     },
     {
       "name": "_debug",
