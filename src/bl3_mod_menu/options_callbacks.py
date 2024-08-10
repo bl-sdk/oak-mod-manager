@@ -1,7 +1,6 @@
 from typing import Any
 
 from mods_base import (
-    JSON,
     BaseOption,
     BoolOption,
     ButtonOption,
@@ -10,7 +9,6 @@ from mods_base import (
     NestedOption,
     SliderOption,
     SpinnerOption,
-    ValueOption,
     hook,
 )
 from unrealsdk.hooks import Block, Type
@@ -27,19 +25,6 @@ from .options_setup import (
     is_options_menu_open,
     open_nested_options_menu,
 )
-
-
-def update_option_value[J: JSON](option: ValueOption[J], value: J) -> None:
-    """
-    Updates an option's value, running the callback if needed.
-
-    Args:
-        option: The option to update.
-        value: The option's new value.
-    """
-    if option.on_change is not None:
-        option.on_change(option, value)
-    option.value = value
 
 
 @hook("/Script/OakGame.GFxOptionBase:OnUnimplementedOptionClicked", Type.PRE, auto_enable=True)
@@ -70,19 +55,19 @@ def unimplemented_option_clicked(  # noqa: C901 - imo the match is rated too hig
                 option.on_press(option)
         case BoolOption():
             assert button.Class.Name == "GbxGFxListItemSpinner"
-            update_option_value(option, get_spinner_selected_idx(button) == 1)
+            option.value = get_spinner_selected_idx(button) == 1
         case DropdownOption():
             assert button.Class.Name == "GbxGFxListItemComboBox"
-            update_option_value(option, option.choices[get_combo_box_selected_idx(button)])
+            option.value = option.choices[get_combo_box_selected_idx(button)]
         case SliderOption():
             assert button.Class.Name == "GbxGFxListItemNumber"
             value = get_number_value(button)
             if option.is_integer:
                 value = round(value)
-            update_option_value(option, value)
+            option.value = value
         case SpinnerOption():
             assert button.Class.Name == "GbxGFxListItemComboBox"
-            update_option_value(option, option.choices[get_spinner_selected_idx(button)])
+            option.value = option.choices[get_spinner_selected_idx(button)]
         case KeybindOption():
             handle_keybind_press(obj, option)
         case _:
