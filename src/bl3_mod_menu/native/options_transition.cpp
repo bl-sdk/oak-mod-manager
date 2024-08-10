@@ -67,7 +67,8 @@ const constexpr auto ACCESSIBILITY_OPTION_MENU_TYPE = 16;
  * @brief Performs all required setup needed to be able to start a options transition.
  */
 void setup(void) {
-    auto option_menu_entry_clicked = OPTION_MENU_ENTRY_CLICKED_PATTERN.sigscan();
+    auto option_menu_entry_clicked =
+        OPTION_MENU_ENTRY_CLICKED_PATTERN.sigscan("UGFxMainAndPauseBaseMenu::On[menu]Clicked");
     set_first_options_ptr =
         read_offset<set_first_options_func>(option_menu_entry_clicked + SET_FIRST_OPTIONS_OFFSET);
     soft_object_offset =
@@ -147,7 +148,7 @@ const constinit Pattern<63> OPTION_BASE_REFRESH{
     "E8 ????????"        // call Borderlands3.exe+11B2480
     "48 63 43 ??"        // movsxd rax, dword ptr [rbx+40]
     "33 F6"              // xor esi, esi
-    "48 8B 7B ??"        // mov rdi, [rbx+38] <--- Grab this offset
+    "48 8B 7B ??"        // mov rdi, [rbx+38] <--- Also grab this offset
 };
 const constexpr auto OPTION_LIST_OFFSET_OFFSET = 62;
 
@@ -242,17 +243,17 @@ FText* option_menu_get_option_title_hook(transition::option_menu_type type) {
  * @brief Performs all required setup needed to be able to inject custom options.
  */
 void setup(void) {
-    auto option_base_refresh = OPTION_BASE_REFRESH.sigscan();
+    auto option_base_refresh = OPTION_BASE_REFRESH.sigscan("UGFxOptionBase::Refresh");
     option_list_offset =
         *reinterpret_cast<int8_t*>(option_base_refresh + OPTION_LIST_OFFSET_OFFSET);
     detour(option_base_refresh, option_base_refresh_hook, &option_base_refresh_ptr,
            "UGFxOptionBase::Refresh");
 
-    detour(OPTION_BASE_CREATE_CONTENT_PANEL_ITEM_PATTERN.sigscan(),
+    detour(OPTION_BASE_CREATE_CONTENT_PANEL_ITEM_PATTERN,
            option_base_create_content_panel_item_hook, &option_base_create_content_panel_item_ptr,
            "UGFxOptionBase::CreateContentPanelItem");
 
-    detour(OPTION_MENU_GET_OPTION_TITLE_PATTERN.sigscan(), option_menu_get_option_title_hook,
+    detour(OPTION_MENU_GET_OPTION_TITLE_PATTERN, option_menu_get_option_title_hook,
            &option_menu_get_option_title_ptr, "UGFxOptionsMenu::GetOptionTitle");
 }
 
@@ -290,7 +291,8 @@ auto scroll_position_prop =
  */
 void setup(void) {
     scrolling_list_scroll_to_position_ptr =
-        SCROLLING_LIST_SCROLL_TO_POSITION_PATTERN.sigscan<scrolling_list_scroll_to_position_func>();
+        SCROLLING_LIST_SCROLL_TO_POSITION_PATTERN.sigscan<scrolling_list_scroll_to_position_func>(
+            "UGbxGFxGridScrollingList::ScrollToPosition");
 }
 
 }  // namespace scroll
