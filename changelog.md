@@ -2,7 +2,15 @@
 
 ## v1.3
 
+Also see the unrealsdk v1.2.0 changelog [here](https://github.com/bl-sdk/unrealsdk/blob/master/changelog.md#v120)
+and the pyunrealsdk v1.2.0 changelog [here](https://github.com/bl-sdk/pyunrealsdk/blob/master/changelog.md#v120).
+
 ### General
+- The BL3 release zip now also includes the Console Mod Menu, as it's use proved handy when the
+  dedicated BL3 Mod Menu broke.
+
+  [07283ae3](https://github.com/bl-sdk/oak-mod-manager/commit/07283ae3)
+
 - Added a warning for when Proton fails to propagate environment variables, which mods or the mod
   manager may have been expecting.
   
@@ -80,7 +88,7 @@
 
 ## v1.2
 
-Also see the pyunrealsdk v1.1.1 changelog [here](https://github.com/bl-sdk/pyunrealsdk/blob/master/changelog.md#v110).
+Also see the pyunrealsdk v1.1.1 changelog [here](https://github.com/bl-sdk/pyunrealsdk/blob/master/changelog.md#v111).
 
 ### General
 

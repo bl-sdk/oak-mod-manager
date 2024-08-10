@@ -7,5 +7,8 @@ extend-exclude = [
     ".typos.toml"
 ]
 
+[default.extend-identifiers]
+llibgcc_s_seh = "llibgcc_s_seh"
+
 [default.extend-words]
 UE = "UE"
