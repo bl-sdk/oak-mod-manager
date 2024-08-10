@@ -85,7 +85,7 @@ void add_title(UGFxOptionBase* self, const std::wstring& name) {
 
 namespace slider {
 
-const constinit Pattern<14> SETUP_SLIDER_ITEM{
+const constinit Pattern<14> SETUP_SLIDER_ITEM_OLD{
     "48 8B C4"           // mov rax, rsp
     "55"                 // push rbp
     "56"                 // push rsi
@@ -93,12 +93,33 @@ const constinit Pattern<14> SETUP_SLIDER_ITEM{
     "48 81 EC C0000000"  // sub rsp, 000000C0
 };
 
+const constinit Pattern<29> SETUP_SLIDER_ITEM_NEW{
+    "48 89 5C 24 ??"  // mov [rsp+08], rbx
+    "48 89 74 24 ??"  // mov [rsp+10], rsi
+    "57"              // push rdi
+    "48 83 EC ??"     // sub rsp, 70
+    "0F29 74 24 ??"   // movaps [rsp+60], xmm6
+    "0F28 F2"         // movaps xmm6, xmm2
+    "49 8B F1"        // mov rsi, r9
+    "48 8B DA"        // mov rbx, rdx
+};
+
 using setup_slider_item_func = UObject* (*)(UGFxOptionBase* self,
                                             UOptionDescriptionItem* description,
                                             float32_t default_value,
                                             const FName* callback);
-setup_slider_item_func setup_slider_item_ptr =
-    SETUP_SLIDER_ITEM.sigscan<setup_slider_item_func>("UGFxOptionBase::SetupSliderItem");
+setup_slider_item_func setup_slider_item_ptr;
+
+/**
+ * @brief Performs all required setup needed to be able to add a slider item.
+ */
+void setup(void) {
+    setup_slider_item_ptr = SETUP_SLIDER_ITEM_NEW.sigscan_nullable<setup_slider_item_func>();
+    if (setup_slider_item_ptr == nullptr) {
+        setup_slider_item_ptr = SETUP_SLIDER_ITEM_OLD.sigscan<setup_slider_item_func>(
+            "UGFxOptionBase::SetupSliderItem");
+    }
+}
 
 void add_slider(UGFxOptionBase* self,
                 const std::wstring& name,
@@ -345,7 +366,7 @@ namespace controls {
 
 const constinit Pattern<14> SETUP_CONTROLS_ITEM{
     "48 8B C4"     // mov rax, rsp
-    "57"           // push rdi
+    "5?"           // push rdi     |  push rsi
     "41 54"        // push r12
     "41 56"        // push r14
     "41 57"        // push r15
@@ -416,6 +437,8 @@ void add_binding(UGFxOptionBase* self,
 
 // NOLINTNEXTLINE(readability-identifier-length)
 PYBIND11_MODULE(options_setup, m) {
+    slider::setup();
+
     m.def(
         "add_title",
         [](const py::object& self, const std::wstring& name) {
