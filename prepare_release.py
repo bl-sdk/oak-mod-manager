@@ -124,21 +124,19 @@ ZIP_PLUGINS_FOLDER = ZIP_EXECUTABLE_FOLDER / "Plugins"
 def _zip_init_script(zip_file: ZipFile) -> None:
     output_init_script = ZIP_MODS_FOLDER / INIT_SCRIPT.name
     zip_file.write(INIT_SCRIPT, output_init_script)
-    init_script_env = (
+    unrealsdk_env = (
         # Path.relative_to doesn't work when where's no common base, need to use os.path
         # While the file goes in the plugins folder, this path is relative to *the executable*
-        f"PYUNREALSDK_INIT_SCRIPT={path.relpath(output_init_script, ZIP_EXECUTABLE_FOLDER)}"
+        f"PYUNREALSDK_INIT_SCRIPT={path.relpath(output_init_script, ZIP_EXECUTABLE_FOLDER)}\n"
+        f"PYUNREALSDK_PYEXEC_ROOT={path.relpath(ZIP_MODS_FOLDER, ZIP_EXECUTABLE_FOLDER)}\n"
     )
 
     # We also define the display version via an env var, do that here too
     version_number = tomllib.loads(PYPROJECT_FILE.read_text())["project"]["version"]
     git_version = get_git_repo_version()
-    display_version_env = f"MOD_MANAGER_DISPLAY_VERSION={version_number} ({git_version})"
+    unrealsdk_env += f"MOD_MANAGER_DISPLAY_VERSION={version_number} ({git_version})\n"
 
-    zip_file.writestr(
-        str(ZIP_PLUGINS_FOLDER / "unrealsdk.env"),
-        f"{init_script_env}\n{display_version_env}\n",
-    )
+    zip_file.writestr(str(ZIP_PLUGINS_FOLDER / "unrealsdk.env"), unrealsdk_env)
 
 
 def _zip_mod_folders(zip_file: ZipFile, mod_folders: Sequence[Path], debug: bool) -> None:
