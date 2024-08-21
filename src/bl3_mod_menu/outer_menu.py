@@ -2,9 +2,10 @@ import re
 from typing import Any
 
 import unrealsdk
-from mods_base import BoolOption, Mod, get_ordered_mod_list, hook
 from unrealsdk.hooks import Block, Type
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
+
+from mods_base import BoolOption, Mod, get_ordered_mod_list, hook
 
 from .native.outer_menu import (
     add_menu_item,

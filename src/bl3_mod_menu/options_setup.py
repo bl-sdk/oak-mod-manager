@@ -4,6 +4,10 @@ from dataclasses import dataclass
 from typing import Any
 
 import unrealsdk
+from unrealsdk import logging
+from unrealsdk.hooks import Type
+from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
+
 from mods_base import (
     BaseOption,
     BoolOption,
@@ -19,9 +23,6 @@ from mods_base import (
     get_pc,
     hook,
 )
-from unrealsdk import logging
-from unrealsdk.hooks import Type
-from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 from .keybinds import add_keybind_option
 from .native.options_setup import (

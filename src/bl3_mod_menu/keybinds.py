@@ -1,9 +1,10 @@
 from enum import StrEnum
 
 import unrealsdk
+from unrealsdk.unreal import UObject
+
 from keybinds import raw_keybinds
 from mods_base import BoolOption, DropdownOption, EInputEvent, KeybindOption, get_pc
-from unrealsdk.unreal import UObject
 
 from .dialog_box import DialogBox
 from .native.options_setup import add_binding

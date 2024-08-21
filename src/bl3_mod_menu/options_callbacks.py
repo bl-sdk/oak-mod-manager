@@ -1,5 +1,8 @@
 from typing import Any
 
+from unrealsdk.hooks import Block, Type
+from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
+
 from mods_base import (
     BaseOption,
     BoolOption,
@@ -11,8 +14,6 @@ from mods_base import (
     SpinnerOption,
     hook,
 )
-from unrealsdk.hooks import Block, Type
-from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 from .keybinds import handle_keybind_press
 from .native.options_getters import (
