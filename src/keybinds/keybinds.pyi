@@ -3,8 +3,9 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import NewType, overload
 
-from mods_base import EInputEvent
 from unrealsdk.hooks import Block
+
+from mods_base import EInputEvent
 
 __all__: tuple[str, ...] = (
     "register_keybind",

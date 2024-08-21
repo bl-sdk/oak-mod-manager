@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.4
+
+Also see the unrealsdk v1.3.0 changelog [here](https://github.com/bl-sdk/unrealsdk/blob/master/changelog.md#v130)
+and the pyunrealsdk v1.3.0 changelog [here](https://github.com/bl-sdk/pyunrealsdk/blob/master/changelog.md#v130).
+
+## General
+- Fixed that in some cases a mod couldn't be disabled, or wouldn't enable actively, due to hooks not
+  getting added/removed properly.
+
+  [unrealsdk@227a93d2](https://github.com/bl-sdk/unrealsdk/commit/227a93d2)
+
 ## v1.3
 
 Also see the unrealsdk v1.2.0 changelog [here](https://github.com/bl-sdk/unrealsdk/blob/master/changelog.md#v120)

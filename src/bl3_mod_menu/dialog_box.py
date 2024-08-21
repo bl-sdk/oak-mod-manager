@@ -3,9 +3,10 @@ from __future__ import annotations
 from dataclasses import InitVar, dataclass, field
 from typing import TYPE_CHECKING, Any, ClassVar, Self
 
-from mods_base import ENGINE, hook
 from unrealsdk import logging, make_struct
 from unrealsdk.hooks import Block, Type
+
+from mods_base import ENGINE, hook
 
 from .native.dialog_box import show_dialog_box
 
