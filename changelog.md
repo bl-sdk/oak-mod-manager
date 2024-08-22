@@ -5,11 +5,48 @@
 Also see the unrealsdk v1.3.0 changelog [here](https://github.com/bl-sdk/unrealsdk/blob/master/changelog.md#v130)
 and the pyunrealsdk v1.3.0 changelog [here](https://github.com/bl-sdk/pyunrealsdk/blob/master/changelog.md#v130).
 
-## General
+### General
 - Fixed that in some cases a mod couldn't be disabled, or wouldn't enable actively, due to hooks not
   getting added/removed properly.
 
   [unrealsdk@227a93d2](https://github.com/bl-sdk/unrealsdk/commit/227a93d2)
+  
+- Mods now show how well they support coop. This is unknown by default, developers need to set it.
+
+  [db89e4b3](https://github.com/bl-sdk/oak-mod-manager/commit/db89e4b3)
+
+- The mod manager now occasionally checks for updates. These will appear on the "Python SDK" mod
+  menu entry.
+
+  [9bf295b0](https://github.com/bl-sdk/oak-mod-manager/commit/9bf295b0)
+
+### General - Developer
+- Set `PYUNREALSDK_PYEXEC_ROOT` to the sdk mods folder by default.
+
+  [2f15c5ba](https://github.com/bl-sdk/oak-mod-manager/commit/2f15c5ba)
+
+- Fixed that pyright would always error on creating a HiddenOption (due to mismatching generics).
+
+  [9bf295b0](https://github.com/bl-sdk/oak-mod-manager/commit/9bf295b0)
+
+### BL3 Mod Menu v1.3
+- Display mods' coop support.
+
+  [db89e4b3](https://github.com/bl-sdk/oak-mod-manager/commit/db89e4b3)
+
+### Console Mod Menu v1.3
+- Display mods' coop support.
+
+  [db89e4b3](https://github.com/bl-sdk/oak-mod-manager/commit/db89e4b3)
+
+### Mods Base v1.4
+- Added the "Coop Support" field.
+
+  [db89e4b3](https://github.com/bl-sdk/oak-mod-manager/commit/db89e4b3)
+  
+- Automatically check for mod manager updates.
+
+  [9bf295b0](https://github.com/bl-sdk/oak-mod-manager/commit/9bf295b0)
 
 ## v1.3
 
