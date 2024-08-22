@@ -11,7 +11,7 @@ from .command import AbstractCommand
 from .hook import HookProtocol
 from .html_to_plain_text import html_to_plain_text
 from .keybinds import KeybindType
-from .mod import Game, Library, Mod, ModType
+from .mod import CoopSupport, Game, Library, Mod, ModType
 from .options import BaseOption, ButtonOption
 from .settings import SETTINGS_DIR
 
@@ -32,6 +32,7 @@ class BaseMod(Library):
     name: str = "Python SDK"
     author: str = "bl-sdk"
     version: str = _MANAGER_VERSION
+    coop_support: CoopSupport = CoopSupport.ClientSide
     settings_file: Path | None = SETTINGS_DIR / "python-sdk.json"
 
     keybinds: list[KeybindType] = field(default_factory=list)  # type: ignore

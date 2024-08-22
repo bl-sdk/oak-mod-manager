@@ -12,6 +12,7 @@ from mods_base import (
     BaseOption,
     BoolOption,
     ButtonOption,
+    CoopSupport,
     DropdownOption,
     Game,
     GroupedOption,
@@ -189,6 +190,64 @@ def get_option_header() -> str:
     )
 
 
+def create_description_title(mod: Mod) -> str:
+    """
+    Creates the description title to use for a mod's description option.
+
+    Args:
+        mod: The mod to create the title for.
+    Returns:
+        The description title.
+    """
+    description_title = ""
+    if mod.author:
+        description_title += f"By {mod.author}"
+    if mod.author and mod.version:
+        description_title += "  -  "
+    if mod.version:
+        description_title += mod.version
+    return description_title or "Description"
+
+
+def create_description_text(mod: Mod) -> str:
+    """
+    Creates the text to use for a mod's description option.
+
+    Args:
+        mod: The mod to create the title for.
+    Returns:
+        The description text.
+    """
+    blocks: list[str] = []
+
+    if Game.get_current() not in mod.supported_games:
+        supported = [g.name for g in Game if g in mod.supported_games and g.name is not None]
+        blocks.append(
+            "<font color='#ffff00'>Incompatible Game!</font>\n"
+            "This mod supports: " + ", ".join(supported),
+        )
+
+    if mod.description:
+        blocks.append(mod.description)
+
+    match mod.coop_support:
+        case CoopSupport.Unknown:
+            blocks.append("<font color='#e0e0e0'>Coop Support: Unknown</font>")
+        case CoopSupport.Incompatible:
+            blocks.append(
+                "<font color='#e0e0e0'>Coop Support:</font>"
+                " <font color='#ffff00'>Incompatible</font>",
+            )
+        case CoopSupport.RequiresAllPlayers:
+            blocks.append(
+                "<font color='#e0e0e0'>Coop Support: Requires All Players</font>",
+            )
+        case CoopSupport.ClientSide:
+            blocks.append("<font color='#e0e0e0'>Coop Support: Client Side</font>")
+
+    return "\n\n".join(blocks)
+
+
 def get_mod_options(mod: Mod) -> tuple[BaseOption, ...]:
     """
     Gets the full list of mod options to display, including our custom header.
@@ -201,27 +260,11 @@ def get_mod_options(mod: Mod) -> tuple[BaseOption, ...]:
 
     def inner() -> Iterator[BaseOption]:
         # Display the author and version in the title, if they're not the empty string
-        description_title = ""
-        if mod.author:
-            description_title += f"By {mod.author}"
-        if mod.author and mod.version:
-            description_title += "  -  "
-        if mod.version:
-            description_title += mod.version
-        description_title = description_title or "Description"
-
-        description = mod.description
-        if Game.get_current() not in mod.supported_games:
-            supported = [g.name for g in Game if g in mod.supported_games and g.name is not None]
-            description = (
-                "<font color='#ffff00'>Incompatible Game!</font>\r"
-                "This mod supports: " + ", ".join(supported) + "\n\n" + description
-            )
 
         yield ButtonOption(
             "Description",
-            description=description,
-            description_title=description_title,
+            description=create_description_text(mod),
+            description_title=create_description_title(mod),
         )
 
         if not mod.enabling_locked:
