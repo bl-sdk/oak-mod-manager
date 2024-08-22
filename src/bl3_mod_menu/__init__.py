@@ -42,6 +42,5 @@ if Game.get_current() is Game.BL3:
             ),
         ),
     )
-    base_mod.load_settings()
 
 base_mod.components.append(base_mod.ComponentInfo("BL3 Mod Menu", __version__))
