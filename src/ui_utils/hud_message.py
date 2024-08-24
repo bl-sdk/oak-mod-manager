@@ -23,7 +23,9 @@ def show_hud_message(title: str, msg: str, duration: float = 2.5) -> None:
         msg: The message to display.
         duration: The duration to display the message for.
     """
-    get_pc().DisplayRolloutNotification(title, msg, duration)
+    pc = get_pc(possibly_loading=True)
+    if pc:
+        pc.DisplayRolloutNotification(title, msg, duration)
 
 
 """
