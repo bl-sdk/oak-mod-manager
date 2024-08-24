@@ -7,7 +7,7 @@ __all__: list[str] = [
     "__version_info__",
 ]
 
-__version_info__: tuple[int, int] = (1, 2)
+__version_info__: tuple[int, int] = (1, 3)
 __version__: str = f"{__version_info__[0]}.{__version_info__[1]}"
 __author__: str = "bl-sdk"
 
@@ -42,6 +42,5 @@ if Game.get_current() is Game.BL3:
             ),
         ),
     )
-    base_mod.load_settings()
 
 base_mod.components.append(base_mod.ComponentInfo("BL3 Mod Menu", __version__))
