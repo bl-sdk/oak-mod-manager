@@ -48,6 +48,16 @@ and the pyunrealsdk v1.3.0 changelog [here](https://github.com/bl-sdk/pyunrealsd
 
   [9bf295b0](https://github.com/bl-sdk/oak-mod-manager/commit/9bf295b0)
 
+### UI Utils v1.2
+
+- Added a helper to show a tutorial dialog, `show_modal_tutorial_dialog`.
+
+  [51d3c872](https://github.com/bl-sdk/oak-mod-manager/commit/51d3c872)
+
+- Fixed an attribute error when calling `show_hud_message` during a load screen (from a thread).
+
+  [51d3c872](https://github.com/bl-sdk/oak-mod-manager/commit/51d3c872)
+
 ## v1.3
 
 Also see the unrealsdk v1.2.0 changelog [here](https://github.com/bl-sdk/unrealsdk/blob/master/changelog.md#v120)
