@@ -5,7 +5,7 @@ project(oak_mod_manager)
 set(UNREALSDK_ARCH x64)
 set(UNREALSDK_UE_VERSION UE4)
 set(EXPLICIT_PYTHON_ARCH amd64)
-set(EXPLICIT_PYTHON_VERSION 3.12.3)
+set(EXPLICIT_PYTHON_VERSION 3.13.0)
 
 add_subdirectory(libs/pyunrealsdk)
 
