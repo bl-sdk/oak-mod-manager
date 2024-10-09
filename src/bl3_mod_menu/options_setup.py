@@ -74,6 +74,75 @@ def get_displayed_option_at_idx(idx: int) -> BaseOption:
     return option_stack[-1].drawn_options[idx]
 
 
+def any_option_visible(options: Sequence[BaseOption]) -> bool:
+    """
+    Recursively checks if any option in a sequence is visible.
+
+    Recurses into grouped options, but not nested ones. A grouped option which is not explicitly
+    hidden, but contains no visible children, does not count as visible.
+
+    Args:
+        options: The sequence of options to check.
+    """
+    return any(
+        (
+            isinstance(option, GroupedOption)
+            and not option.is_hidden
+            and any_option_visible(option.children)
+        )
+        or (not option.is_hidden)
+        for option in options
+    )
+
+
+def draw_grouped_option(
+    self: UObject,
+    options: Sequence[BaseOption],
+    group_stack: list[GroupedOption],
+    option: GroupedOption,
+    options_idx: int,
+) -> None:
+    """
+    Draws a grouped option and it's children.
+
+    Args:
+        self: The options menu being drawn.
+        options: The full options list this group is part of.
+        group_stack: The stack of currently open grouped options.
+        option: The specific grouped option to add.
+        options_idx: The index of the specific grouped option being added.
+    """
+    if not any_option_visible(option.children):
+        return
+
+    group_stack.append(option)
+
+    # If the first entry of the group is another group, don't draw a title, let the nested call do
+    # it, so the first title is the most nested
+    # If we're empty, or a different type, draw our own header
+    if len(option.children) == 0 or not isinstance(option.children[0], GroupedOption):
+        add_title(self, " - ".join(g.display_name for g in group_stack))
+        option_stack[-1].drawn_options.append(option)
+
+    draw_options(self, option.children, group_stack)
+
+    group_stack.pop()
+
+    # If we didn't just close the outermost group, the group above us still has extra visible
+    # options, and the next one of those options is not another group, re-draw the outer group's
+    # header
+    if (
+        group_stack
+        and options_idx != len(options) - 1
+        and any_option_visible(options[options_idx + 1 :])
+        and not isinstance(options[options_idx + 1], GroupedOption)
+    ):
+        # This will print an empty string if we're on the last stack - which is about
+        # the best we can do, we still want a gap
+        add_title(self, " - ".join(g.display_name for g in group_stack))
+        option_stack[-1].drawn_options.append(option)
+
+
 def draw_options(  # noqa: C901 - imo the match is rated too highly
     self: UObject,
     options: Sequence[BaseOption],
@@ -152,26 +221,7 @@ def draw_options(  # noqa: C901 - imo the match is rated too highly
             case GroupedOption() if option in group_stack:
                 logging.dev_warning(f"Found recursive options group, not drawing: {option}")
             case GroupedOption():
-                group_stack.append(option)
-
-                # If the first entry of the group is another group, don't draw a title, let the
-                # nested call do it, so the first title is the most nested
-                # If we're empty, or a different type, draw our own header
-                if len(option.children) == 0 or not isinstance(option.children[0], GroupedOption):
-                    add_title(self, " - ".join(g.display_name for g in group_stack))
-                    option_stack[-1].drawn_options.append(option)
-
-                draw_options(self, option.children, group_stack)
-
-                group_stack.pop()
-
-                # If we have more options left in this group, and we're not immediately followed by
-                # another group, re-draw the base header
-                if idx != len(options) - 1 and not isinstance(options[idx + 1], GroupedOption):
-                    # This will print an empty string if we're on the last stack - which is about
-                    # the best we can do, we still want a gap
-                    add_title(self, " - ".join(g.display_name for g in group_stack))
-                    option_stack[-1].drawn_options.append(option)
+                draw_grouped_option(self, options, group_stack, option, idx)
 
             case _:
                 logging.dev_warning(f"Encountered unknown option type {type(option)}")
