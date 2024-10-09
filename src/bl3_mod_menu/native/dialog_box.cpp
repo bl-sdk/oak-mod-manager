@@ -14,6 +14,8 @@
 using namespace unrealsdk::unreal;
 using namespace unrealsdk::memory;
 
+namespace {
+
 bool injecting_next_call = false;
 pyunrealsdk::StaticPyObject configure_callback{};
 
@@ -67,7 +69,7 @@ UGbxGFxDialogBox* show_dialog_hook(UGbxPlayerController* player_controller,
         // To avoid this, swap it out with an empty array for this call
         auto arr = info_struct.get<UArrayProperty>(choices_prop);
         const TArray<void> arr_backup = *arr.base;
-        *arr.base = TArray<void>{nullptr, 0, 0};
+        *arr.base = TArray<void>{.data = nullptr, .count = 0, .max = 0};
 
         try {
             const py::gil_scoped_acquire gil{};
@@ -88,6 +90,8 @@ UGbxGFxDialogBox* show_dialog_hook(UGbxPlayerController* player_controller,
 
     return show_dialog_ptr(player_controller, info);
 }
+
+}  // namespace
 
 // NOLINTNEXTLINE(readability-identifier-length)
 PYBIND11_MODULE(dialog_box, m) {

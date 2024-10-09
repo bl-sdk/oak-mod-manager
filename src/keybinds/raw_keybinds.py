@@ -170,7 +170,7 @@ def add(
 @overload
 def add(
     key: str,
-    event: None = None,
+    event: None,
     callback: None = None,
 ) -> Callable[[RawKeybindCallback_EventOnly], None]: ...
 
@@ -186,7 +186,7 @@ def add(
 @overload
 def add(
     key: None,
-    event: None = None,
+    event: None,
     callback: None = None,
 ) -> Callable[[RawKeybindCallback_KeyAndEvent], None]: ...
 

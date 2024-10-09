@@ -357,7 +357,7 @@ def open_nested_options_menu(nested: NestedOption) -> None:
     )
 
 
-@hook("/Script/OakGame.GFxFrontendMenu:OnMenuStackChanged", Type.POST, auto_enable=True)
+@hook("/Script/OakGame.GFxFrontendMenu:OnMenuStackChanged", Type.POST, immediately_enable=True)
 def frontend_menu_change_hook(
     _1: UObject,
     args: WrappedStruct,

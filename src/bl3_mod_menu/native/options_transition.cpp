@@ -19,6 +19,8 @@
 using namespace unrealsdk::unreal;
 using namespace unrealsdk::memory;
 
+namespace {
+
 namespace transition {
 
 // This signature matches all 6 callbacks for the different option menu entries - they're identical
@@ -296,6 +298,8 @@ void setup(void) {
 }
 
 }  // namespace scroll
+
+}  // namespace
 
 // NOLINTNEXTLINE(readability-identifier-length)
 PYBIND11_MODULE(options_transition, m) {
