@@ -13,6 +13,8 @@
 using namespace unrealsdk::unreal;
 using namespace unrealsdk::memory;
 
+namespace {
+
 pyunrealsdk::StaticPyObject add_menu_item_callback{};
 
 #pragma region UGFxMainAndPauseBaseMenu::AddMenuItem
@@ -109,6 +111,8 @@ int32_t menu_state_offset = *reinterpret_cast<int32_t*>(
     reinterpret_cast<uintptr_t>(set_menu_state_ptr) + MENU_STATE_OFFSET_OFFSET);
 
 #pragma endregion
+
+}  // namespace
 
 // NOLINTNEXTLINE(readability-identifier-length)
 PYBIND11_MODULE(outer_menu, m) {

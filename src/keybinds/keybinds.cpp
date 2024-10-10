@@ -23,6 +23,8 @@
 using namespace unrealsdk::memory;
 using namespace unrealsdk::unreal;
 
+namespace {
+
 using AOakPlayerController = UObject;
 using EInputEvent = uint32_t;
 
@@ -56,7 +58,7 @@ bool is_in_menu(AOakPlayerController* player_controller) {
         static auto is_in_menu = validate_type<UFunction>(
             unrealsdk::find_object(L"Function", L"/Script/OakGame.OakPlayerController:IsInMenu"));
 
-        return BoundFunction{is_in_menu, player_controller}.call<UBoolProperty>();
+        return BoundFunction{.func = is_in_menu, .object = player_controller}.call<UBoolProperty>();
 
     } else {  // NOLINT(readability-else-after-return)
 
@@ -132,14 +134,14 @@ bool handle_key_event(FName key_name,
     std::vector<decltype(all_keybinds)::value_type> gameplay_binds{};
     std::ranges::partition_copy(with_matching_event, std::back_inserter(gameplay_binds),
                                 std::back_inserter(raw_binds),
-                                [](auto val) { return val.second->gameplay_bind; });
+                                [](const auto& val) { return val.second->gameplay_bind; });
 
     const py::gil_scoped_acquire gil{};
 
     // We might be able to get away with skipping creating this enum, saves us some more time.
     py::object event_as_enum{};
 
-    auto run_callbacks = [key_name, &event_as_enum, input_event](auto range) {
+    auto run_callbacks = [key_name, &event_as_enum, input_event](const auto& range) {
         bool should_block = false;
         for (const auto& ittr : range) {
             auto [key, data] = ittr;
@@ -267,6 +269,8 @@ uintptr_t handle_raw_input_hook(void* self,
 }
 
 }  // namespace hook
+
+}  // namespace
 
 // NOLINTNEXTLINE(readability-identifier-length)
 PYBIND11_MODULE(keybinds, m) {

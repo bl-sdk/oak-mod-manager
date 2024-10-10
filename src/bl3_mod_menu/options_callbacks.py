@@ -28,7 +28,11 @@ from .options_setup import (
 )
 
 
-@hook("/Script/OakGame.GFxOptionBase:OnUnimplementedOptionClicked", Type.PRE, auto_enable=True)
+@hook(
+    "/Script/OakGame.GFxOptionBase:OnUnimplementedOptionClicked",
+    Type.PRE,
+    immediately_enable=True,
+)
 def unimplemented_option_clicked(  # noqa: C901 - imo the match is rated too highly
     obj: UObject,
     args: WrappedStruct,

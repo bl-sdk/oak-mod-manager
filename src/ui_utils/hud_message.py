@@ -60,7 +60,11 @@ def cycle_next_message() -> None:
         pc.DisplayRolloutNotification(title, msg, duration)
 
 
-@hook("/Script/OakGame.OakPlayerController:DisplayRolloutNotification", Type.PRE, auto_enable=True)
+@hook(
+    "/Script/OakGame.OakPlayerController:DisplayRolloutNotification",
+    Type.PRE,
+    immediately_enable=True,
+)
 def display_rollout_hook(
     _1: UObject,
     args: WrappedStruct,

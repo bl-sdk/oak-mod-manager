@@ -11,6 +11,8 @@
 using namespace unrealsdk::unreal;
 using namespace unrealsdk::memory;
 
+namespace {
+
 const constinit Pattern<25> COMBO_BOX_GET_SELECTED_INDEX{
     "48 8B 81 ????????"  // mov rax, [rcx+00000318]
     "48 85 C0"           // test rax, rax
@@ -65,6 +67,8 @@ spinner_get_current_selection_index_func spinner_get_current_selection_index_ptr
     read_offset<spinner_get_current_selection_index_func>(
         SPINNER_GET_CURRENT_SELECTION_INDEX.sigscan(
             "UGbxGFxListItemSpinner::GetCurrentSelectionIndex"));
+
+}  // namespace
 
 // NOLINTNEXTLINE(readability-identifier-length)
 PYBIND11_MODULE(options_getters, m) {

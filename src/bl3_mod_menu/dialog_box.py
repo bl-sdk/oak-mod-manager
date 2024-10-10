@@ -146,7 +146,7 @@ class DialogBox:
         _dialog_stack.append(self)
         show_dialog_box(ENGINE.GameInstance, setup_callback)
 
-    @hook("/Script/OakGame.OakGameInstance:OnNATHelpChoiceMade", Type.PRE, auto_enable=True)
+    @hook("/Script/OakGame.OakGameInstance:OnNATHelpChoiceMade", Type.PRE, immediately_enable=True)
     @staticmethod
     def _on_dialog_closed_hook(
         _1: UObject,

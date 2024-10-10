@@ -124,7 +124,7 @@ def draw_mods_list(main_menu: UObject) -> None:
             add_menu_item(main_menu, "", "", True, -1)
 
 
-@hook("/Script/OakGame.GFxFrontendMenu:OnMenuStackChanged", Type.POST, auto_enable=True)
+@hook("/Script/OakGame.GFxFrontendMenu:OnMenuStackChanged", Type.POST, immediately_enable=True)
 def frontend_menu_change_hook(
     _1: UObject,
     args: WrappedStruct,
@@ -146,7 +146,7 @@ def frontend_menu_change_hook(
 @hook(
     "/Script/OakGame.GFxMainAndPauseBaseMenu:OnInviteListClearClicked",
     Type.PRE,
-    auto_enable=True,
+    immediately_enable=True,
 )
 def other_button_hook(
     obj: UObject,

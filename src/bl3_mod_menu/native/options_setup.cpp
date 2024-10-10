@@ -18,10 +18,10 @@
 using namespace unrealsdk::unreal;
 using namespace unrealsdk::memory;
 
+namespace {
+
 using UGFxOptionBase = UObject;
 using UOptionDescriptionItem = UObject;
-
-namespace {
 
 const FName OPTION_CALLBACK = L"OnUnimplementedOptionClicked"_fn;
 const auto OPTION_DESCRIPTION_ITEM = unrealsdk::unreal::find_class(L"OptionDescriptionItem"_fn);
@@ -55,8 +55,6 @@ UOptionDescriptionItem* create_description_item(
 
     return obj;
 }
-
-}  // namespace
 
 namespace title {
 
@@ -434,6 +432,8 @@ void add_binding(UGFxOptionBase* self,
 }
 
 }  // namespace controls
+
+}  // namespace
 
 // NOLINTNEXTLINE(readability-identifier-length)
 PYBIND11_MODULE(options_setup, m) {
