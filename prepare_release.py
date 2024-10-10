@@ -2,7 +2,6 @@
 import re
 import shutil
 import subprocess
-import textwrap
 import tomllib
 from collections.abc import Iterator, Sequence
 from functools import cache
@@ -211,18 +210,6 @@ def _zip_dlls(zip_file: ZipFile, install_dir: Path) -> None:
             dest = ZIP_PLUGINS_FOLDER / file.relative_to(install_dir)
 
         zip_file.write(file, dest)
-
-    py_stem = next(install_dir.glob("python*.zip")).stem
-    zip_file.writestr(
-        str(ZIP_PLUGINS_FOLDER / (py_stem + "._pth")),
-        textwrap.dedent(
-            f"""
-            {path.relpath(ZIP_MODS_FOLDER, ZIP_PLUGINS_FOLDER)}
-            {py_stem}.zip
-            DLLs
-            """,
-        )[1:-1],
-    )
 
 
 def zip_release(
