@@ -694,25 +694,28 @@ UNIQUE_ITEM_NAMES = [
     "Zheitsev's Eruption",
 ]
 
-PREVIOUS_RELEASE_NAMES = []
+PREVIOUS_RELEASE_NAMES = [
+    "Major Kong",
+    "Rowan's Call",
+    "Hand of Glory",
+    "Lethal Catch",
+    "White Elephant",
+    "Time Skip",
+]
 
 
 @cache
-def get_git_commit_hash(identifier: str | None = None) -> str:
+def get_git_commit_hash(identifier: str = "HEAD") -> str:
     """
     Gets the full commit hash of the current git repo.
 
     Args:
-        identifier: The identifier of the commit to get, or None to get the latest.
+        identifier: The identifier of the commit to get.
     Returns:
         The commit hash.
     """
-    args = ["git", "show", "-s", "--format=%H"]
-    if identifier is not None:
-        args.append(identifier)
-
     return subprocess.run(
-        args,
+        ["git", "rev-list", "-1", identifier],
         cwd=Path(__file__).parent,
         check=True,
         stdout=subprocess.PIPE,
@@ -744,10 +747,10 @@ if __name__ == "__main__":
         description="Picks the friendly name to use for the current release.",
     )
     parser.add_argument(
-        "hash",
+        "commit",
         nargs="?",
-        default=None,
-        help="The commit hash to base the name off of. If not given, retrieves from git.",
+        default="HEAD",
+        help="The commit hash to base the name off of. Defaults to HEAD.",
     )
     parser.add_argument(
         "--exclude",
@@ -763,7 +766,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    commit_hash = get_git_commit_hash(args.hash)
+    commit_hash = get_git_commit_hash(args.commit)
 
     excludes = [] if args.ignore_previous_releases else PREVIOUS_RELEASE_NAMES
     excludes += args.exclude
