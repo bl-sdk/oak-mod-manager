@@ -1,5 +1,54 @@
 # Changelog
 
+## v1.5
+
+### General
+- Upgraded to Python 3.13.
+
+### BL3 Mod Menu v1.4
+- Grouped options with no visible children no longer show their header.
+
+### [Console Mod Menu v1.4](https://github.com/bl-sdk/console_mod_menu/blob/master/Readme.md#v14)
+> - Improved suggestions when trying to bind a key by name, and misspelling it.
+> - Swap known controller key names between UE3/UE4 versions, based on game.
+> - Grouped options with no visible children no longer show their header.
+
+### [Mods Base v1.5](https://github.com/bl-sdk/mods_base/blob/master/Readme.md#v15)
+> - Added a default `rlm` command, which is a helper to reload Python modules during development.
+> - Deprecated the `auto_enable` arg in the `@hook` decorator, since it was misleading and in 99% of
+>   cases was not needed.
+> - Reworked `@hook` decorator internals to better support use on methods. It essentially creates a
+>   factory, which must be bound to the specific object before use. This is done automatically on
+>   mod instances.
+> - `KeybindOption.from_keybind()` now forwards the `default_key` -> `default_value`, so that
+>   resetting to default works consistently.
+
+### Keybinds v2.3
+- Linting fixes.
+
+### [pyunrealsdk v1.4.0](https://github.com/bl-sdk/pyunrealsdk/blob/master/changelog.md#v140)
+> - Fixed weak pointer type hinting to allow for null pointers. This always worked at runtime.
+> - Added support for Delegate and Multicast Delegate properties.
+> - Added a repr to `BoundFunction`, as these are now returned by delegates.
+> - The `WrappedStruct` constructor can now be used to construct function arg structs, like what's
+    passed to a hook. This *does not* also apply to `unrealsdk.make_struct`, since function names
+    conflict far more often.
+> - Removed the suggestion to return `Ellipsis` in hooks when overwriting a return value but not
+    blocking execution. This still works at runtime, but is no longer present in the type hinting,
+    since it made `Ellipsis` be typed as a valid return in several places it shouldn't have been,
+    and it's an obscure use case to begin with.
+
+### UI Utils v1.3
+- Linting fixes.
+
+### [unrealsdk v1.4.0](https://github.com/bl-sdk/unrealsdk/blob/master/changelog.md#v140)
+> - Fixed that UE3 `WeakPointer`s would always return null, due to an incorrect offset in the
+>   `UObject` header layout.
+> - Added support for Delegate and Multicast Delegate properties.
+> - Changed `unrealsdk::hook_manager::log_all_calls` to write to a dedicated file.
+> - Fixed missing all `CallFunction` based hooks in TPS - notably including the say bypass.
+> - Added the offline mode say crash fix for BL2+TPS as a base sdk hook.
+
 ## v1.4
 
 Also see the unrealsdk v1.3.0 changelog [here](https://github.com/bl-sdk/unrealsdk/blob/master/changelog.md#v130)
