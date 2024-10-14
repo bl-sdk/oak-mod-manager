@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.5
+## v1.5: Time Skip
 
 ### General
 - Upgraded to Python 3.13.
@@ -49,7 +49,7 @@
 > - Fixed missing all `CallFunction` based hooks in TPS - notably including the say bypass.
 > - Added the offline mode say crash fix for BL2+TPS as a base sdk hook.
 
-## v1.4
+## v1.4: White Elephant
 
 Also see the unrealsdk v1.3.0 changelog [here](https://github.com/bl-sdk/unrealsdk/blob/master/changelog.md#v130)
 and the pyunrealsdk v1.3.0 changelog [here](https://github.com/bl-sdk/pyunrealsdk/blob/master/changelog.md#v130).
@@ -107,7 +107,7 @@ and the pyunrealsdk v1.3.0 changelog [here](https://github.com/bl-sdk/pyunrealsd
 
   [51d3c872](https://github.com/bl-sdk/oak-mod-manager/commit/51d3c872)
 
-## v1.3
+## v1.3: Lethal Catch
 
 Also see the unrealsdk v1.2.0 changelog [here](https://github.com/bl-sdk/unrealsdk/blob/master/changelog.md#v120)
 and the pyunrealsdk v1.2.0 changelog [here](https://github.com/bl-sdk/pyunrealsdk/blob/master/changelog.md#v120).
@@ -193,7 +193,7 @@ and the pyunrealsdk v1.2.0 changelog [here](https://github.com/bl-sdk/pyunrealsd
 
   [c7dfc4a6](https://github.com/bl-sdk/oak-mod-manager/commit/c7dfc4a6)
 
-## v1.2
+## v1.2: Hand of Glory
 
 Also see the pyunrealsdk v1.1.1 changelog [here](https://github.com/bl-sdk/pyunrealsdk/blob/master/changelog.md#v111).
 
@@ -233,8 +233,7 @@ Also see the pyunrealsdk v1.1.1 changelog [here](https://github.com/bl-sdk/pyunr
 
   [05891ad4](https://github.com/bl-sdk/oak-mod-manager/commit/05891ad4)
 
-## v1.1
-
+## v1.1: Rowan's Call
 Also see the unrealsdk v1.1.0 changelog [here](https://github.com/bl-sdk/unrealsdk/blob/master/changelog.md#v110)
 and the pyunrealsdk v1.1.0 changelog [here](https://github.com/bl-sdk/pyunrealsdk/blob/master/changelog.md#v110).
 
@@ -376,5 +375,5 @@ and the pyunrealsdk v1.1.0 changelog [here](https://github.com/bl-sdk/pyunrealsd
 
   [11470d75](https://github.com/bl-sdk/oak-mod-manager/commit/11470d75)
 
-## v1.0
+## v1.0: Major Kong
 - Initial Release
