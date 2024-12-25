@@ -1,5 +1,10 @@
 # Changelog
 
+## Upcoming
+
+### BL3 Mod Menu v1.5
+- Fixed the handling of spinner option updates, so that they're actually usable.
+
 ## v1.5: Time Skip
 
 ### General

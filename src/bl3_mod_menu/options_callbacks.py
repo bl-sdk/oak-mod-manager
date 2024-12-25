@@ -71,7 +71,7 @@ def unimplemented_option_clicked(  # noqa: C901 - imo the match is rated too hig
                 value = round(value)
             option.value = value
         case SpinnerOption():
-            assert button.Class.Name == "GbxGFxListItemComboBox"
+            assert button.Class.Name == "GbxGFxListItemSpinner"
             option.value = option.choices[get_spinner_selected_idx(button)]
         case KeybindOption():
             handle_keybind_press(obj, option)
