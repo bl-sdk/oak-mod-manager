@@ -15,22 +15,25 @@ When developing, it's recommended to point pyunrealsdk directly at this repo. To
 
 1. Navigate to the plugins folder - `<game>\OakGame\Binaries\Win64\Plugins\`
 
-2. Edit `python3XX._pth`, replacing `..\..\..\..\sdk_mods` with `<path to repo>\src`. If you have a
-   debug build, also edit `python3XX_d._pth`.
+2. Create/edit `unrealsdk.user.toml`, adding the following:
+   ```toml
+   [pyunrealsdk]
+   init_script = "<path to repo>\\src\\__main__.py"
+   ```
 
-3. Edit `unrealsdk.env`, setting `PYUNREALSDK_INIT_SCRIPT=<path to repo>\src\__main__.py`.
+3. (Optional) Update `pyunrealsdk.pyexec_root` to the same folder, to make sure pyexec commands go
+   where you expect.
 
-4. (Optional) Edit `unrealsdk.env`, adding/updating
-   `OAK_MOD_MANAGER_EXTRA_FOLDERS=["C:\\path\\to\\new\\mod\\folder"]`, pointing at your old
-   `sdk_mods` folder. This is a json list of paths to folders to load, though note it must stay on
-   one line.
+4. (Optional) Add the path to your old `sdk_mods` folder to the `mod_manager.extra_folders` array,
+   so they continue getting loaded.
 
 5. (Optional) Copy/symlink your original settings folder into `src\settings` - settings are only
    loaded from the base mods folder.
 
 Once you've done this, you can modify the python files in place.
 
-To build the native modules:
+## Native code
+The mod manager uses a few native modules. To edit these, or even just the base pyunrealsdk code:
 
 1. Initialize the git submodules.
    ```sh

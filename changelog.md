@@ -1,5 +1,63 @@
 # Changelog
 
+## v1.6: (codename tbd)
+
+### BL3 Mod Menu v1.5
+- Fixed the handling of spinner option updates, so that they're actually usable.
+
+### [Mods Base v1.6](https://github.com/bl-sdk/mods_base/blob/master/Readme.md#v16)
+> - Changed default type of `HookType` generic type hint to any, so that by default pre and post hooks
+>   can be combined under the same type. As an example, previously if you passed an explicit hook list
+>   to `build_mod`, the type hinting would only accept a list where all hooks were of the same type.
+>
+> - Fixed that defining an option, keybind, hook, or command as a class member, and then constructing
+>   it via the `build_mod` factory, would pass empty lists to the constructor and thus prevent the
+>   auto member collection from running.
+>
+> - Changed the display version to be sourced from `mod_manager.display_version` in the unrealsdk
+>   config file, rather than an environment variable.
+>
+> - Gave `@command` and `ArgParseCommand.add_argument` default type hinting for the args they forward.
+
+### Keybinds v2.4
+- Linting fixes.
+
+### [pyunrealsdk v1.5.0](https://github.com/bl-sdk/pyunrealsdk/blob/master/changelog.md#v150)
+> - Deprecated `unrealsdk.hooks.inject_next_call` in favour of a new
+>   `unrealsdk.hooks.prevent_hooking_direct_calls` context manager.
+> 
+> - The `WeakPointer` constructor can now be called with no args, to create a null pointer.
+> 
+> - As with unrealsdk, reworked the configuration system to no longer rely on environment variables.
+>   All sdk configuration is now also done through the `unrealsdk.toml`.
+> 
+>   The full contents of the unrealsdk config are parsed and exposed to Python in `unrealsdk.config`.
+
+### [unrealsdk v1.5.0](https://github.com/bl-sdk/unrealsdk/blob/master/changelog.md#v150)
+> - Completely reworked the configuration system.
+> 
+>   Environment variables and the `unrealsdk.env` are no longer used, due to issues with them not fully
+>   propagating within the same process. The new configuration now uses an `unrealsdk.toml` instead.
+>   
+>   Also added support for a user specific override file - `unrealsdk.user.toml`. This allows projects
+>   to ship their own `unrealsdk.toml`, without overwriting user's settings on update.
+> 
+> - `unrealsdk::hook_manager::inject_next_call` is now thread local.
+> 
+> - Fixed that `unrealsdk::commands::has_command` and `unrealsdk::commands::remove_command` were case
+>   sensitive, while `unrealsdk::commands::add_command` and the callbacks were not. Commands should be
+>   now be case insensitive everywhere.
+> 
+> - Fixed that the executed command message of custom sdk commands would not appear in console if you
+>   increased the minimum log level, and that they may have appeared out of order with respects to
+>   native engine messages.
+> 
+> - Added an additional console command hook in BL2, to cover commands not run directly via console.
+> 
+> - Renamed the `unrealsdk.locking_process_event` (previously `UNREALSDK_LOCKING_PROCESS_EVENT`)
+>   setting to `unrealsdk.locking_function_calls`, and expanded it's scope to cover all function
+>   calls. This fixes a few more possibilities for lockups.
+
 ## v1.5: Time Skip
 
 ### General

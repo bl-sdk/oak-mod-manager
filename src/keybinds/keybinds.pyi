@@ -8,8 +8,8 @@ from unrealsdk.hooks import Block
 from mods_base import EInputEvent
 
 __all__: tuple[str, ...] = (
-    "register_keybind",
     "deregister_keybind",
+    "register_keybind",
 )
 
 _KeybindHandle = NewType("_KeybindHandle", object)
