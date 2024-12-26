@@ -4,10 +4,10 @@ from unrealsdk.unreal import UObject
 
 __all__: tuple[str, ...] = (
     "add_menu_item",
-    "set_add_menu_item_callback",
     "begin_configure_menu_items",
-    "set_menu_state",
     "get_menu_state",
+    "set_add_menu_item_callback",
+    "set_menu_state",
 )
 
 type _AddMenuItemCallback = Callable[[UObject, str, str, bool, int], int]
