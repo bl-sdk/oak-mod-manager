@@ -16,7 +16,6 @@ from __future__ import annotations
 import contextlib
 import importlib
 import json
-import os
 import re
 import sys
 import traceback
@@ -42,9 +41,6 @@ FULL_TRACEBACKS: bool = False
 # happen at import time
 WAIT_FOR_CLIENT: bool = False
 
-# A json list of paths to also to import mods from - you can add your repo to keep it separated
-EXTRA_FOLDERS_ENV_VAR: str = "MOD_MANAGER_EXTRA_FOLDERS"
-
 
 @dataclass
 class ModInfo:
@@ -67,10 +63,10 @@ def init_debugpy() -> None:
             debugpy.wait_for_client()  # pyright: ignore[reportUnknownMemberType]  # noqa: T100
             debugpy.breakpoint()  # pyright: ignore[reportUnknownMemberType]  # noqa: T100
 
-        if "PYUNREALSDK_DEBUGPY" not in os.environ:
+        if not unrealsdk.config.get("pyunrealsdk", {}).get("debugpy", False):
             logging.dev_warning(
-                "Was able to start debugpy, but the `PYUNREALSDK_DEBUGPY` environment variable is"
-                " not set. This may prevent breakpoints from working properly.",
+                "Was able to start debugpy, but the `pyunrealsdk.debugpy` config variable is not"
+                " set to true. This may prevent breakpoints from working properly.",
             )
 
         # Make WrappedArrays resolve the same as lists
@@ -94,7 +90,7 @@ def init_debugpy() -> None:
 
 def get_all_mod_folders() -> Sequence[Path]:
     """
-    Gets all mod folders to try import from, including extra folders defined via env var.
+    Gets all mod folders to try import from, including extra folders defined via config file.
 
     Returns:
         A sequence of mod folder paths.
@@ -102,7 +98,9 @@ def get_all_mod_folders() -> Sequence[Path]:
 
     extra_folders = []
     with contextlib.suppress(json.JSONDecodeError, TypeError):
-        extra_folders = [Path(x) for x in json.loads(os.environ.get(EXTRA_FOLDERS_ENV_VAR, ""))]
+        extra_folders = [
+            Path(x) for x in unrealsdk.config.get("mod_manager", {}).get("extra_folders", [])
+        ]
 
     return [Path(__file__).parent, *extra_folders]
 
@@ -335,24 +333,6 @@ def check_proton_bugs() -> None:
             "===============================================================================",
         )
 
-    """
-    Env vars not propagating
-    ------------------------
-    We set various env vars in `unrealsdk.env`, which unrealsdk sets via `SetEnvironmentVariableA`.
-    On some proton versions this does not get propagated through to Python - despite clearly having
-    worked for pyunrealsdk, if we're able to run this script. Some of these are used by Python, and
-    may cause issues if we cannot find them.
-    """
-    if "PYUNREALSDK_INIT_SCRIPT" not in os.environ:
-        logging.error(
-            "===============================================================================\n"
-            "Some environment variables don't seem to have propagated into Python. This may\n"
-            "cause issues in parts of the mod manager or individual mods which expect them.\n"
-            "\n"
-            "Some particular Proton versions cause this, try switch to another one.\n"
-            "===============================================================================",
-        )
-
 
 # Don't really want to put a `__name__` check here, since it's currently just `builtins`, and that
 # seems a bit unstable, like something that pybind might eventually change
@@ -401,5 +381,3 @@ import_mods(mods_to_import)
 
 # After importing everything, register the base mod
 register_base_mod()
-
-del mod_folders, mods_to_import

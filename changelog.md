@@ -57,6 +57,11 @@
 > - Renamed the `unrealsdk.locking_process_event` (previously `UNREALSDK_LOCKING_PROCESS_EVENT`)
 >   setting to `unrealsdk.locking_function_calls`, and expanded it's scope to cover all function
 >   calls. This fixes a few more possibilities for lockups.
+> 
+> - Trying to set a struct, array, or multicast delegate to itself is now a no-op, and prints a
+>   warning.
+> 
+> - The console key will now also be overwritten if it was previously set to `Undefine`.
 
 ## v1.5: Time Skip
 
