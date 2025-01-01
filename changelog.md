@@ -36,7 +36,7 @@
 > - `unrealsdk.construct_object` now throws a `RuntimeError` instead of silently returning `None` when
 >   constructing the object fails. This is how the type hints already assumed it worked.
 
-### [unrealsdk v1.5.0](https://github.com/bl-sdk/unrealsdk/blob/master/changelog.md#v150)
+### [unrealsdk v1.5.1](https://github.com/bl-sdk/unrealsdk/blob/master/changelog.md#v150)
 > - Completely reworked the configuration system.
 > 
 >   Environment variables and the `unrealsdk.env` are no longer used, due to issues with them not fully
