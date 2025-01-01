@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.6: Proprietary License
+## v1.6: (codename tbd)
 
 ### BL3 Mod Menu v1.5
 - Fixed the handling of spinner option updates, so that they're actually usable.

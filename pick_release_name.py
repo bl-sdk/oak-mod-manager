@@ -701,7 +701,6 @@ PREVIOUS_RELEASE_NAMES = [
     "Lethal Catch",
     "White Elephant",
     "Time Skip",
-    "Proprietary License",
 ]
 
 
