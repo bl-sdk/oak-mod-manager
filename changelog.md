@@ -22,7 +22,7 @@
 ### Keybinds v2.4
 - Linting fixes.
 
-### [pyunrealsdk v1.5.0](https://github.com/bl-sdk/pyunrealsdk/blob/master/changelog.md#v150)
+### [pyunrealsdk v1.5.1](https://github.com/bl-sdk/pyunrealsdk/blob/master/changelog.md#v151)
 > - Deprecated `unrealsdk.hooks.inject_next_call` in favour of a new
 >   `unrealsdk.hooks.prevent_hooking_direct_calls` context manager.
 > 
@@ -35,8 +35,11 @@
 > 
 > - `unrealsdk.construct_object` now throws a `RuntimeError` instead of silently returning `None` when
 >   constructing the object fails. This is how the type hints already assumed it worked.
+>
+> - Changed type hinting of `unrealsdk.find_all` to return an `Iterable[UObject]`, instead of
+>   `Iterator[UObject]`. This mirrors what was actually happening at runtime.
 
-### [unrealsdk v1.5.1](https://github.com/bl-sdk/unrealsdk/blob/master/changelog.md#v150)
+### [unrealsdk v1.6.0](https://github.com/bl-sdk/unrealsdk/blob/master/changelog.md#v160)
 > - Completely reworked the configuration system.
 > 
 >   Environment variables and the `unrealsdk.env` are no longer used, due to issues with them not fully
@@ -65,6 +68,10 @@
 >   warning.
 > 
 > - The console key will now also be overwritten if it was previously set to `Undefine`.
+>
+> - Handled `UStruct` differing in size between BL2 and TPS.
+>
+> - Fixed all BL3 console output being treated as console commands instead. (Broken only in v1.5.0)
 
 ## v1.5: Time Skip
 
