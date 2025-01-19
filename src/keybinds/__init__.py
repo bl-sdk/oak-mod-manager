@@ -13,15 +13,13 @@ __all__: tuple[str, ...] = (
     "__version_info__",
 )
 
-__version_info__: tuple[int, int] = (2, 4)
+__version_info__: tuple[int, int] = (2, 5)
 __version__: str = f"{__version_info__[0]}.{__version_info__[1]}"
 __author__: str = "bl-sdk"
 
 
-@wraps(KeybindType.enable)
+@wraps(KeybindType._enable)  # pyright: ignore[reportPrivateUsage]
 def enable_keybind(self: KeybindType) -> None:
-    self.is_enabled = True
-
     if self.key is None or self.callback is None:
         return
 
@@ -44,10 +42,10 @@ def enable_keybind(self: KeybindType) -> None:
     self._kb_handle = handle  # type: ignore
 
 
-KeybindType.enable = enable_keybind
+KeybindType._enable = enable_keybind  # pyright: ignore[reportPrivateUsage]
 
 
-@wraps(KeybindType.disable)
+@wraps(KeybindType._disable)  # pyright: ignore[reportPrivateUsage]
 def disable_keybind(self: KeybindType) -> None:
     self.is_enabled = False
 
@@ -59,7 +57,7 @@ def disable_keybind(self: KeybindType) -> None:
     self._kb_handle = None  # type: ignore
 
 
-KeybindType.disable = disable_keybind
+KeybindType._disable = disable_keybind  # pyright: ignore[reportPrivateUsage]
 
 
 @wraps(KeybindType._rebind)  # pyright: ignore[reportPrivateUsage]

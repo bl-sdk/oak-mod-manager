@@ -1,5 +1,46 @@
 # Changelog
 
+## v1.7 (Upcoming)
+
+### Keybinds v2.5
+- Updated with new `mods_base` keybind interface.
+
+### [Mods Base v1.8](https://github.com/bl-sdk/mods_base/blob/master/Readme.md#v18)
+> - The "Update Available" notification should now immediately go away upon updating, instead of
+>   waiting a day for the next check.
+>
+> - Changed the functions the keybind implementation should overwrite from `KeybindType.enable` to
+>   `KeybindType._enable` (+ same for disable). These functions don't need to set `is_enabled`.
+>
+> - Fixed that nested and grouped options' children would not get their `.mod` attribute set.
+
+### [pyunrealsdk v1.6.0](https://github.com/bl-sdk/pyunrealsdk/blob/master/changelog.md#v160)
+> - `WrappedStruct` now supports being copied via the `copy` module.
+>
+> - Fixed that `WrappedArray.index` would not check the last item in the array. It also now accepts
+>   start/stop indexes beyond the array bounds, like `list.index` does.
+>
+> - Hook return values and array access now have the same semantics as normal property accesses. In
+>   practice this means:
+>
+>   - Getting an enum property will convert it to a python `IntFlag` enum (rather than an int).
+>   - Setting an array property will accept any sequence (rather than just wrapped arrays).
+>   
+>   All other property types had the same semantics already, so this is backwards compatible.
+>
+> - Added a `_get_address` method to `WrappedArray`, `WrappedMulticastDelegate`, and `WrappedStruct`.
+
+### [unrealsdk v1.7.0](https://github.com/bl-sdk/unrealsdk/blob/master/changelog.md#v170)
+> - `unrealsdk::unreal::cast` now copies the const-ness of its input object to its callbacks.
+> 
+> - Reworked `PropertyProxy` to be based on `UnrealPointer` (and reworked it too). This fixes some
+>   issues with ownership and possible use after frees.
+>   
+>   *This breaks binary compatibility*, though existing code should work pretty much as is after a
+>   recompile.
+>
+> - Handled `UClass::Interfaces` also having a different offset between BL2 and TPS.
+
 ## v1.6: Reunion
 
 ### BL3 Mod Menu v1.5
