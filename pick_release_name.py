@@ -702,6 +702,7 @@ PREVIOUS_RELEASE_NAMES = [
     "White Elephant",
     "Time Skip",
     "Reunion",
+    "Deathless Mantle",
 ]
 
 
