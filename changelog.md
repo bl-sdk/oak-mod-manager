@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.7 (Upcoming)
+## v1.7: Deathless Mantle
 
 ### Keybinds v2.5
 - Updated with new `mods_base` keybind interface.
