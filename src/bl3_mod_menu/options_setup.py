@@ -294,6 +294,8 @@ def create_description_text(mod: Mod) -> str:
             )
         case CoopSupport.ClientSide:
             blocks.append("<font color='#e0e0e0'>Coop Support: Client Side</font>")
+        case CoopSupport.HostOnly:
+            blocks.append("<font color='#e0e0e0'>Coop Support: Host Only</font>")
 
     return "\n\n".join(blocks)
 
