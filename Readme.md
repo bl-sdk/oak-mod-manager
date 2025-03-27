@@ -33,7 +33,17 @@ When developing, it's recommended to point pyunrealsdk directly at this repo. To
 Once you've done this, you can modify the python files in place.
 
 ## Native code
-The mod manager uses a few native modules. To edit these, or even just the base pyunrealsdk code:
+The mod manager uses a few native modules. The sdk supports five different toolchains:
+
+- MSVC
+- Clang (Windows)
+- Clang (Cross Compile) <sup>*</sup>
+- MinGW <sup>*</sup>
+- LLVM MinGW <sup>*</sup>
+
+The toolchains with an asterix are all cross compiling toolchains. These all also have an associated
+dev container, which is the recommended way of building them. The `clang-cross-*` presets in
+particular hardcode a path assuming they're running in the container.
 
 1. Initialize the git submodules.
    ```sh
@@ -51,15 +61,12 @@ The mod manager uses a few native modules. To edit these, or even just the base 
    python -c 'import requests'
    ```
 
-   If not running on Windows, make sure `msiextract` is also on your PATH. This is typically part
-   of an `msitools` package.
+   If cross compiling, and not using one of the dev containers, make sure `msiextract` is also on
+   your PATH. This is typically part of an `msitools` package.
    ```sh
    apt install msitools # Or equivalent
    msiextract --version 
    ```
-
-   See the explicit python [readme](https://github.com/bl-sdk/common_cmake/blob/master/explicit_python/Readme.md)
-   for a few extra details.
 
 3. Choose a preset, and run CMake. Most IDEs will be able to do this for you,
    ```
