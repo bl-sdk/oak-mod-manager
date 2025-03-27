@@ -52,8 +52,8 @@ const constinit Pattern<23> SHOW_DIALOG{
 using UGbxPlayerController = UObject;
 using UGbxGFxDialogBox = UObject;
 using FGbxGFxDialogBoxInfo = void;
-using show_dialog_func = UGbxGFxDialogBox* (*)(UGbxPlayerController* player_controller,
-                                               FGbxGFxDialogBoxInfo* info);
+using show_dialog_func = UGbxGFxDialogBox* (*)(UGbxPlayerController* /* player_controller */,
+                                               FGbxGFxDialogBoxInfo* /* info */);
 show_dialog_func show_dialog_ptr;
 
 UGbxGFxDialogBox* show_dialog_hook(UGbxPlayerController* player_controller,

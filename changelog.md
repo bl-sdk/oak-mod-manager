@@ -1,5 +1,48 @@
 # Changelog
 
+## v1.8 (Upcoming)
+
+### BL3 Mod Menu v1.6
+ - Support host-only coop support value
+
+### [Console Mod Menu v1.5](https://github.com/bl-sdk/console_mod_menu/blob/master/Readme.md#v15)
+> - Support host-only coop support value
+> - Linting fixes
+
+### [Mods Base v1.9](https://github.com/bl-sdk/mods_base/blob/master/Readme.md#v19)
+> - Added a new `CoopSupport.HostOnly` value.
+>
+> - Added a helper `RestartToDisable` mod class, for mods which need a restart to fully disable.
+>
+> - Specifying a custom class when calling `build_mod` now type hints returning an instance of it,
+>   instead of just `Mod`.
+>
+> - `SliderOption`s now throw if initialized with a step larger than their allowed range.
+>
+> - Added `_(to|from)_json()` methods to all options, and changed settings saving and loading to use
+>   them.
+
+### [pyunrealsdk v1.7.0](https://github.com/bl-sdk/pyunrealsdk/blob/master/changelog.md#v170)
+> - Added `WrappedArray.emplace_struct`, to construct structs in place. This is more efficient than
+>   calling `arr.insert(pos, unrealsdk.make_struct(...))`.
+>
+> - Added `unrealsdk.unreal.IGNORE_STRUCT`, a sentinel value which can be assigned to any struct,
+>   but which does nothing. This is most useful when a function has a required struct arg.
+>
+> - Added support for sending property changed events. This is typically best done via the
+>   `unrealsdk.unreal.notify_changes` context manager.
+>
+> - Fixed that it was possible for the `unrealsdk` module in the global namespace to get replaced,
+>   if something during the init script messed with `sys.modules`. It is now imported during
+>   initialization.
+
+### [unrealsdk v1.8.0](https://github.com/bl-sdk/unrealsdk/blob/master/changelog.md#v180)
+> - Added support for sending property changed events, via `UObject::post_edit_change_property` and
+>   `UObject::post_edit_change_chain_property`.
+
+> - Made the error message when assigning incompatible array types more clear.    
+>   See also https://github.com/bl-sdk/unrealsdk/issues/60 .
+
 ## v1.7: Deathless Mantle
 
 ### Keybinds v2.5
