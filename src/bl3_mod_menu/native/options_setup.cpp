@@ -70,7 +70,7 @@ const constinit Pattern<36> SETUP_TITLE_ITEM{
     "48 8D 8C 24 ????????"  // lea rcx, [rsp+00000098]
 };
 
-using setup_title_item_func = UObject* (*)(UGFxOptionBase* self, FText* title);
+using setup_title_item_func = UObject* (*)(UGFxOptionBase* /* self */, FText* /* title */);
 setup_title_item_func setup_title_item_ptr =
     read_offset<setup_title_item_func>(SETUP_TITLE_ITEM.sigscan("UGFxOptionBase::SetupTitleItem"));
 
@@ -102,10 +102,10 @@ const constinit Pattern<29> SETUP_SLIDER_ITEM_NEW{
     "48 8B DA"        // mov rbx, rdx
 };
 
-using setup_slider_item_func = UObject* (*)(UGFxOptionBase* self,
-                                            UOptionDescriptionItem* description,
-                                            float32_t default_value,
-                                            const FName* callback);
+using setup_slider_item_func = UObject* (*)(UGFxOptionBase* /* self */,
+                                            UOptionDescriptionItem* /* description */,
+                                            float32_t /* default_value */,
+                                            const FName* /* callback */);
 setup_slider_item_func setup_slider_item_ptr;
 
 /**
@@ -180,10 +180,10 @@ const constinit Pattern<106> SETUP_SPINNER_ITEM{
     "48 83 7F ?? 00"     // cmp qword ptr [rdi+70], 00
 };
 
-using setup_spinner_item_func = UObject* (*)(UGFxOptionBase* self,
-                                             UOptionDescriptionItem* description,
-                                             int32_t default_idx,
-                                             const FName* callback);
+using setup_spinner_item_func = UObject* (*)(UGFxOptionBase* /* self */,
+                                             UOptionDescriptionItem* /* description */,
+                                             int32_t /* default_idx */,
+                                             const FName* /* callback */);
 setup_spinner_item_func setup_spinner_item_ptr =
     SETUP_SPINNER_ITEM.sigscan<setup_spinner_item_func>("UGFxOptionBase::SetupSpinnerItem");
 
@@ -198,10 +198,10 @@ const constinit Pattern<25> SETUP_SPINNER_ITEM_AS_BOOL{
     "41 0FB6 F8"         // movzx edi, r8l
 };
 
-using setup_spinner_item_as_bool_func = UObject* (*)(UGFxOptionBase* self,
-                                                     UOptionDescriptionItem* description,
-                                                     int32_t default_idx,
-                                                     const FName* callback);
+using setup_spinner_item_as_bool_func = UObject* (*)(UGFxOptionBase* /* self */,
+                                                     UOptionDescriptionItem* /* description */,
+                                                     int32_t /* default_idx */,
+                                                     const FName* /* callback */);
 setup_spinner_item_as_bool_func setup_spinner_item_as_bool_ptr =
     SETUP_SPINNER_ITEM_AS_BOOL.sigscan<setup_spinner_item_as_bool_func>(
         "UGFxOptionBase::SetupSpinnerItemAsBoolean");
@@ -305,11 +305,11 @@ const constinit Pattern<163> SETUP_DROPDOWN_ITEM{
     "48 8B 5C 24 ??"        // mov rbx, [rsp+38]
 };
 
-using setup_dropdown_item_func = UObject* (*)(UGFxOptionBase* self,
-                                              UOptionDescriptionItem* description,
-                                              TArray<FText> options,
-                                              int32_t default_idx,
-                                              const FName* callback);
+using setup_dropdown_item_func = UObject* (*)(UGFxOptionBase* /* self */,
+                                              UOptionDescriptionItem* /* description */,
+                                              TArray<FText> /* options */,
+                                              int32_t /* default_idx */,
+                                              const FName* /* callback */);
 setup_dropdown_item_func setup_dropdown_item_ptr =
     SETUP_DROPDOWN_ITEM.sigscan<setup_dropdown_item_func>("UGFxOptionBase::SetupDropDownListItem");
 
@@ -344,9 +344,9 @@ const constinit Pattern<19> SETUP_BUTTON_ITEM{
     "49 8B D8"        // mov rbx, r8
 };
 
-using setup_button_item_func = UObject* (*)(UGFxOptionBase* self,
-                                            UOptionDescriptionItem* description,
-                                            const FName* callback);
+using setup_button_item_func = UObject* (*)(UGFxOptionBase* /* self */,
+                                            UOptionDescriptionItem* /* description */,
+                                            const FName* /* callback */);
 setup_button_item_func setup_button_item_ptr =
     SETUP_BUTTON_ITEM.sigscan<setup_button_item_func>("UGFxOptionBase::SetupButtonItem");
 
@@ -376,12 +376,13 @@ const constexpr auto BINDING_TYPE_COMMON = 1;
 
 using UGbxGFxListItemControls = UObject;
 using TBaseDelegate = void;
-using setup_controls_item_func = UGbxGFxListItemControls* (*)(UGFxOptionBase* self,
-                                                              UOptionDescriptionItem* description,
-                                                              FText* first,
-                                                              FText* second,
-                                                              EBindingType binding_type,
-                                                              TBaseDelegate* callback);
+using setup_controls_item_func =
+    UGbxGFxListItemControls* (*)(UGFxOptionBase* /* self */,
+                                 UOptionDescriptionItem* /* description */,
+                                 FText* /* first */,
+                                 FText* /* second */,
+                                 EBindingType /* binding_type */,
+                                 TBaseDelegate* /* callback */);
 setup_controls_item_func setup_controls_item_ptr =
     SETUP_CONTROLS_ITEM.sigscan<setup_controls_item_func>("UGFxOptionBase::SetupControlsItem");
 

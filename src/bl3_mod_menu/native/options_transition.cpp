@@ -215,7 +215,7 @@ void option_base_create_content_panel_item_hook(UGFxOptionBase* self,
                                                 UOptionDescriptionItem* description) {
     auto option_type = description->get<UEnumProperty>(option_type_prop);
 
-    if (option_type == INVALID_OPTION_TYPE) {
+    if (std::cmp_equal(option_type, INVALID_OPTION_TYPE)) {
         try {
             const py::gil_scoped_acquire gil{};
             pyunrealsdk::debug_this_thread();
