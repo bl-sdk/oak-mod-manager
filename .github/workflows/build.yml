@@ -101,6 +101,13 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Build
       uses: devcontainers/ci@v0.3
       with:
@@ -115,12 +122,14 @@ jobs:
           git config --global --add safe.directory `pwd`/libs/pyunrealsdk
           git config --global --add safe.directory `pwd`/libs/pyunrealsdk/libs/unrealsdk
 
+          set -e
+
           cmake . --preset ${{ matrix.toolchain.preset }} -G Ninja
           cmake --build out/build/${{ matrix.toolchain.preset }}  --target install
 
-          [ ${{ inputs.new-release-tag == '' && 1 || 0 }} -ne 0 ] \
-            && python prepare_release.py ${{ matrix.toolchain.preset }} --skip-install --no-bl3 --no-wl --unified \
-            || true
+          if [ ${{ inputs.new-release-tag == '' && 1 || 0 }} -ne 0 ]; then
+            python prepare_release.py ${{ matrix.toolchain.preset }} --skip-install --no-bl3 --no-wl --unified
+          fi
 
     - name: Upload Artifact
       if: inputs.new-release-tag == ''
