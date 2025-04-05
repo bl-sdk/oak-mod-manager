@@ -337,7 +337,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if check_git_is_dirty():
-        print("WARNING: git repo is dirty")
+        print("WARNING: git repo is dirty")  # noqa: T201
 
     install_dir = INSTALL_DIR_BASE / str(args.preset)
 
@@ -358,6 +358,6 @@ if __name__ == "__main__":
             continue
 
         name = f"{prefix}-sdk-{args.preset}.zip"
-        print(f"Zipping {name} ...")
+        print(f"Zipping {name} ...")  # noqa: T201
 
         zip_release(Path(name), mods, "debug" in args.preset, install_dir)
