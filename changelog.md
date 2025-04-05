@@ -42,6 +42,11 @@
 
 > - Made the error message when assigning incompatible array types more clear.    
 >   See also https://github.com/bl-sdk/unrealsdk/issues/60 .
+>
+> - Fixed checking the setting `exe_override` rather than the full `unrealsdk.exe_override`, like
+>   how it was documented / originally intended.
+>
+>   [3010f486](https://github.com/bl-sdk/unrealsdk/commit/3010f486)
 
 ## v1.7: Deathless Mantle
 
