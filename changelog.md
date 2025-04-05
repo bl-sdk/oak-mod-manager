@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.8 (Upcoming)
+## v1.8: Twin Soul
 
 ### BL3 Mod Menu v1.6
  - Support host-only coop support value
