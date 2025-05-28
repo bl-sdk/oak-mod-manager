@@ -46,7 +46,7 @@ WAIT_FOR_CLIENT: bool = False
 class ModInfo:
     module: str
     location: Path
-    duplicates: list[ModInfo] = field(default_factory=list)
+    duplicates: list[ModInfo] = field(default_factory=list["ModInfo"])
 
 
 def init_debugpy() -> None:

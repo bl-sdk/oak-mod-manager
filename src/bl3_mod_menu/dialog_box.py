@@ -84,7 +84,7 @@ class DialogBox:
 
     _controller_default_idx: int | None = field(default=None, init=False, repr=False)
     _result_mapping: dict[str, DialogBoxChoice] = field(
-        default_factory=dict,
+        default_factory=dict[str, DialogBoxChoice],
         init=False,
         repr=False,
     )
