@@ -2,8 +2,7 @@ cmake_minimum_required(VERSION 3.25)
 
 project(oak_mod_manager)
 
-set(UNREALSDK_ARCH x64)
-set(UNREALSDK_UE_VERSION UE4)
+set(UNREALSDK_FLAVOUR OAK)
 set(EXPLICIT_PYTHON_ARCH amd64)
 set(EXPLICIT_PYTHON_VERSION 3.13.1)
 
