@@ -2,6 +2,10 @@
 
 ## v1.9 (Upcoming)
 
+### BL3 Mod Menu v1.7
+ - Upgraded to support unrealsdk v2.0.0
+ - Linting fixes.
+
 ### [Console Mod Menu v1.6](https://github.com/bl-sdk/console_mod_menu/blob/master/Readme.md#v16)
 > - Linting fixes.
 
