@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.9 (Upcoming)
+## v1.9: Minor Kong
 
 ### BL3 Mod Menu v1.7
  - Upgraded to support unrealsdk v2.0.0
