@@ -704,6 +704,7 @@ PREVIOUS_RELEASE_NAMES = [
     "Reunion",
     "Deathless Mantle",
     "Twin Soul",
+    "Minor Kong",
 ]
 
 
