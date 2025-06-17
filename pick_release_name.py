@@ -705,6 +705,7 @@ PREVIOUS_RELEASE_NAMES = [
     "Deathless Mantle",
     "Twin Soul",
     "Minor Kong",
+    "Stinger",
 ]
 
 
