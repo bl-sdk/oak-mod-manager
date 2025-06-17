@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.10 (Upcoming)
+## v1.10: Stinger
 Increased the visual version number. This also fixes the "update available" notification still
 showing.
 
