@@ -1,6 +1,12 @@
 # Changelog
 
+## v1.10 (Upcoming)
+Increased the visual version number. This also fixes the "update available" notification still
+showing.
+
 ## v1.9: Minor Kong
+Note this version was mistakenly released without increasing the visual version number, it still
+displayed as v1.8.
 
 ### BL3 Mod Menu v1.7
  - Upgraded to support unrealsdk v2.0.0
