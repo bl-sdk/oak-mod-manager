@@ -3,14 +3,14 @@
 #include "pyunrealsdk/logging.h"
 #include "pyunrealsdk/static_py_object.h"
 #include "unrealsdk/memory.h"
-#include "unrealsdk/unreal/classes/properties/copyable_property.h"
-#include "unrealsdk/unreal/classes/properties/uenumproperty.h"
-#include "unrealsdk/unreal/classes/properties/uobjectproperty.h"
-#include "unrealsdk/unreal/classes/properties/ustructproperty.h"
 #include "unrealsdk/unreal/classes/uobject.h"
 #include "unrealsdk/unreal/classes/uobject_funcs.h"
 #include "unrealsdk/unreal/classes/uscriptstruct.h"
 #include "unrealsdk/unreal/find_class.h"
+#include "unrealsdk/unreal/properties/copyable_property.h"
+#include "unrealsdk/unreal/properties/zenumproperty.h"
+#include "unrealsdk/unreal/properties/zobjectproperty.h"
+#include "unrealsdk/unreal/properties/zstructproperty.h"
 #include "unrealsdk/unreal/structs/ftext.h"
 #include "unrealsdk/unreal/structs/tarray.h"
 #include "unrealsdk/unreal/structs/tarray_funcs.h"
@@ -186,9 +186,9 @@ option_menu_get_option_title_func option_menu_get_option_title_ptr;
 auto option_description_item = unrealsdk::unreal::find_class(L"OptionDescriptionItem"_fn);
 auto transient = unrealsdk::find_object(L"Package"_fn, L"/Engine/Transient");
 auto option_type_prop =
-    option_description_item->find_prop_and_validate<UEnumProperty>(L"OptionType"_fn);
+    option_description_item->find_prop_and_validate<ZEnumProperty>(L"OptionType"_fn);
 auto option_item_type_prop =
-    option_description_item->find_prop_and_validate<UEnumProperty>(L"OptionItemType"_fn);
+    option_description_item->find_prop_and_validate<ZEnumProperty>(L"OptionItemType"_fn);
 
 const constexpr auto INVALID_OPTION_TYPE = std::numeric_limits<uint8_t>::max();
 const constexpr auto INVALID_OPTION_ITEM_TYPE = std::numeric_limits<uint8_t>::max();
@@ -199,12 +199,14 @@ void option_base_refresh_hook(UGFxOptionBase* self) {
         inject_options_this_call = false;
 
         auto description = unrealsdk::construct_object(option_description_item, transient);
-        description->set<UEnumProperty>(option_type_prop, INVALID_OPTION_TYPE);
-        description->set<UEnumProperty>(option_item_type_prop, INVALID_OPTION_ITEM_TYPE);
+        description->set<ZEnumProperty>(option_type_prop, INVALID_OPTION_TYPE);
+        description->set<ZEnumProperty>(option_item_type_prop, INVALID_OPTION_ITEM_TYPE);
 
         auto option_list = reinterpret_cast<TArray<UOptionDescriptionItem*>*>(
             reinterpret_cast<uintptr_t>(self) + option_list_offset);
         option_list->resize(1);
+        // We just made space so this is safe
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         (*option_list)[0] = description;
     }
 
@@ -213,7 +215,7 @@ void option_base_refresh_hook(UGFxOptionBase* self) {
 
 void option_base_create_content_panel_item_hook(UGFxOptionBase* self,
                                                 UOptionDescriptionItem* description) {
-    auto option_type = description->get<UEnumProperty>(option_type_prop);
+    auto option_type = description->get<ZEnumProperty>(option_type_prop);
 
     if (std::cmp_equal(option_type, INVALID_OPTION_TYPE)) {
         try {
@@ -280,11 +282,11 @@ using scrolling_list_scroll_to_position_func = void (*)(UGbxGFxGridScrollingList
 scrolling_list_scroll_to_position_func scrolling_list_scroll_to_position_ptr;
 
 auto content_panel_prop = unrealsdk::unreal::find_class(L"GFxOptionBase"_fn)
-                              ->find_prop_and_validate<UObjectProperty>(L"ContentPanel"_fn);
+                              ->find_prop_and_validate<ZObjectProperty>(L"ContentPanel"_fn);
 auto ui_scroller_prop =
-    content_panel_prop->PropertyClass()->find_prop_and_validate<UStructProperty>(L"UiScroller"_fn);
+    content_panel_prop->PropertyClass()->find_prop_and_validate<ZStructProperty>(L"UiScroller"_fn);
 auto scroll_position_prop =
-    ui_scroller_prop->Struct()->find_prop_and_validate<UFloatProperty>(L"ScrollPosition"_fn);
+    ui_scroller_prop->Struct()->find_prop_and_validate<ZFloatProperty>(L"ScrollPosition"_fn);
 
 /**
  * @brief Performs all required setup needed to be able to manipulate the options scrollbar.
@@ -334,9 +336,9 @@ PYBIND11_MODULE(options_transition, m) {
 
             float scroll_pos = 0;
             if (preserve_scroll) {
-                scroll_pos = converted_self->get<UObjectProperty>(scroll::content_panel_prop)
-                                 ->get<UStructProperty>(scroll::ui_scroller_prop)
-                                 .get<UFloatProperty>(scroll::scroll_position_prop);
+                scroll_pos = converted_self->get<ZObjectProperty>(scroll::content_panel_prop)
+                                 ->get<ZStructProperty>(scroll::ui_scroller_prop)
+                                 .get<ZFloatProperty>(scroll::scroll_position_prop);
             }
 
             injection::inject_options_this_call = true;
@@ -345,7 +347,7 @@ PYBIND11_MODULE(options_transition, m) {
             injection::option_base_refresh_hook(converted_self);
 
             if (preserve_scroll) {
-                auto scroll_list = converted_self->get<UObjectProperty>(scroll::content_panel_prop);
+                auto scroll_list = converted_self->get<ZObjectProperty>(scroll::content_panel_prop);
 
                 scroll::scrolling_list_scroll_to_position_ptr(scroll_list, scroll_pos, false);
             }

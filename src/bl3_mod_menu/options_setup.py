@@ -1,12 +1,10 @@
 import functools
-from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import unrealsdk
 from unrealsdk import logging
 from unrealsdk.hooks import Type
-from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 from mods_base import (
     BaseOption,
@@ -35,6 +33,11 @@ from .native.options_setup import (
     add_title,
 )
 from .native.options_transition import open_custom_options, refresh_options
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator, Sequence
+
+    from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 OPTIONS_MENU_CLS = unrealsdk.find_class("GFxOptionsMenu")
 
@@ -323,7 +326,9 @@ def get_mod_options(mod: Mod) -> tuple[BaseOption, ...]:
             yield BoolOption(
                 "Enabled",
                 mod.is_enabled,
-                on_change=lambda _, now_enabled: mod.enable() if now_enabled else mod.disable(),
+                on_change_anytime=lambda _, now_enabled: (
+                    mod.enable() if now_enabled else mod.disable()
+                ),
             )
 
         yield from mod.iter_display_options()

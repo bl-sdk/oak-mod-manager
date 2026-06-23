@@ -4,10 +4,10 @@
 #include "pyunrealsdk/static_py_object.h"
 #include "unrealsdk/memory.h"
 #include "unrealsdk/unreal/class_name.h"
-#include "unrealsdk/unreal/classes/properties/uarrayproperty.h"
-#include "unrealsdk/unreal/classes/properties/ustructproperty.h"
 #include "unrealsdk/unreal/classes/uobject.h"
 #include "unrealsdk/unreal/classes/uscriptstruct.h"
+#include "unrealsdk/unreal/properties/zarrayproperty.h"
+#include "unrealsdk/unreal/properties/zstructproperty.h"
 #include "unrealsdk/unreal/wrappers/wrapped_struct.h"
 #include "unrealsdk/unrealsdk.h"
 
@@ -21,7 +21,7 @@ pyunrealsdk::StaticPyObject configure_callback{};
 
 auto info_struct_type = validate_type<UScriptStruct>(
     unrealsdk::find_object(L"ScriptStruct", L"/Script/OakGame.GbxGFxDialogBoxInfo"));
-auto choices_prop = info_struct_type->find_prop_and_validate<UArrayProperty>(L"Choices"_fn);
+auto choices_prop = info_struct_type->find_prop_and_validate<ZArrayProperty>(L"Choices"_fn);
 
 const constinit Pattern<21> DISPLAY_NAT_HELP_DIALOG{
     "40 55"                 // push rbp
@@ -67,7 +67,7 @@ UGbxGFxDialogBox* show_dialog_hook(UGbxPlayerController* player_controller,
         // Specifically it crashes trying to create a new FText - presumably at an index which no
         // longer exists
         // To avoid this, swap it out with an empty array for this call
-        auto arr = info_struct.get<UArrayProperty>(choices_prop);
+        auto arr = info_struct.get<ZArrayProperty>(choices_prop);
         const TArray<void> arr_backup = *arr.base;
         *arr.base = TArray<void>{.data = nullptr, .count = 0, .max = 0};
 

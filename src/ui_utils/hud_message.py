@@ -1,10 +1,12 @@
 import threading
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from unrealsdk.hooks import Block, Type
-from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 from mods_base import get_pc, hook
+
+if TYPE_CHECKING:
+    from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 __all__: tuple[str, ...] = ("show_hud_message",)
 
