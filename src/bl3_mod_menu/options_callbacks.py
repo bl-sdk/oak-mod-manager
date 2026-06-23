@@ -1,7 +1,6 @@
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from unrealsdk.hooks import Block, Type
-from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 from mods_base import (
     BaseOption,
@@ -26,6 +25,9 @@ from .options_setup import (
     is_options_menu_open,
     open_nested_options_menu,
 )
+
+if TYPE_CHECKING:
+    from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 
 @hook(

@@ -1,13 +1,16 @@
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
 import unrealsdk
-from unrealsdk.unreal import UObject
 
 from keybinds import raw_keybinds
 from mods_base import BoolOption, DropdownOption, EInputEvent, KeybindOption, get_pc
 
 from .dialog_box import DialogBox
 from .native.options_setup import add_binding
+
+if TYPE_CHECKING:
+    from unrealsdk.unreal import UObject
 
 
 class ControllerIconStyle(StrEnum):

@@ -192,7 +192,7 @@ It's called for controller in game, and kb/m in menus, just not controller in me
 For this case, we hook on `GbxMenuInput::HandleRawInput` as well.
 
 Using both hooks has a slight extra issue though: `InputKey` calls `HandleRawInput` (for kb/m in
-menus). This bool is used to prevent trigging the callbacks twice.
+menus). This bool is used to prevent triggering the callbacks twice.
 */
 bool skip_duplicate_raw_input_call = false;
 

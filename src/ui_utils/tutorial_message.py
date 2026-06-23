@@ -1,11 +1,13 @@
 import contextlib
 import warnings
-from typing import Literal, overload
+from typing import TYPE_CHECKING, Literal, overload
 
 import unrealsdk
-from unrealsdk.unreal import UObject
 
 from mods_base import Game, get_pc
+
+if TYPE_CHECKING:
+    from unrealsdk.unreal import UObject
 
 __all__: tuple[str, ...] = (
     "KNOWN_BL3_IMAGE_NAMES",

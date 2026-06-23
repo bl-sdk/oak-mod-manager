@@ -205,6 +205,8 @@ void option_base_refresh_hook(UGFxOptionBase* self) {
         auto option_list = reinterpret_cast<TArray<UOptionDescriptionItem*>*>(
             reinterpret_cast<uintptr_t>(self) + option_list_offset);
         option_list->resize(1);
+        // We just made space so this is safe
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         (*option_list)[0] = description;
     }
 

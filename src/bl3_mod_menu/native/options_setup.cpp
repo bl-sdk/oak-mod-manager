@@ -225,6 +225,8 @@ void add_spinner(UGFxOptionBase* self,
     auto size = options.size();
     options_array.resize(size);
     for (size_t i = 0; i < size; i++) {
+        // This is safe because we just grabbed the size
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         options_array.set_at<ZTextProperty>(i, options[i]);
     }
 
@@ -326,6 +328,8 @@ void add_dropdown(UGFxOptionBase* self,
     auto size = options.size();
     converted_options.resize(size);
     for (size_t i = 0; i < size; i++) {
+        // This is safe because we just grabbed/set the size
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         converted_options[i] = options[i];
     }
 

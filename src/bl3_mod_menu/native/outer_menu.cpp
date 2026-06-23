@@ -57,7 +57,7 @@ int32_t add_menu_item_hook(UObject* self,
 
             auto converted_self = pyunrealsdk::type_casters::cast(self);
 
-            auto ret = add_menu_item_callback(converted_self, (std::string)*text, callback_name,
+            auto ret = add_menu_item_callback(converted_self, std::string{*text}, callback_name,
                                               big, always_minus_one);
 
             return py::cast<int32_t>(ret);

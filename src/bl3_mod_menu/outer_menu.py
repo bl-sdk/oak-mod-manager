@@ -1,9 +1,8 @@
 import re
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import unrealsdk
 from unrealsdk.hooks import Block, Type
-from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 from mods_base import BoolOption, Mod, get_ordered_mod_list, hook
 
@@ -15,6 +14,9 @@ from .native.outer_menu import (
     set_menu_state,
 )
 from .options_setup import open_options_menu
+
+if TYPE_CHECKING:
+    from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 MAIN_PAUSE_MENU_CLS = unrealsdk.find_class("GFxMainAndPauseBaseMenu")
 
