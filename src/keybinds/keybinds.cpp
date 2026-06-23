@@ -7,12 +7,12 @@
 #include "pyunrealsdk/unreal_bindings/uenum.h"
 #include "unrealsdk/memory.h"
 #include "unrealsdk/unreal/class_name.h"
-#include "unrealsdk/unreal/classes/properties/copyable_property.h"
-#include "unrealsdk/unreal/classes/properties/uboolproperty.h"
 #include "unrealsdk/unreal/classes/uenum.h"
 #include "unrealsdk/unreal/classes/uobject.h"
 #include "unrealsdk/unreal/classes/uobject_funcs.h"
 #include "unrealsdk/unreal/classes/uscriptstruct.h"
+#include "unrealsdk/unreal/properties/copyable_property.h"
+#include "unrealsdk/unreal/properties/zboolproperty.h"
 #include "unrealsdk/unreal/structs/fname.h"
 #include "unrealsdk/unreal/wrappers/bound_function.h"
 #include "unrealsdk/unreal/wrappers/wrapped_struct.h"
@@ -39,7 +39,7 @@ struct PY_OBJECT_VISIBILITY KeybindData {
     bool gameplay_bind{};
 };
 
-const FName ANY_KEY{0, 0};
+const FName ANY_KEY{};
 std::unordered_multimap<FName, std::shared_ptr<KeybindData>> all_keybinds{};
 
 /**
@@ -58,7 +58,7 @@ bool is_in_menu(AOakPlayerController* player_controller) {
         static auto is_in_menu = validate_type<UFunction>(
             unrealsdk::find_object(L"Function", L"/Script/OakGame.OakPlayerController:IsInMenu"));
 
-        return BoundFunction{.func = is_in_menu, .object = player_controller}.call<UBoolProperty>();
+        return BoundFunction{.func = is_in_menu, .object = player_controller}.call<ZBoolProperty>();
 
     } else {  // NOLINT(readability-else-after-return)
 
@@ -66,10 +66,10 @@ bool is_in_menu(AOakPlayerController* player_controller) {
         // cursor is actually drawn
         // Since this uses a generic playercontroller property, rather than something oak-specific,
         // we default to it on unknown executables
-        static auto show_mouse_cursor = validate_type<UBoolProperty>(unrealsdk::find_object(
+        static auto show_mouse_cursor = validate_type<ZBoolProperty>(unrealsdk::find_object(
             L"BoolProperty", L"/Script/Engine.PlayerController:bShowMouseCursor"));
 
-        return player_controller->get<UBoolProperty>(show_mouse_cursor);
+        return player_controller->get<ZBoolProperty>(show_mouse_cursor);
     }
 }
 
@@ -181,7 +181,7 @@ namespace hook {
 
 auto key_struct_type =
     validate_type<UScriptStruct>(unrealsdk::find_object(L"ScriptStruct", L"/Script/InputCore.Key"));
-auto key_name_prop = key_struct_type->find_prop_and_validate<UNameProperty>(L"KeyName"_fn);
+auto key_name_prop = key_struct_type->find_prop_and_validate<ZNameProperty>(L"KeyName"_fn);
 
 /*
 We use two hooks to detect keys.
@@ -217,7 +217,7 @@ uintptr_t oakpc_inputkey_hook(AOakPlayerController* self,
                               float press_duration,
                               uint32_t gamepad_id) {
     try {
-        auto key_name = WrappedStruct{key_struct_type, key}.get<UNameProperty>(key_name_prop);
+        auto key_name = WrappedStruct{key_struct_type, key}.get<ZNameProperty>(key_name_prop);
 
         if (processing::handle_key_event(key_name, input_event,
                                          [self]() { return processing::is_in_menu(self); })) {
@@ -255,7 +255,7 @@ uintptr_t handle_raw_input_hook(void* self,
                                 uint32_t gamepad_id) {
     if (!skip_duplicate_raw_input_call) {
         try {
-            auto key_name = WrappedStruct{key_struct_type, key}.get<UNameProperty>(key_name_prop);
+            auto key_name = WrappedStruct{key_struct_type, key}.get<ZNameProperty>(key_name_prop);
 
             if (processing::handle_key_event(key_name, input_event, []() { return true; })) {
                 return 0;

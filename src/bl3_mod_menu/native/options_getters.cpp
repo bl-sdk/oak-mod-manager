@@ -2,7 +2,6 @@
 #include "unrealsdk/pch.h"
 #include "unrealsdk/memory.h"
 #include "unrealsdk/unreal/class_name.h"
-#include "unrealsdk/unreal/classes/properties/copyable_property.h"
 #include "unrealsdk/unreal/classes/uobject.h"
 #include "unrealsdk/unreal/classes/uscriptstruct.h"
 #include "unrealsdk/unreal/wrappers/wrapped_struct.h"

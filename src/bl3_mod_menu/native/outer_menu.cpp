@@ -4,7 +4,6 @@
 #include "pyunrealsdk/static_py_object.h"
 #include "unrealsdk/hook_manager.h"
 #include "unrealsdk/memory.h"
-#include "unrealsdk/unreal/classes/properties/uobjectproperty.h"
 #include "unrealsdk/unreal/classes/uobject.h"
 #include "unrealsdk/unreal/structs/fname.h"
 #include "unrealsdk/unreal/structs/ftext.h"

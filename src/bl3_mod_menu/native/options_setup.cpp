@@ -1,15 +1,15 @@
 #include "pyunrealsdk/pch.h"
 #include "unrealsdk/memory.h"
 #include "unrealsdk/unreal/class_name.h"
-#include "unrealsdk/unreal/classes/properties/copyable_property.h"
-#include "unrealsdk/unreal/classes/properties/uarrayproperty.h"
-#include "unrealsdk/unreal/classes/properties/uboolproperty.h"
-#include "unrealsdk/unreal/classes/properties/utextproperty.h"
 #include "unrealsdk/unreal/classes/uclass.h"
 #include "unrealsdk/unreal/classes/uobject.h"
 #include "unrealsdk/unreal/classes/uobject_funcs.h"
 #include "unrealsdk/unreal/classes/uscriptstruct.h"
 #include "unrealsdk/unreal/find_class.h"
+#include "unrealsdk/unreal/properties/copyable_property.h"
+#include "unrealsdk/unreal/properties/zarrayproperty.h"
+#include "unrealsdk/unreal/properties/zboolproperty.h"
+#include "unrealsdk/unreal/properties/ztextproperty.h"
 #include "unrealsdk/unreal/structs/fname.h"
 #include "unrealsdk/unreal/structs/ftext.h"
 #include "unrealsdk/unreal/structs/tarray.h"
@@ -39,19 +39,19 @@ UOptionDescriptionItem* create_description_item(
     const std::optional<std::wstring>& description_title,
     const std::wstring& description) {
     static auto name_prop =
-        OPTION_DESCRIPTION_ITEM->find_prop_and_validate<UTextProperty>(L"OptionItemName"_fn);
+        OPTION_DESCRIPTION_ITEM->find_prop_and_validate<ZTextProperty>(L"OptionItemName"_fn);
     static auto description_title_prop =
-        OPTION_DESCRIPTION_ITEM->find_prop_and_validate<UTextProperty>(
+        OPTION_DESCRIPTION_ITEM->find_prop_and_validate<ZTextProperty>(
             L"OptionDescriptionTitle"_fn);
     static auto description_prop =
-        OPTION_DESCRIPTION_ITEM->find_prop_and_validate<UTextProperty>(L"OptionDescriptionText"_fn);
+        OPTION_DESCRIPTION_ITEM->find_prop_and_validate<ZTextProperty>(L"OptionDescriptionText"_fn);
 
     static auto transient = unrealsdk::find_object(L"Package"_fn, L"/Engine/Transient");
 
     auto obj = unrealsdk::construct_object(OPTION_DESCRIPTION_ITEM, transient);
-    obj->set<UTextProperty>(name_prop, name);
-    obj->set<UTextProperty>(description_title_prop, description_title ? *description_title : name);
-    obj->set<UTextProperty>(description_prop, description);
+    obj->set<ZTextProperty>(name_prop, name);
+    obj->set<ZTextProperty>(description_title_prop, description_title ? *description_title : name);
+    obj->set<ZTextProperty>(description_prop, description);
 
     return obj;
 }
@@ -129,19 +129,19 @@ void add_slider(UGFxOptionBase* self,
                 const std::optional<std::wstring>& description_title,
                 const std::wstring& description) {
     static auto slider_min_prop =
-        OPTION_DESCRIPTION_ITEM->find_prop_and_validate<UFloatProperty>(L"SliderMin"_fn);
+        OPTION_DESCRIPTION_ITEM->find_prop_and_validate<ZFloatProperty>(L"SliderMin"_fn);
     static auto slider_max_prop =
-        OPTION_DESCRIPTION_ITEM->find_prop_and_validate<UFloatProperty>(L"SliderMax"_fn);
+        OPTION_DESCRIPTION_ITEM->find_prop_and_validate<ZFloatProperty>(L"SliderMax"_fn);
     static auto slider_step_prop =
-        OPTION_DESCRIPTION_ITEM->find_prop_and_validate<UFloatProperty>(L"SliderStep"_fn);
+        OPTION_DESCRIPTION_ITEM->find_prop_and_validate<ZFloatProperty>(L"SliderStep"_fn);
     static auto slider_is_integer_prop =
-        OPTION_DESCRIPTION_ITEM->find_prop_and_validate<UBoolProperty>(L"SliderIsInteger"_fn);
+        OPTION_DESCRIPTION_ITEM->find_prop_and_validate<ZBoolProperty>(L"SliderIsInteger"_fn);
 
     auto desc_item = create_description_item(name, description_title, description);
-    desc_item->set<UFloatProperty>(slider_min_prop, slider_min);
-    desc_item->set<UFloatProperty>(slider_max_prop, slider_max);
-    desc_item->set<UFloatProperty>(slider_step_prop, slider_step);
-    desc_item->set<UBoolProperty>(slider_is_integer_prop, slider_is_integer);
+    desc_item->set<ZFloatProperty>(slider_min_prop, slider_min);
+    desc_item->set<ZFloatProperty>(slider_max_prop, slider_max);
+    desc_item->set<ZFloatProperty>(slider_step_prop, slider_step);
+    desc_item->set<ZBoolProperty>(slider_is_integer_prop, slider_is_integer);
 
     setup_slider_item_ptr(self, desc_item, value, &OPTION_CALLBACK);
 }
@@ -214,18 +214,18 @@ void add_spinner(UGFxOptionBase* self,
                  const std::optional<std::wstring>& description_title,
                  const std::wstring& description) {
     static auto options_prop =
-        OPTION_DESCRIPTION_ITEM->find_prop_and_validate<UArrayProperty>(L"SpinnerOptions"_fn);
+        OPTION_DESCRIPTION_ITEM->find_prop_and_validate<ZArrayProperty>(L"SpinnerOptions"_fn);
     static auto wrap_enabled_prop =
-        OPTION_DESCRIPTION_ITEM->find_prop_and_validate<UBoolProperty>(L"SpinnerWrapEnabled"_fn);
+        OPTION_DESCRIPTION_ITEM->find_prop_and_validate<ZBoolProperty>(L"SpinnerWrapEnabled"_fn);
 
     auto desc_item = create_description_item(name, description_title, description);
-    desc_item->set<UBoolProperty>(wrap_enabled_prop, wrap_enabled);
+    desc_item->set<ZBoolProperty>(wrap_enabled_prop, wrap_enabled);
 
-    auto options_array = desc_item->get<UArrayProperty>(options_prop);
+    auto options_array = desc_item->get<ZArrayProperty>(options_prop);
     auto size = options.size();
     options_array.resize(size);
     for (size_t i = 0; i < size; i++) {
-        options_array.set_at<UTextProperty>(i, options[i]);
+        options_array.set_at<ZTextProperty>(i, options[i]);
     }
 
     setup_spinner_item_ptr(self, desc_item, idx, &OPTION_CALLBACK);
@@ -239,16 +239,16 @@ void add_bool_spinner(UGFxOptionBase* self,
                       const std::optional<std::wstring>& description_title,
                       const std::wstring& description) {
     static auto true_text_prop =
-        OPTION_DESCRIPTION_ITEM->find_prop_and_validate<UTextProperty>(L"BooleanOnText"_fn);
+        OPTION_DESCRIPTION_ITEM->find_prop_and_validate<ZTextProperty>(L"BooleanOnText"_fn);
     static auto false_text_prop =
-        OPTION_DESCRIPTION_ITEM->find_prop_and_validate<UTextProperty>(L"BooleanOffText"_fn);
+        OPTION_DESCRIPTION_ITEM->find_prop_and_validate<ZTextProperty>(L"BooleanOffText"_fn);
 
     auto desc_item = create_description_item(name, description_title, description);
     if (true_text) {
-        desc_item->set<UTextProperty>(true_text_prop, *true_text);
+        desc_item->set<ZTextProperty>(true_text_prop, *true_text);
     }
     if (false_text) {
-        desc_item->set<UTextProperty>(false_text_prop, *false_text);
+        desc_item->set<ZTextProperty>(false_text_prop, *false_text);
     }
 
     setup_spinner_item_as_bool_ptr(self, desc_item, value ? 1 : 0, &OPTION_CALLBACK);
