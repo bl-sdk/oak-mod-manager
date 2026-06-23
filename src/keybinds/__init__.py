@@ -13,7 +13,7 @@ __all__: tuple[str, ...] = (
     "__version_info__",
 )
 
-__version_info__: tuple[int, int] = (2, 5)
+__version_info__: tuple[int, int] = (2, 6)
 __version__: str = f"{__version_info__[0]}.{__version_info__[1]}"
 __author__: str = "bl-sdk"
 

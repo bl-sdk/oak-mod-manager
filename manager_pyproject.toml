@@ -5,7 +5,7 @@
 
 [project]
 name = "oak_mod_manager"
-version = "1.10"
+version = "1.11"
 authors = [{ name = "bl-sdk" }]
 
 [tool.sdkmod]
