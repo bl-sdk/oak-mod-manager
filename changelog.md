@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.11 (Upcoming)
+## v1.11: The Butcher
 - Upgraded to Python 3.14.
 - Added the `mod_manager.extra_sys_path` config option.
 - Added support for launching launching an IPython kernel inside the SDK, which lets you interact
