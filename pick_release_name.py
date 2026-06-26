@@ -706,6 +706,7 @@ PREVIOUS_RELEASE_NAMES = [
     "Twin Soul",
     "Minor Kong",
     "Stinger",
+    "The Butcher",
 ]
 
 
